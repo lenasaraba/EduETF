@@ -2,7 +2,14 @@ import {
   Avatar,
   Box,
   Breadcrumbs,
+  Button,
   CardContent,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   Grid,
   IconButton,
@@ -10,24 +17,35 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Popover,
   styled,
   Typography,
 } from "@mui/material";
+import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
+import BlockIcon from "@mui/icons-material/Block";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import FlipCard from "./components/FlipCard";
 import SchoolIcon from "@mui/icons-material/School";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ForumIcon from "@mui/icons-material/Forum";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import {
+  deleteProfessorsCourseAsync,
+  deleteProfessorsThemeAsync,
   fetchProfessorsAsync,
   fetchProfessorThemesAsync,
   fetchProfessorYearsProgramsAsync,
+  updateThemeStatus,
 } from "./professorSlice";
 import CourseCardSkeleton from "./components/CourseCardSkeleton";
 import LoadingComponent from "../../app/layout/LoadingComponent";
+import { Theme } from "../../app/models/theme";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+
+import DeleteDialog from "./components/DeleteDialog";
+
 const Demo = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
   border: "2px solid",
@@ -39,6 +57,7 @@ export default function ProfessorInfo() {
   const navigate = useNavigate();
 
   const { id } = useParams<{ id: string }>(); // Osigurava da je `id` uvek string
+  const user = useAppSelector((state) => state.account.user);
 
   useEffect(() => {
     dispatch(fetchProfessorsAsync());
@@ -48,6 +67,18 @@ export default function ProfessorInfo() {
     if (!id) return undefined; // Ako je `id` undefined, vrati `undefined`
     return state.professor.professors.find((p) => p.id === parseInt(id));
   });
+
+  const [themeSelected, setThemeSelected] = useState<Theme | undefined>(
+    undefined
+  );
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const idMenu = open ? "simple-popover" : undefined;
+  const [loadingStatus, setLoadingStatus] = useState<{
+    [key: number]: boolean;
+  }>({});
 
   const coursesLoaded = useAppSelector(
     (state) => state.professor.coursesLoaded
@@ -100,12 +131,104 @@ export default function ProfessorInfo() {
     });
   }, [dispatch, allProfessors]);
 
+  // useEffect(() => {
+  //   if (themeSelected) {
+  //     setThemeSelected(
+  //       professorThemes![professor!.id].find((t) => t.id === themeSelected.id)
+  //     );
+  //   }
+  // }, [professorThemes]);
+
+  // useEffect(() => {
+  //   // Ovaj useEffect će se pokrenuti svaki put kada se tema promeni
+  //   // console.log('Teme su ažurirane:', professorThemes);
+  // }, [professorThemes]);
+
+  const updateStatus = async (event: React.MouseEvent<HTMLElement>, theme: Theme) => {
+    event.preventDefault();
+  
+    // console.log("Pre update:", theme); 
+  
+    setAnchorEl(null);
+    
+    setLoadingStatus((prev) => ({ ...prev, [theme.id]: true }));
+  
+    const updateData = {
+      id: theme.id,
+      active: !theme.active,
+    };
+  
+    try {
+      await dispatch(updateThemeStatus(updateData)).unwrap();
+      // console.log("Posle update:", updatedTheme); 
+    } catch (error) {
+      console.error("Greška prilikom ažuriranja statusa:", error);
+    } finally {
+      setLoadingStatus((prev) => ({ ...prev, [theme.id]: false }));
+    }
+  };
+  
+  
+
+  const handleConfirmDelete = async (item: any, itemType: string) => {
+    if (itemType == "course") {
+      console.log("Brisanje stavke kurs:", item);
+      try {
+        await dispatch(deleteProfessorsCourseAsync({id:item!.id, idProfessor: parseInt(id!)}));
+      } catch (error) {
+        console.error("Greška prilikom brisanja teme:", error);
+      } finally {
+        setOpenDialog(false);
+      }
+    } else if (itemType == "theme") {
+      console.log("Brisanje stavke tema:", item);
+      try {
+        await dispatch(deleteProfessorsThemeAsync({id:item!.id, idProfessor: parseInt(id!)}));
+      } catch (error) {
+        console.error("Greška prilikom brisanja teme:", error);
+      } finally {
+        setOpenDialog(false);
+      }
+    }
+  };
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>, theme: Theme) => {
+    console.log(theme);
+    setThemeSelected(theme);
+    setAnchorEl(event.currentTarget); // Dijalog se otvara nakon što se tema postavi
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+    setTimeout(() => {
+      setThemeSelected(undefined); // Dijalog se otvara nakon što se tema postavi
+    }, 0);
+  };
+
+  const [itemToDelete, setItemToDelete] = useState<any>(null);
+  const [itemType, setItemType] = useState<"course" | "theme">("theme");
+
+  const handleDeleteClick = (
+    event: React.MouseEvent<HTMLElement>,
+    type: "course" | "theme",
+    item: any
+  ) => {
+    setItemType(type);
+    setItemToDelete(item);
+    setOpenDialog(true);
+    setAnchorEl(null);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setAnchorEl(null);
+  };
+
   if (!coursesLoaded) return <LoadingComponent message="Učitavanje..." />;
 
   return (
     <>
       <div ref={topOfPageRef}></div>
-
       <Grid
         container
         sx={{
@@ -329,6 +452,7 @@ export default function ProfessorInfo() {
                     <ListItemText
                       primary={theme.title}
                       sx={{
+                        width: "50%",
                         textDecoration: "none", // Uklanja podvlačenje linka
                         color: "text.primary", // Koristi boju teksta iz roditeljskog elementa
                         "&:visited": {
@@ -343,20 +467,167 @@ export default function ProfessorInfo() {
                         },
                       }}
                     />
-                    <IconButton
-                      edge="end"
-                      aria-label="open"
-                      component={Link}
-                      to={`/forum/${theme.id}`}
+                    <Box
                       sx={{
-                        color: "text.primary",
-                        "&:hover":{
-                          color:"primary.main"
-                        }
+                        margin: 0,
+                        padding: 0,
+                        display: "flex",
+
+                        alignItems: "center",
+                        flexDirection: "row",
                       }}
                     >
-                      <OpenInNewIcon />
-                    </IconButton>
+                      <Chip
+                        // variant="soft"
+                        size="small"
+                        icon={
+                          // {
+                          //   true: <CheckRoundedIcon />,
+                          //   false: <BlockIcon />,
+                          // }[theme.active]
+                          loadingStatus[theme.id] ? (
+                            <CircularProgress
+                              size={16}
+                              sx={{ color: "#fff" }}
+                            />
+                          ) : theme.active ? (
+                            <CheckRoundedIcon />
+                          ) : (
+                            <BlockIcon />
+                          )
+                        }
+                        sx={{
+                          marginX: 1,
+                          backgroundColor: loadingStatus[theme.id]
+                            ? "grey" // Boja dok traje učitavanje
+                            : theme.active
+                              ? "text.primaryChannel"
+                              : "text.secondaryChannel", // Prilagođene boje
+                          color: "#fff", // Tekst u beloj boji
+                          borderRadius: "16px", // Primer prilagođenog oblika
+                          ".MuiChip-icon": {
+                            color: "#fff",
+                          },
+                        }}
+                        // label={theme.active ? "Aktivno" : "Zatvoreno"}
+                        label={
+                          loadingStatus[theme!.id]
+                            ? "Ažuriranje..."
+                            : theme!.active
+                              ? "Aktivno"
+                              : "Zatvoreno"
+                        }
+                      />
+                      <IconButton
+                        edge="end"
+                        aria-label="open"
+                        component={Link}
+                        to={`/forum/${theme.id}`}
+                        sx={{
+                          marginX: 2,
+
+                          color: "text.primary",
+                          "&:hover": {
+                            color: "primary.main",
+                          },
+                        }}
+                      >
+                        <OpenInNewIcon />
+                      </IconButton>
+                      {user && user.username == theme.user.username ? (
+                        <>
+                          <div>
+                            <Box
+                              aria-describedby={idMenu}
+                              // variant="contained"
+                              onClick={(event) => handleClick(event, theme)}
+                              sx={{
+                                display: "flex",
+                                width: "fit-content",
+                                padding: 0,
+                                marginX: 1,
+
+                                "&:hover": {
+                                  cursor: "pointer",
+                                },
+                              }}
+                            >
+                              <MoreVertIcon />
+                            </Box>
+                            <Popover
+                              id={idMenu}
+                              open={open}
+                              anchorEl={anchorEl}
+                              onClose={handleClose}
+                              anchorOrigin={{
+                                vertical: "bottom",
+                                horizontal: "center",
+                              }}
+                              slotProps={{
+                                paper: {
+                                  sx: {
+                                    borderRadius: "10pt",
+                                    "&:hover": {
+                                      cursor: "pointer",
+                                    },
+                                  },
+                                },
+                              }}
+                            >
+                              
+                                <>
+                                  <Typography
+                                    onClick={(event) => updateStatus(event, themeSelected!)}
+                                    variant="body2"
+                                    sx={{
+                                      paddingX: 2,
+                                      paddingY: 1,
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        color: "primary.light",
+                                      },
+                                      fontFamily: "Raleway, sans-serif",
+                                      color: "text.primary",
+                                      backgroundColor: "background.paper",
+                                    }}
+                                  >
+                                    {/* {themeSelected.active
+                                      ? "Zaključaj"
+                                      : "Otključaj"} */}
+                                      Ažuriraj aktivnost
+                                  </Typography>
+                                  <Typography
+                                    onClick={(event) =>
+                                      handleDeleteClick(
+                                        event,
+                                        "theme",
+                                        themeSelected
+                                      )
+                                    }
+                                    variant="body2"
+                                    sx={{
+                                      paddingX: 2,
+                                      paddingY: 1,
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        color: "primary.light",
+                                      },
+                                      fontFamily: "Raleway, sans-serif",
+                                      color: "text.secondaryChannel",
+                                      backgroundColor: "background.paper",
+                                    }}
+                                  >
+                                    Obriši
+                                  </Typography>
+                                </>
+                              
+                            </Popover>
+                          </div>
+                        </>
+                      ) : (
+                        ""
+                      )}
+                    </Box>
                   </ListItem>
                 ))
               ) : (
@@ -415,7 +686,7 @@ export default function ProfessorInfo() {
                       md={3.8} // Na srednjim ekranima tri kartice u redu sa prostorom između njih
                       key={course.id}
                     >
-                      <FlipCard course={course} />
+                      <FlipCard course={course} handleDeleteClick={handleDeleteClick}/>
                     </Grid>
                   ))}
                 </Grid>
@@ -470,6 +741,58 @@ export default function ProfessorInfo() {
           {/* <FlipCard  cour/> */}
         </Grid>
       </Grid>
+
+      <DeleteDialog
+        openDialog={openDialog}
+        handleCloseDialog={handleCloseDialog}
+        handleConfirmDelete={handleConfirmDelete}
+        itemType={itemType}
+        itemData={itemToDelete}
+      />
+
+      {/* <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "12pt",
+            padding: 3,
+            minWidth: 300,
+            textAlign: "center",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Raleway, sans-serif",
+            fontSize: "1.2rem",
+          }}
+        >
+          Potvrda brisanja
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            sx={{
+              fontFamily: "Raleway, sans-serif",
+              color: "text.secondary",
+            }}
+          >
+            Da li ste sigurni da želite da obrišete ovu temu?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
+          <Button onClick={handleCloseDialog} sx={{ color: "text.primary" }}>
+            Odustani
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+          >
+            Obriši
+          </Button>
+        </DialogActions>
+      </Dialog> */}
     </>
   );
 }

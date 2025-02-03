@@ -107,6 +107,19 @@ export const updateThemeStatus = createAsyncThunk<Theme, UpdateThemeDto>(
   }
 );
 
+export const deleteThemeAsync = createAsyncThunk<
+  number, 
+  number, 
+  { state: RootState }
+>("theme/deleteTheme", async (id, thunkAPI) => {
+  try {
+    await agent.Theme.deleteTheme(id);
+    return id; 
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
 export const themeSlice = createSlice({
   name: "theme",
   initialState,
@@ -177,7 +190,12 @@ export const themeSlice = createSlice({
         state.themes[index] = { ...state.themes[index], ...action.payload };
       }
     });
+    builder.addCase(deleteThemeAsync.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.themes = state.themes.filter((theme) => theme.id !== action.payload);
+    });
   },
+  
 });
 export const { setThemes, setThemesParams, resetThemesParams } =
   themeSlice.actions;

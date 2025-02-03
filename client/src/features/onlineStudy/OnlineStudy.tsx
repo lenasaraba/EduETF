@@ -5,9 +5,7 @@ import ProfessorList from "./components/ProfessorList";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import LoadingComponent from "../../app/layout/LoadingComponent";
 import {
-  fetchCoursesAsync,
   fetchCoursesListAsync,
-  resetCoursesParams,
 } from "./courseSlice";
 import { useEffect } from "react";
 import { fetchProfessorsAsync, resetProfessorsParams } from "./professorSlice";
@@ -31,7 +29,7 @@ export default function OnlineStudy() {
     dispatch(fetchProfessorsAsync());
   }, []);
   const { status: courseStatus } = useAppSelector((state) => state.course);
-  console.log(courseStatus);
+  // console.log(courseStatus);
   if (courseStatus.includes("pending"))
     return <LoadingComponent message="Učitavanje kurseva..." />;
 

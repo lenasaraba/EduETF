@@ -46,9 +46,9 @@ namespace API.Controllers
             return courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
         }
 
-        [Authorize] 
+        [Authorize]
         [HttpGet("getAllCourses")]
-        public async Task<ActionResult<PagedList<CourseDto>>> GetCourses([FromQuery] CourseParams coursesParams)
+        public async Task<IActionResult> GetCourses([FromQuery] CourseParams coursesParams)
         {
             var query = _context.Courses
             .Include(y => y.Year)
@@ -58,10 +58,10 @@ namespace API.Controllers
             .Include(t => t.Themes)
             .AsQueryable();
 
-//trenutno prikazuje samo kurseve koje je neko napravio, a ne na koje je upisan
+            //trenutno prikazuje samo kurseve koje je neko napravio, a ne na koje je upisan
             if (coursesParams.Type == "my")
             {
-                
+
                 var user = await _userManager.FindByNameAsync(User.Identity.Name);
                 query = _context.Courses.Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == user!.Id))
             .Include(y => y.Year)
@@ -87,22 +87,18 @@ namespace API.Controllers
                 query = query.Where(c => coursesParams.StudyPrograms.Contains(c.StudyProgram!.Name));
             }
 
-            var pagedCourses = await PagedList<Course>.ToPagedList(query, coursesParams.PageNumber, coursesParams.PageSize);
 
             // Mapiranje na ProductDto
-            var coursesDto = _mapper.Map<List<CourseDto>>(pagedCourses);
+            var pagedCourses = await PagedList<Course>.ToPagedList(query, coursesParams.PageNumber, coursesParams.PageSize);
+            var coursesDto = _mapper.Map<List<CourseDto>>(pagedCourses.Items);
 
-            // Kreiranje PagedList<ProductDto>
-            var pagedCoursesDto = new PagedList<CourseDto>(
-                coursesDto,
-                pagedCourses.MetaData.TotalCount,
-                coursesParams.PageNumber,
-                coursesParams.PageSize
-            );
+            // Dodavanje paginacije u HTTP header
+            Response.AddPaginationHeader(pagedCourses.MetaData);
 
-            Response.AddPaginationHeader(pagedCoursesDto.MetaData);
+            // Vraćanje mapiranih podataka bez dodatne paginacije
+            return Ok(new{coursesDto, pagedCourses.MetaData});  // Samo mapirani podaci
 
-            return pagedCoursesDto;
+
         }
 
 
@@ -131,7 +127,7 @@ namespace API.Controllers
         {
             var courses = await _context.Courses
             .Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == id))
-            .Include(y => y.Year).Include(s => s.StudyProgram).ToListAsync();
+            .Include(y => y.Year).Include(s => s.StudyProgram).Include(pc=>pc.ProfessorsCourse).ThenInclude(u=>u.User).Include(uc=>uc.UsersCourse).ThenInclude(u=>u.User).ToListAsync();
 
             return courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
         }
@@ -143,6 +139,8 @@ namespace API.Controllers
         .Include(y => y.Year)
         .Include(s => s.StudyProgram)
         .Include(t => t.Themes)
+        .Include(pc=>pc.ProfessorsCourse).ThenInclude(u=>u.User)
+        .Include(uc=>uc.UsersCourse).ThenInclude(u=>u.User)
         .FirstOrDefaultAsync(c => c.Id == id);
 
             if (course == null)
@@ -167,41 +165,65 @@ namespace API.Controllers
         [HttpPost("CreateCourse")]
         public async Task<ActionResult<CourseDto>> CreateCourse(CreateCourseDto newCourse)
         {
-             var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
 
-             var course=_mapper.Map<Course>(newCourse);
+            var course = _mapper.Map<Course>(newCourse);
             course.Year = await _context.Years
             .FirstOrDefaultAsync(y => y.Id == newCourse.YearId);
-            course.YearId=newCourse.YearId;
+            course.YearId = newCourse.YearId;
 
             course.StudyProgram = await _context.StudyPrograms
             .FirstOrDefaultAsync(y => y.Id == newCourse.StudyProgramId);
-            course.StudyProgramId=newCourse.StudyProgramId;
+            course.StudyProgramId = newCourse.StudyProgramId;
 
             _context.Courses.Add(course);
             await _context.SaveChangesAsync();
 
-             var professorCourse = new ProfessorCourse
+            var professorCourse = new ProfessorCourse
             {
                 UserId = user!.Id,
                 CourseId = course.Id,
-                EnrollDate=course.CourseCreationDate
+                EnrollDate = course.CourseCreationDate
             };
 
             // Dodavanje veze u bazu
             _context.ProfessorCourses.Add(professorCourse);
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
             var courseDto = _mapper.Map<CourseDto>(course);
             // return CreatedAtAction(nameof(GetCourse), new { id = courseDto.Id }, courseDto);
             var response = new
-                {
-                    Method = "CreateCourse",
-                    Status = "Success",
-                    Data = courseDto
-                };
+            {
+                Method = "CreateCourse",
+                Status = "Success",
+                Data = courseDto
+            };
 
-            return CreatedAtAction(nameof(GetCourse), new { id = courseDto.Id }, response); 
+            return CreatedAtAction(nameof(GetCourse), new { id = courseDto.Id }, response);
 
+        }
+        [Authorize]
+        [HttpDelete("DeleteCourse/{id}")]
+        public async Task<IActionResult> DeleteCourse(int id)
+        {
+            var course = await _context.Courses.FindAsync(id);
+
+            if (course == null)
+            {
+                return NotFound(new { Message = "Kurs nije pronađen." });
+            }
+
+            _context.Courses.Remove(course);
+            await _context.SaveChangesAsync();
+
+            var response = new
+            {
+                Method = "DeleteCourse",
+                Status = "Success",
+                Message = "Kurs obrisan.",
+                Id = id
+            };
+
+            return Ok(response); // Vraćamo JSON sa ID-jem i porukom
         }
 
     }

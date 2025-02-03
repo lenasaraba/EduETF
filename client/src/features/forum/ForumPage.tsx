@@ -1,4 +1,4 @@
-import { Box, Divider, Grid, Typography } from "@mui/material";
+import { Box, Button, Divider, Grid, Typography } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { fetchThemesAsync, resetThemesParams } from "./themeSlice";
 import { Fragment, useEffect } from "react";
@@ -8,6 +8,8 @@ import forum from "../../assets/forum.png";
 import ForumAppBar from "./components/ForumAppBar";
 import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Link } from "react-router-dom";
+import AddIcon from "@mui/icons-material/Add";
+
 
 export default function ForumPage() {
   // const methods = useForm({
@@ -15,6 +17,9 @@ export default function ForumPage() {
   //   resolver: yupResolver(validationSchema(true)),
   // });
   //OVO TRUE SAM DODALA DA NE CRVENI
+
+    const user = useAppSelector((state) => state.account.user);
+  
 
   const dispatch = useAppDispatch();
   useEffect(() => {
@@ -92,9 +97,41 @@ export default function ForumPage() {
               >
                 Studentski forum
               </Typography>
+               <Box
+                          sx={{
+                            margin: 0,
+                            padding: 0,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
               <Typography sx={{ fontFamily: "Raleway, sans-serif" }}>
                 Postavljajte pitanja ili potražite temu koja vam je potrebna.
               </Typography>
+              {user && (
+              <Button
+                component={Link}
+                to="/createTheme"
+                //onClick={handleOpen}
+                sx={{
+                  backgroundColor: "primary.dark",
+                  color: "white",
+                  padding: "10px 20px",
+                  borderRadius: "20px",
+                  // fontSize: "30px",
+                  "&:hover": {
+                    backgroundColor: "primary.light",
+                  },
+                  height: "fit-content",
+                  width: "3rem",
+                  boxSizing: "border-box",
+                }}
+              >
+                <AddIcon sx={{ fontSize: "16pt" }} />
+              </Button>
+            )}
+              </Box>
             </div>
 
             <Box
@@ -185,7 +222,7 @@ export default function ForumPage() {
               </Grid>
             </Box>
 
-            <Box
+            {/* <Box
               sx={{
                 px: 0,
                 margin: 0,
@@ -229,8 +266,9 @@ export default function ForumPage() {
               >
                 Započni svoju temu
               </Typography>
-              {/* <ForumForm open={open} setOpen={setOpen}/> */}
-            </Box>
+            </Box> */}
+
+
           </Box>
         </Grid>
       </Grid>

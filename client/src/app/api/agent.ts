@@ -31,16 +31,22 @@ axios.interceptors.response.use(
 
       // Ako želite, možete dodati specifičnu logiku za status 201
     }
-
-    const pagination = response.headers["pagination"];
-    //console.log(response.headers);
-    if (pagination) {
-      response.data = new PaginatedResponse(
-        response.data,
-        JSON.parse(pagination)
-      );
-      return response;
+    else if(response.status===200){
+      if (response.data.method == "DeleteTheme") toast.success(response.data.message);
+      if (response.data.method == "DeleteCourse") toast.success(response.data.message);
     }
+
+    // const pagination = response.headers["pagination"];
+    // //console.log(response.headers);
+    // if (pagination) {
+    //   // response.data = new PaginatedResponse(
+    //   //   response.data,
+    //   //   JSON.parse(pagination)
+    //   // );
+    //   console.log(response);
+    //   return response;
+    // }
+    // console.log(response.data);
     return response;
   },
   (error: AxiosError) => {
@@ -50,7 +56,7 @@ axios.interceptors.response.use(
     const { data, status } = error.response as AxiosResponse;
     switch (status) {
       case 201:
-        console.log(data.title);
+        // console.log(data.title);
         break;
       case 400:
         // if(data.errors){
@@ -104,8 +110,10 @@ const Course = {
   // getMy: (id: string) => requests.get(`course/getMyCourses/${id}`),
   getProfessorCourses: (id: number) =>
     requests.get(`course/getProfessorsCourses/${id}`),
+  getCourse:(id:number)=>requests.get(`course/getCourseById/${id}`),
   fetchFilters: () => requests.get("course/filters"),
   create: (values: any) => requests.post("course/CreateCourse", values),
+  deleteCourse:(id:number)=>requests.delete(`course/DeleteCourse/${id}`),
 };
 
 const Professor = {
@@ -124,6 +132,8 @@ const Theme = {
   updateTheme: (themeData: any) =>
     requests.post("theme/updateTheme", themeData),
   getProfessorThemes:(id:number)=>requests.get(`theme/getProfessorThemes/${id}`),
+  deleteTheme: (id: number) => requests.delete(`theme/DeleteTheme/${id}`),
+
 };
 const Message = {
   getAll: (id:number) => requests.get(`theme/GetAllMessages/${id}`),

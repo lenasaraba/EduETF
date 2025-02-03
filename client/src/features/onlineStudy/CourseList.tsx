@@ -15,6 +15,7 @@ import CourseCard from "./CourseCard";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import {
+  deleteCourseAsync,
   fetchCoursesAsync,
   fetchFilters,
   resetCoursesParams,
@@ -30,6 +31,7 @@ import CourseCardSkeleton from "./components/CourseCardSkeleton";
 import FilterSelectChip from "./components/FilterSelectChip";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import { Course } from "../../app/models/course";
 
 export default function CourseList() {
   const [searchParams] = useSearchParams();
@@ -37,7 +39,7 @@ export default function CourseList() {
   const dispatch = useAppDispatch();
 
   const {
-    coursesLoaded,
+    pagecoursesLoaded,
     filtersLoaded,
     years,
     programs,
@@ -75,8 +77,8 @@ export default function CourseList() {
 
   //kad se mijenja stranica da se pribave kursevi sa nove
   useEffect(() => {
-    if (!coursesLoaded) dispatch(fetchCoursesAsync());
-  }, [coursesLoaded, dispatch]);
+    if (!pagecoursesLoaded) dispatch(fetchCoursesAsync());
+  }, [pagecoursesLoaded, dispatch]);
 
   useEffect(() => {
     if (!filtersLoaded) dispatch(fetchFilters());
@@ -355,33 +357,14 @@ export default function CourseList() {
 
           {/* ovdje dodati dio koji ide u main content sa grid 86. linija */}
         </Box>
-        {(courseType == "my" &&
-          coursesToDisplay &&
-          coursesToDisplay.length > 0) ||
-        (courseType == "all" &&
-          coursesToDisplay &&
-          coursesToDisplay.length > 0) ? (
+        {pagecoursesLoaded ? (
           <>
-            {!coursesLoaded ? (
-              <Grid
-                container
-                spacing={0} // Uklanjamo automatski razmak između elemenata
-                justifyContent="flex-start" // Elementi idu redom, bez centriranja ili raspodele
-                columns={12}
-                sx={{
-                  width: "100%",
-                  gap: "2.5%",
-                  mt: 4,
-                  rowGap: 4,
-                }}
-              >
-                {coursesToDisplay!.map((course) => (
-                  <Grid item xs={12} sm={5.8} md={3.8} key={course.id}>
-                    <CourseCardSkeleton />
-                  </Grid>
-                ))}
-              </Grid>
-            ) : (
+            {(courseType == "my" &&
+              coursesToDisplay &&
+              coursesToDisplay.length > 0) ||
+            (courseType == "all" &&
+              coursesToDisplay &&
+              coursesToDisplay.length > 0) ? (
               <Grid
                 container
                 spacing={0} // Uklanjamo automatski razmak između elemenata
@@ -406,6 +389,19 @@ export default function CourseList() {
                   </Grid>
                 ))}
               </Grid>
+            ) : (<Box sx={{ display: "flex", flexDirection: "column", mt: 0 }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontFamily: "Raleway, sans-serif",
+                  paddingTop: 4,
+                  color: "text.primary",
+                  ml: 4,
+                }}
+              >
+                Nije pronađen nijedan kurs.
+              </Typography>
+            </Box>              
             )}
             <Box sx={{ mb: 2, mt: 2 }}>
               {metaData && (
@@ -419,38 +415,30 @@ export default function CourseList() {
             </Box>
           </>
         ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", mt: 0 }}>
-            <Typography
-              variant="h4"
-              sx={{
-                fontFamily: "Raleway, sans-serif",
-                paddingTop: 4,
-                color: "text.primary",
-                ml: 4,
-              }}
+          <Grid
+          container
+          spacing={0} // Uklanjamo automatski razmak između elemenata
+          justifyContent="flex-start" // Elementi idu redom, bez centriranja ili raspodele
+          columns={12}
+          sx={{
+            width: "100%",
+            gap: "2.5%",
+            mt: 4,
+            rowGap: 4,
+          }}
+        >
+          {[0,1,2]!.map((index) => (
+            <Grid
+              item
+              xs={12} // Na najmanjim ekranima zauzima celu širinu
+              sm={5.8} // Na manjim ekranima dve kartice u redu
+              md={3.8} // Na srednjim ekranima tri kartice u redu sa prostorom između njih
+              key={index}
             >
-              Nije pronađen nijedan kurs.
-            </Typography>
-            {/* <Typography
-              variant="body1"
-              sx={{
-                fontFamily: "Raleway, sans-serif",
-                paddingTop: 4,
-                color: "text.primary",
-                ml: 4,
-              }}
-            >
-              Vrati se na{" "}
-              <Box
-                component={Link}
-                to="/onlineStudy"
-                sx={{ margin: 0, padding: 0 }}
-              >
-                početnu stranicu.
-              </Box>
-              .
-            </Typography> */}
-          </Box>
+              <CourseCardSkeleton/>
+            </Grid>
+          ))}
+        </Grid>
         )}
         {/* </Box> */}
       </Grid>

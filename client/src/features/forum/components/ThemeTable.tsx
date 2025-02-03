@@ -12,7 +12,9 @@ import Option from "@mui/joy/Option";
 import Table from "@mui/joy/Table";
 import Sheet from "@mui/joy/Sheet";
 import { debounce, TableBody, Theme } from "@mui/material";
+
 import { Typography as MuiTypo } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
 
 import { Link as JoyLink } from "@mui/joy";
 import { Typography } from "@mui/joy";
@@ -28,10 +30,12 @@ import {
 } from "../../../app/store/configureStore";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+  deleteThemeAsync,
   fetchFilters,
   fetchThemesAsync,
   resetThemesParams,
   setThemesParams,
+  updateThemeStatus,
 } from "../themeSlice";
 import { ThemeProvider as MuiThemeProvider } from "@mui/material";
 import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy";
@@ -39,6 +43,20 @@ import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy";
 import TableRowSkeleton from "./TableRowSkeleton";
 import LoadingComponentJoy from "../../../app/layout/LoadingComponentJoy";
 import { extendTheme } from "@mui/joy/styles";
+import Dropdown from "@mui/joy/Dropdown";
+import Menu from "@mui/joy/Menu";
+import MenuButton from "@mui/joy/MenuButton";
+import MenuItem from "@mui/joy/MenuItem";
+import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
+import Divider from "@mui/joy/Divider";
+import IconButton from "@mui/joy/IconButton";
+import React from "react";
+import { Theme as ThemeModel } from "../../../app/models/theme";
+
+import {
+  Modal,
+  Button as ButtonJ,
+} from "@mui/joy";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -63,13 +81,18 @@ function getComparator<Key extends keyof never>(
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
+
 interface ThemeTableProps {
   themeM: Theme; // Define the 'theme' prop type
 }
+
 export default function ThemeTable({ themeM }: ThemeTableProps) {
   const [currentColor, setCurrentColor] = useState<string>("");
   const [statusValue, setStatusValue] = useState<string>("");
   const [catValue, setCatValue] = useState<string>("");
+  const [themeSelected, setThemeSelected] = useState<ThemeModel | undefined>(
+    undefined
+  );
 
   // Ref za pristup svim Option elementima
   const optionRefs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -126,6 +149,32 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
 
   const user = useAppSelector((state) => state.account.user);
   const navigate = useNavigate();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState<{
+    [key: number]: boolean;
+  }>({});
+
+  const updateStatus = async (
+    event: React.MouseEvent<HTMLElement>,
+    theme: ThemeModel
+  ) => {
+    event.preventDefault(); // Sprečava osvežavanje stranice
+
+    setLoadingStatus((prev) => ({ ...prev, [theme.id]: true })); // Postavi loading za određenu temu
+
+    const updateData = {
+      id: theme.id,
+      active: !theme.active,
+    };
+
+    try {
+      await dispatch(updateThemeStatus(updateData));
+    } catch (error) {
+      console.error("Greška prilikom ažuriranja statusa:", error);
+    } finally {
+      setLoadingStatus((prev) => ({ ...prev, [theme.id]: false })); // Isključi loading nakon završetka
+    }
+  };
 
   useEffect(() => {
     if (themesType === "my" && !user) {
@@ -150,8 +199,32 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
   if (!filtersLoaded)
     return <LoadingComponentJoy message="Učitavanje tema..." />;
 
-  // if (themeStatus.includes("pending") || !themesLoaded)
-  // return <TableRowSkeleton />;
+  const handleDeleteClick = (
+    event: React.MouseEvent<HTMLElement>,
+    theme: ThemeModel
+  ) => {
+    setThemeSelected(theme);
+    setTimeout(() => {
+      setOpenDialog(true); // Dijalog se otvara nakon što se tema postavi
+    }, 0);
+  };
+
+  const handleCloseDialog = () => {
+    setThemeSelected(undefined);
+
+    setOpenDialog(false);
+  };
+
+  const handleConfirmDelete = async (event: React.MouseEvent<HTMLElement>) => {
+    try {
+      await dispatch(deleteThemeAsync(themeSelected!.id));
+      // navigate(");
+    } catch (error) {
+      console.error("Greška prilikom brisanja teme:", error);
+    } finally {
+      setOpenDialog(false);
+    }
+  };
 
   const pageTheme = extendTheme({
     colorSchemes: {
@@ -202,7 +275,6 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
             white: "#212a3e",
           },
           neutral: {
-            // ...neutralD,
             plainColor: `var(--joy-palette-neutral-200)`,
             plainHoverColor: `var(--joy-palette-neutral-50)`,
             plainHoverBg: `var(--joy-palette-neutral-800)`,
@@ -252,6 +324,69 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
       },
     },
   });
+
+  const RowMenu = (themeF: ThemeModel) => (
+    <>
+      <Dropdown>
+        <MenuButton
+          slots={{ root: IconButton }}
+          slotProps={{
+            root: { variant: "plain", color: "neutral", size: "sm" },
+          }}
+        >
+          <MoreHorizRoundedIcon />
+        </MenuButton>
+        <Menu
+          size="sm"
+          sx={{
+            minWidth: 140,
+            backgroundColor: themeM.palette.background.paper,
+            borderColor: themeM.palette.background.default,
+            color: themeM.palette.primary.main,
+          }}
+        >
+          <MenuItem
+            sx={{
+              backgroundColor: themeM.palette.background.paper,
+              color: themeM.palette.primary.main,
+              "&:hover": {
+                backgroundColor: themeM.palette.text.primary,
+                color: themeM.palette.background.paper,
+              },
+              "&.Mui-selected, &[aria-selected='true']": {
+                backgroundColor: themeM.palette.primary.main,
+                color: "white",
+                fontWeight: "bolder",
+              },
+            }}
+            onClick={(event) => updateStatus(event, themeF)}
+          >
+            Ažuriraj aktivnost
+          </MenuItem>
+          <Divider />
+          <MenuItem
+            // color="danger"
+            sx={{
+              backgroundColor: themeM.palette.background.paper,
+              color: themeM.palette.text.secondaryChannel,
+              "&:hover": {
+                backgroundColor: themeM.palette.text.primary,
+                color: themeM.palette.background.paper,
+              },
+              "&.Mui-selected, &[aria-selected='true']": {
+                backgroundColor: themeM.palette.primary.main,
+                color: "white",
+                fontWeight: "bolder",
+              },
+            }}
+            onClick={(event) => handleDeleteClick(event, themeF)}
+          >
+            Obriši temu
+          </MenuItem>
+        </Menu>
+      </Dropdown>
+    </>
+  );
 
   const renderFilters = () => (
     <>
@@ -440,7 +575,6 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
             </FormControl>
             {renderFilters()}
           </Box>
-
           <Sheet
             className="ThemesContainer"
             variant="outlined"
@@ -482,7 +616,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                     alignItems: "center", // Osiguravamo da su stavke poravnate
                   }}
                 >
-                  <th style={{ width: "25%", flex: 1 }}>
+                  <th style={{ width: "25%", flex: 1, display:"flex",
+                            justifyContent:"center", }}>
                     <JoyLink
                       underline="none"
                       color="primary"
@@ -510,6 +645,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                       color: themeM.palette.primary.main,
                       // width: "25%",
                       flex: 1,
+                      display:"flex",
+                            justifyContent:"center",
                     }}
                   >
                     Datum
@@ -519,6 +656,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                       color: themeM.palette.primary.main,
                       //  width: "25%",
                       flex: 1,
+                      display:"flex",
+                            justifyContent:"center",
                     }}
                   >
                     Kategorija
@@ -529,18 +668,45 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                       color: themeM.palette.primary.main,
                       // width: "25%",
                       flex: 1,
+                      display:"flex",
+                            justifyContent:"center",
                     }}
                   >
                     Status
                   </th>
                   <th
                     style={{
+                      // padding: "12px 12px",
                       color: themeM.palette.primary.main,
                       // width: "25%",
                       flex: 1,
+                      display:"flex",
+                            justifyContent:"center",
+                    }}
+                  >
+                    Broj poruka
+                  </th>
+                  <th
+                    style={{
+                      color: themeM.palette.primary.main,
+                      // width: "25%",
+                      flex: 1,
+                      display:"flex",
+                            justifyContent:"center",
                     }}
                   >
                     Kreator
+                  </th>
+                  <th
+                    style={{
+                      color: themeM.palette.primary.main,
+                      // width: "25%",
+                      flex: 1,
+                      display:"flex",
+                            justifyContent:"center",
+                    }}
+                  >
+                    Meni
                   </th>
                 </tr>
               </thead>
@@ -566,8 +732,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                   },
                 }}
               >
-                {status.includes("pending") || !themesLoaded ? (
-                  <TableRowSkeleton />
+                {!themesLoaded ? (
+                  <TableRowSkeleton themeM={themeM} />
                 ) : (
                   allThemes &&
                   [...allThemes]
@@ -594,6 +760,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             flex: 1,
                             height: "fit-content",
                             border: 0,
+                            display:"flex",
+                            justifyContent:"flex-start",
                           }}
                         >
                           <div>
@@ -604,6 +772,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                                 textDecoration: "none",
                                 color: themeM.palette.action.active,
                                 cursor: "pointer",
+                                fontSize:"12pt",
                                 overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
                                 display: "-webkit-box", // Neophodno za multi-line truncation
                                 WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
@@ -622,6 +791,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             </MuiTypo>
                             <MuiTypo
                               sx={{
+                                fontSize:"11pt",
                                 color: themeM.palette.action.active,
                                 overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
                                 display: "-webkit-box", // Neophodno za multi-line truncation
@@ -642,6 +812,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             flex: 1,
                             height: "fit-content",
                             border: 0,
+                            display:"flex",
+                            justifyContent:"center",
                           }}
                         >
                           <Typography
@@ -669,6 +841,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             flex: 1,
                             height: "fit-content",
                             border: 0,
+                            display:"flex",
+                            justifyContent:"flex-start",
                           }}
                         >
                           <Typography
@@ -701,21 +875,31 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             flex: 1,
                             height: "fit-content",
                             border: 0,
+                            display:"flex",
+                            justifyContent:"center",
                           }}
                         >
                           <Chip
                             variant="soft"
                             size="sm"
                             startDecorator={
-                              {
-                                true: <CheckRoundedIcon />,
-                                false: <BlockIcon />,
-                              }[theme1.active]
+                              loadingStatus[theme1.id] ? (
+                                <CircularProgress
+                                  size={16}
+                                  sx={{ color: "#fff" }}
+                                />
+                              ) : theme1.active ? (
+                                <CheckRoundedIcon />
+                              ) : (
+                                <BlockIcon />
+                              )
                             }
                             sx={{
-                              backgroundColor: theme1.active
-                                ? themeM.palette.text.primaryChannel
-                                : themeM.palette.text.secondaryChannel, // Prilagođene boje
+                              backgroundColor: loadingStatus[theme1.id]
+                                ? "grey"
+                                : theme1.active
+                                  ? themeM.palette.text.primaryChannel
+                                  : themeM.palette.text.secondaryChannel, // Prilagođene boje
                               color: "#fff", // Tekst u beloj boji
                               borderRadius: "16px", // Primer prilagođenog oblika
                               ".MuiChip-icon": {
@@ -723,7 +907,11 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                               },
                             }}
                           >
-                            {theme1.active ? "Aktivno" : "Zatvoreno"}
+                            {loadingStatus[theme1.id]
+                              ? "Ažuriranje"
+                              : theme1.active
+                                ? "Aktivno"
+                                : "Zatvoreno"}
                           </Chip>
                         </td>
                         <td
@@ -732,6 +920,26 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             flex: 1,
                             height: "fit-content",
                             border: 0,
+                            display:"flex",
+                            justifyContent:"center",
+                          }}
+                        >
+                          <MuiTypo
+                            sx={{
+                              color: themeM.palette.action.active,
+                            }}
+                          >
+                            {theme1.messages.length.toString()}
+                          </MuiTypo>
+                        </td>
+                        <td
+                          style={{
+                            padding: "0 12px",
+                            flex: 1,
+                            height: "fit-content",
+                            border: 0,
+                            display:"flex",
+                            justifyContent:"center",
                           }}
                         >
                           <Box
@@ -753,7 +961,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                                 sx={{
                                   color: themeM.palette.action.active,
                                   textDecoration: "none",
-                                  fontSize: "12pt",
+                                  fontSize: "10pt",
                                   fontWeight: "normal",
                                   "&:hover": {
                                     cursor: "pointer",
@@ -778,12 +986,137 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             </div>
                           </Box>
                         </td>
+
+                        <td
+                          style={{
+                            padding: "0 12px",
+                            flex: 1,
+                            height: "fit-content",
+                            border: 0,
+                            display: "flex",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {user && user.username == theme1.user.username
+                            ? RowMenu(theme1)
+                            : " "}
+                        </td>
                       </tr>
                     ))
                 )}
               </TableBody>
             </Table>
           </Sheet>
+          <Modal
+            open={openDialog}
+            onClose={handleCloseDialog}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backdropFilter: "none", // Uklanjamo zamagljenje pozadine
+              backgroundColor: "transparent", // Uklanjamo pozadinsku boju iza modala
+              zIndex: 1300, // Postavljamo z-index da bude iznad drugih elemenata
+            }}
+            slotProps={{
+              backdrop: {
+                sx: {
+                  backgroundColor: "rgba(0,0,0,0.5)", // Uklanjamo pozadinsku boju backdopa
+                  backdropFilter: "none !important", // Uklanjamo filter na pozadini
+                },
+              },
+            }}
+          >
+            <Box
+              sx={{
+                borderRadius: "12pt",
+                padding: 4,
+                minWidth: 320,
+                maxWidth: 600,
+                backgroundColor: themeM.palette.background.paper, // Zadržavamo pozadinsku boju za modal sadržaj
+                boxShadow: 24, // Senka iza modala
+              }}
+            >
+              <MuiTypo
+                variant="h2"
+                sx={{
+                  fontFamily: "Raleway, sans-serif",
+                  marginBottom: 0,
+                  textAlign: "center",
+                  paddingY: 2,
+                  paddingX: 3,
+                  fontSize: "1.2rem",
+                  color: themeM.palette.text.primary,
+                }}
+              >
+                Potvrda brisanja
+              </MuiTypo>
+              <MuiTypo
+                sx={{
+                  fontFamily: "Raleway, sans-serif",
+                  color: themeM.palette.primary.light, // Koristi sekundarni tekst za opis
+                  textAlign: "center",
+                  marginBottom: 3,
+                  fontSize: "clamp(9pt, 11pt, 13pt)",
+                }}
+              >
+                Da li ste sigurni da želite da obrišete ovu temu?
+              </MuiTypo>
+              <MuiTypo
+                sx={{
+                  color: themeM.palette.info.light,
+                  fontSize: "clamp(8pt, 9pt, 10pt)",
+                  textAlign: "center",
+                }}
+              >
+                {themeSelected?.title}
+                {"-"}
+                {themeSelected?.description}
+              </MuiTypo>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 2,
+                  padding: 1,
+                  alignItems: "center",
+                  mt: 2,
+                }}
+              >
+                <ButtonJ
+                  onClick={handleCloseDialog}
+                  variant="plain"
+                  sx={{
+                    color: themeM.palette.text.primary,
+                    fontSize: "0.875rem",
+                    textTransform: "uppercase",
+                    boxShadow: "var(--mui-shadows-2)",
+                    "&:hover": {
+                      backgroundColor: themeM.palette.primary.dark,
+                    },
+                  }}
+                >
+                  Odustani
+                </ButtonJ>
+                <ButtonJ
+                  onClick={handleConfirmDelete}
+                  // color="danger"
+                  variant="solid"
+                  sx={{
+                    boxShadow: "var(--mui-shadows-2)",
+                    fontSize: "0.875rem",
+                    textTransform: "uppercase",
+                    backgroundColor: themeM.palette.error.main,
+                    "&:hover": {
+                      backgroundColor: themeM.palette.error.dark,
+                    },
+                  }}
+                >
+                  Obriši
+                </ButtonJ>
+              </Box>
+            </Box>
+          </Modal>
         </JoyCssVarsProvider>
       </MuiThemeProvider>
     </>

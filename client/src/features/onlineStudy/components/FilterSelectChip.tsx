@@ -37,7 +37,7 @@ export default function FilterSelectChip({ programs, years, onChange }: Props) {
   const boxRef2 = useRef<HTMLDivElement | HTMLSpanElement>(null);
   const [boxWidth2, setBoxWidth2] = useState(0); // Držimo širinu u stanju
 
-  console.log(typographyWidth, typographyWidth2, boxWidth, boxWidth2);
+  // console.log(typographyWidth, typographyWidth2, boxWidth, boxWidth2);
   // console.log("----------------- " + window.innerWidth);
   // console.log("----------------- " + typographyWidth);
   // console.log("----------------- " + boxWidth);
@@ -48,7 +48,7 @@ export default function FilterSelectChip({ programs, years, onChange }: Props) {
       setTypographyWidth(typographyRef.current.offsetWidth); // Dohvatamo širinu
     }
 
-    console.log(typographyWidth, typographyWidth2, boxWidth, boxWidth2);
+    // console.log(typographyWidth, typographyWidth2, boxWidth, boxWidth2);
   }, [alignLeft]); // Re-render kad se alignLeft promeni
 
   useEffect(() => {
@@ -72,7 +72,7 @@ export default function FilterSelectChip({ programs, years, onChange }: Props) {
     if (typographyRef2.current) {
       setTypographyWidth2(typographyRef2.current.offsetWidth); // Dohvatamo širinu
     }
-    console.log(typographyWidth, typographyWidth2, boxWidth, boxWidth2);
+    // console.log(typographyWidth, typographyWidth2, boxWidth, boxWidth2);
   }, [alignRight]);
   const toggleYears = () => {
     setIsOpenY((prev) => !prev); // Prebacivanje između otvoreno/zatvoreno

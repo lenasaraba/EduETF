@@ -88,9 +88,10 @@ namespace API.Controllers
             return _mapper.Map<GetThemeDto>(theme);
         }
         [HttpGet("getProfessorThemes/{id}")]
-        public async Task<ActionResult<List<GetThemeDto>>> GetProfessorThemes(int id){
+        public async Task<ActionResult<List<GetThemeDto>>> GetProfessorThemes(int id)
+        {
 
-            var themes =await  _context.Themes.Where(c => c.User.Id == id)
+            var themes = await _context.Themes.Where(c => c.User.Id == id)
            .Include(u => u.User)
             .Include(c => c.Course).ThenInclude(y => y.Year)
             .Include(c => c.Course).ThenInclude(s => s.StudyProgram)
@@ -213,9 +214,35 @@ namespace API.Controllers
         [HttpGet("GetAllMessages/{id}")]
         public async Task<ActionResult<List<GetMessageDto>>> GetAllMessages(int id)
         {
-            var messages = await _context.Messages.Where(m=>m.ThemeId==id).Include(u => u.User).Include(t => t.Theme).ToListAsync();
+            var messages = await _context.Messages.Where(m => m.ThemeId == id).Include(u => u.User).Include(t => t.Theme).ToListAsync();
 
             return messages.Select(c => _mapper.Map<GetMessageDto>(c)).ToList();
         }
+
+        [Authorize]
+        [HttpDelete("DeleteTheme/{id}")]
+        public async Task<IActionResult> DeleteTheme(int id)
+        {
+            var theme = await _context.Themes.FindAsync(id);
+
+            if (theme == null)
+            {
+                return NotFound(new { Message = "Tema nije pronađena." });
+            }
+
+            _context.Themes.Remove(theme);
+            await _context.SaveChangesAsync();
+
+            var response = new
+            {
+                Method = "DeleteTheme",
+                Status = "Success",
+                Message = "Tema obrisana.",
+                Id = id 
+            };
+
+            return Ok(response); // Vraćamo JSON sa ID-jem i porukom
+        }
+
     }
 }

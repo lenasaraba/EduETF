@@ -21,6 +21,7 @@ import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 // import Theme from "./Theme";
 import { createThemeAsync } from "./themeSlice";
 import { useNavigate } from "react-router-dom";
+import { fetchCoursesListAsync } from "../onlineStudy/courseSlice";
 
 export default function CreateTheme() {
   const dispatch = useAppDispatch();
@@ -82,6 +83,10 @@ export default function CreateTheme() {
   const handleClose = () => {
     navigate1(-1);
   };
+
+   useEffect(() => {
+      dispatch(fetchCoursesListAsync());
+    }, []);
 
   return (
     <Grid

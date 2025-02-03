@@ -1,6 +1,9 @@
-import { Box, Chip, Grid, Skeleton } from "@mui/joy";
-
-export default function TableRowSkeleton() {
+import { Box, Skeleton } from "@mui/joy";
+import { Theme } from "@mui/material";
+interface ThemeTableProps {
+  themeM: Theme; // Define the 'theme' prop type
+}
+export default function TableRowSkeleton({ themeM }: ThemeTableProps) {
   return (
     <tr
       style={{
@@ -10,7 +13,6 @@ export default function TableRowSkeleton() {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "8px 0",
-        //height:"100%"
       }}
     >
       {/* First Column Skeleton */}
@@ -26,9 +28,33 @@ export default function TableRowSkeleton() {
         }}
       >
         <Box
-          sx={{ height: "30%", width: "100%", margin: 1, position: "relative" }}
+          sx={{
+            position: "relative",
+            width: "100%", // Podesi da zauzima celu širinu
+            height: 40, // Osiguraj da dimenzije budu iste
+            // backgroundColor:"red" ,  // Koristi boju pozadine tabele
+            borderRadius: "4px",
+            overflow: "hidden", // Ovaj deo je ključan da se spreči izlazak animacije van granica
+          }}
         >
-          <Skeleton animation="wave" sx={{ position: 0 }} />
+          <Skeleton
+            animation="wave"
+            variant="text"
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              backgroundColor: themeM.palette.background.default, // Pozadina za text variant
+              "&::before": {
+                background: themeM.palette.background.default,
+              },
+              "&::after": {
+                content: '""', // Osiguraj da se ::after element stvori
+                background: `linear-gradient(45deg, ${themeM.palette.background.default} 0%, ${themeM.palette.primary.main} 100%)`, // Ombre efekat
+                // animation: "wave-animation 1.5s infinite", // Animacija talasa
+              },
+            }}
+          />
         </Box>
       </td>
 
@@ -45,9 +71,33 @@ export default function TableRowSkeleton() {
         }}
       >
         <Box
-          sx={{ height: "30%", width: "100%", margin: 1, position: "relative" }}
+          sx={{
+            position: "relative",
+            width: "100%", // Podesi da zauzima celu širinu
+            height: 40, // Osiguraj da dimenzije budu iste
+            // backgroundColor:"red" ,  // Koristi boju pozadine tabele
+            borderRadius: "4px",
+            overflow: "hidden", // Ovaj deo je ključan da se spreči izlazak animacije van granica
+          }}
         >
-          <Skeleton animation="wave" sx={{ position: 0 }} />
+          <Skeleton
+            animation="wave"
+            variant="text"
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              backgroundColor: themeM.palette.background.default, // Pozadina za text variant
+              "&::before": {
+                background: themeM.palette.background.default,
+              },
+              "&::after": {
+                content: '""', // Osiguraj da se ::after element stvori
+                background: `linear-gradient(45deg, ${themeM.palette.background.default} 0%, ${themeM.palette.primary.main} 100%)`, // Ombre efekat
+                // animation: "wave-animation 1.5s infinite", // Animacija talasa
+              },
+            }}
+          />
         </Box>
       </td>
 
@@ -64,9 +114,33 @@ export default function TableRowSkeleton() {
         }}
       >
         <Box
-          sx={{ height: "30%", width: "100%", margin: 1, position: "relative" }}
+          sx={{
+            position: "relative",
+            width: "100%", // Podesi da zauzima celu širinu
+            height: 40, // Osiguraj da dimenzije budu iste
+            // backgroundColor:"red" ,  // Koristi boju pozadine tabele
+            borderRadius: "4px",
+            overflow: "hidden", // Ovaj deo je ključan da se spreči izlazak animacije van granica
+          }}
         >
-          <Skeleton animation="wave" sx={{ position: 0 }} />
+          <Skeleton
+            animation="wave"
+            variant="text"
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              backgroundColor: themeM.palette.background.default, // Pozadina za text variant
+              "&::before": {
+                background: themeM.palette.background.default,
+              },
+              "&::after": {
+                content: '""', // Osiguraj da se ::after element stvori
+                background: `linear-gradient(45deg, ${themeM.palette.background.default} 0%, ${themeM.palette.primary.main} 100%)`, // Ombre efekat
+                // animation: "wave-animation 1.5s infinite", // Animacija talasa
+              },
+            }}
+          />
         </Box>
       </td>
 
@@ -83,9 +157,33 @@ export default function TableRowSkeleton() {
         }}
       >
         <Box
-          sx={{ height: "30%", width: "100%", margin: 1, position: "relative" }}
+          sx={{
+            position: "relative",
+            width: "100%", // Podesi da zauzima celu širinu
+            height: 40, // Osiguraj da dimenzije budu iste
+            // backgroundColor:"red" ,  // Koristi boju pozadine tabele
+            borderRadius: "4px",
+            overflow: "hidden", // Ovaj deo je ključan da se spreči izlazak animacije van granica
+          }}
         >
-          <Skeleton animation="wave" sx={{ position: 0 }} />
+          <Skeleton
+            animation="wave"
+            variant="text"
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              backgroundColor: themeM.palette.background.default, // Pozadina za text variant
+              "&::before": {
+                background: themeM.palette.background.default,
+              },
+              "&::after": {
+                content: '""', // Osiguraj da se ::after element stvori
+                background: `linear-gradient(45deg, ${themeM.palette.background.default} 0%, ${themeM.palette.primary.main} 100%)`, // Ombre efekat
+                // animation: "wave-animation 1.5s infinite", // Animacija talasa
+              },
+            }}
+          />
         </Box>
       </td>
 
@@ -103,133 +201,156 @@ export default function TableRowSkeleton() {
       >
         <Box
           sx={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            // margin: 1,
-            justifyContent: "space-around",
-            width: "100%",
             position: "relative",
-            height: "100%",
+            width: "100%", // Podesi da zauzima celu širinu
+            height: 40, // Osiguraj da dimenzije budu iste
+            // backgroundColor:"red" ,  // Koristi boju pozadine tabele
+            borderRadius: "4px",
+            overflow: "hidden", // Ovaj deo je ključan da se spreči izlazak animacije van granica
           }}
         >
+          <Skeleton
+            animation="wave"
+            variant="text"
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              backgroundColor: themeM.palette.background.default, // Pozadina za text variant
+              "&::before": {
+                background: themeM.palette.background.default,
+              },
+              "&::after": {
+                content: '""', // Osiguraj da se ::after element stvori
+                background: `linear-gradient(45deg, ${themeM.palette.background.default} 0%, ${themeM.palette.primary.main} 100%)`, // Ombre efekat
+                // animation: "wave-animation 1.5s infinite", // Animacija talasa
+              },
+            }}
+          />
+        </Box>
+      </td>
+      {/* Sixth Column Skeleton */}
+
+      <td
+        style={{
+          flex: 1,
+          border: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          boxSizing: "border-box",
+          // padding: "8px 0", // Dodaj padding za prostor unutar ćelije
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row", // Postavi ih u horizontalni raspored
+            alignItems: "center", // Centriraj vertikalno
+            width: "100%",
+            gap: 0.5, // Razmak između avatara i tekstualnog skeletona
+          }}
+        >
+          {/* Krug (Avatar-like skeleton) */}
           <Box
             sx={{
-              width: "20%",
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "center",
               position: "relative",
-              // height: "100%",
-              aspectRatio: "1", 
-              // padding:"1rem 0",
-              boxSizing:"border-box",
-              alignItems:"center"
+              width: "15%", // Avatar će zauzeti 20% širine
+              height: "0",
+              paddingBottom: "15%", // Održava odnos visine i širine za krug
+              borderRadius: "50%",
+              overflow: "hidden", // Sprečava da animacija izlazi van granica kruga
             }}
           >
             <Skeleton
               animation="wave"
               variant="circular"
-              width="80%"
-              height="80%"
-              sx={{ position: 0 }}
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                backgroundColor: themeM.palette.background.default,
+                "&::after": {
+                  background: `linear-gradient(45deg, ${themeM.palette.background.default} 0%, ${themeM.palette.primary.main} 100%)`, // Ombre efekat
+                },
+              }}
             />
           </Box>
+
+          {/* Tekstualni skeleton */}
           <Box
             sx={{
-              height: "30%",
-              width: "80%",
-              margin: 1,
               position: "relative",
+              width: "80%", // Tekstualni deo zauzima 80% širine tabele
+              height: "20px", // Visina tekstualnog skeletona
+              borderRadius: "4px",
+              overflow: "hidden", // Sprečava izlazak animacije van granica
             }}
           >
-            <Skeleton animation="wave" sx={{ position: 0 }} />
+            <Skeleton
+              animation="wave"
+              variant="text"
+              sx={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                backgroundColor: themeM.palette.background.default,
+                "&::before": {
+                  background: themeM.palette.background.default,
+                },
+                "&::after": {
+                  background: `linear-gradient(45deg, ${themeM.palette.background.default} 0%, ${themeM.palette.primary.main} 100%)`, // Ombre efekat
+                },
+              }}
+            />
           </Box>
         </Box>
       </td>
+
+      {/* Seventh Column Skeleton */}
+      <td
+        style={{
+          flex: 1,
+          border: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          boxSizing: "border-box",
+        }}
+      >
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%", // Podesi da zauzima celu širinu
+            height: 40, // Osiguraj da dimenzije budu iste
+            // backgroundColor:"red" ,  // Koristi boju pozadine tabele
+            borderRadius: "4px",
+            overflow: "hidden", // Ovaj deo je ključan da se spreči izlazak animacije van granica
+          }}
+        >
+          <Skeleton
+            animation="wave"
+            variant="text"
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              backgroundColor: themeM.palette.background.default, // Pozadina za text variant
+              "&::before": {
+                background: themeM.palette.background.default,
+              },
+              "&::after": {
+                content: '""', // Osiguraj da se ::after element stvori
+                background: `linear-gradient(45deg, ${themeM.palette.background.default} 0%, ${themeM.palette.primary.main} 100%)`, // Ombre efekat
+                // animation: "wave-animation 1.5s infinite", // Animacija talasa
+              },
+            }}
+          />
+        </Box>
+      </td>
     </tr>
-
-    // <Box
-    //   component="tr"
-    //   sx={{
-    //     width: "100%",
-    //     display: "flex",
-    //     flexDirection: "row",
-    //     justifyContent: "space-between",
-    //     alignItems: "center",
-    //     padding: "8px 0",
-    //   }}
-    // >
-    //   <Box
-    //     component="td"
-    //     sx={{
-    //       padding: "0 12px",
-    //       flex: 1,
-    //       height: "fit-content",
-    //       border: 0,
-    //     }}
-    //   >
-    //     <div>
-    //       <Skeleton
-    //         animation="wave"
-    //         height={10}
-    //         width="60%"
-    //         style={{ marginBottom: 1 }}
-    //       />
-    //       <Skeleton animation="wave" height={10} width="80%" />
-    //     </div>
-    //   </Box>
-
-    //   <Box
-    //     component="td"
-    //     sx={{
-    //       padding: "0 12px",
-    //       flex: 1,
-    //       height: "fit-content",
-    //       border: 0,
-    //     }}
-    //   >
-    //     <Skeleton animation="wave" height={10} width="50%" />
-    //     <Skeleton animation="wave" height={10} width="40%" />
-    //   </Box>
-
-    //   <Box
-    //     component="td"
-    //     sx={{
-    //       padding: "0 12px",
-    //       flex: 1,
-    //       height: "fit-content",
-    //       border: 0,
-    //     }}
-    //   >
-    //     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-    //       <Skeleton variant="circular" width={20} height={20} />
-    //       <Skeleton animation="wave" height={10} width="60%" />
-    //     </Box>
-    //   </Box>
-
-    //   <Box
-    //     component="td"
-    //     sx={{
-    //       padding: "0 12px",
-    //       flex: 1,
-    //       height: "fit-content",
-    //       border: 0,
-    //     }}
-    //   >
-    //     <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-    //       <Skeleton
-    //         animation="wave"
-    //         variant="circular"
-    //         width={40}
-    //         height={40}
-    //       />
-    //       <div>
-    //         <Skeleton animation="wave" height={10} width="60%" />
-    //         <Skeleton animation="wave" height={10} width="80%" />
-    //       </div>
-    //     </Box>
-    //   </Box>
-    // </Box>
   );
 }

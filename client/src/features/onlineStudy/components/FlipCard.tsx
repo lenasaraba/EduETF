@@ -4,6 +4,7 @@ import { styled } from "@mui/system";
 import { Course } from "../../../app/models/course";
 import CourseCardMedia from "./CourseCardMedia";
 import { Link } from "react-router-dom";
+import { useAppSelector } from "../../../app/store/configureStore";
 
 const FlipCardContainer = styled("div")({
   perspective: "1000px", // Dodajemo perspektivu za 3D efekat
@@ -53,9 +54,17 @@ const FlipCardBack = styled(FlipCardSide)({
 
 interface Props {
   course: Course;
+  handleDeleteClick: ( event: React.MouseEvent<HTMLElement>,
+    type: "course" | "theme",
+    item: any) => void;
+
 }
 
-export default function FlipCard({ course }: Props) {
+export default function FlipCard({ course, handleDeleteClick }: Props) {
+  const user = useAppSelector((state) => state.account.user);
+  // console.log(course.professorsCourse);
+  
+
   return (
     <FlipCardContainer>
       <FlipCardInner>
@@ -100,7 +109,7 @@ export default function FlipCard({ course }: Props) {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            padding: "24px",
+            padding: 3,
             backgroundColor: "common.backgroundChannel",
             borderRadius: "16px",
           }}
@@ -138,27 +147,51 @@ export default function FlipCard({ course }: Props) {
           >
             {course.description}
           </Typography>
-          <Button
-            component={Link}
-            to={`/courses/${course.id}`}
+          <Box
             sx={{
-              backgroundColor: "common.onBackground",
-              borderRadius: "15pt",
+              margin: 0,
+              padding: 0,
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-evenly",
               mt: 2,
-              px: 2,
-              py: 1,
-              border: "1px solid transparent",
-
-              color: "background.default",
-              "&:hover": {
-                color: "text.primary",
-                border: "1px solid",
-                borderColor: "text.primary",
-              },
+              width:"100%",
             }}
           >
-            Otvori
-          </Button>
+            <Button
+            variant="contained"
+              color="secondary"
+
+              component={Link}
+              to={`/courses/${course.id}`}
+              sx={{
+                fontSize:"clamp(8pt, 10pt, 12pt)",
+                color: "common.onBackground",
+                // backgroundColor:"primary.main",
+                borderRadius: "15pt",
+              }}
+            >
+              Otvori
+            </Button>
+            {user &&
+            course.professorsCourse.some(
+              (pc) => pc.user.username === user.username
+            ) ? (
+              <Button
+                variant="contained"
+                color="error"
+                sx={{
+                  fontSize:"clamp(8pt, 10pt, 12pt)",
+                  borderRadius: "15pt",
+                }}
+                onClick={(event)=>handleDeleteClick(event, "course", course)}
+              >
+                Obriši kurs
+              </Button>
+            ) : (
+              ""
+            )}
+          </Box>
         </FlipCardBack>
       </FlipCardInner>
     </FlipCardContainer>

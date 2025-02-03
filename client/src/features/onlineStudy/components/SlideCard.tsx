@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import { Course } from "../../../app/models/course";
-import { Box, CardMedia, Divider, Grid } from "@mui/material";
+import { Grid } from "@mui/material";
 import CourseCardMedia from "./CourseCardMedia";
 import { Link } from "react-router-dom";
 
@@ -66,6 +66,8 @@ export default function SlideCard({ courses }: SlideCardProps) {
                 fontFamily: "Raleway, sans-serif",
                 textDecoration: "none",
                 color: "text.primary",
+                fontWeight:"normal",
+
 
                 // backgroundColor: "red",
                 display: "-webkit-box", // Neophodno za multi-line truncation
@@ -73,6 +75,10 @@ export default function SlideCard({ courses }: SlideCardProps) {
                 WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
                 lineHeight: "1", // Podešava razmak između linija
                 height: "1em", // Fiksna visina: broj linija * lineHeight
+                "&:hover":{
+                  color:"primary.main", 
+                  fontWeight:"bolder",
+                }
               }}
             >
               {courses[activeStep].name}

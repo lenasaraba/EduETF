@@ -10,6 +10,7 @@ import { Box, CardMedia, Divider, Grid } from "@mui/material";
 import CourseCardMedia from "./CourseCardMedia";
 import { Link } from "react-router-dom";
 import { Theme } from "../../../app/models/course";
+import { width } from "@mui/system";
 
 interface SlideCardProps {
   course: Course;
@@ -30,17 +31,28 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
 
   if (themes[activeStep] != null)
     return (
-      <div style={{ margin: "0", padding: 0 }}>
+      <Box
+        sx={{
+          margin: 0,
+          padding: 1,
+          border: "1px solid",
+          width: "100%",
+          borderRadius: "20pt",
+          borderColor: themes[activeStep].active ? "primary.main" : "gray",
+          boxShadow: 3,
+          backgroundColor:"secondary.main",
+
+        }}
+      >
         <Grid
           sx={{
-            gridTemplateColumns: "1fr 2fr",
-            display: "grid",
-            gap: 2,
             width: "100%",
-            mb: 3,
+            mb: 2,
+            mt: 2,
+            paddingX: 2,
           }}
         >
-          <CourseCardMedia
+          {/* <CourseCardMedia
             year={course.year}
             studyProgram={course.studyProgram}
             sx={{
@@ -48,61 +60,83 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
               borderRadius: "25pt",
               objectFit: "cover",
             }}
-          />
+          /> */}
           <Grid
             sx={{
               display: "grid",
               gridTemplateRows: "1fr 1fr 1fr",
-              gap: 0.5, 
+              // gap: 0.5,
+              padding: 0,
             }}
           >
             <Typography
               component={Link}
+              variant="body1"
               to={`/forum/${themes[activeStep].id}`}
               sx={{
                 width: "fit-content",
                 overflow: "hidden",
-                textOverflow: "ellipsis", 
-                fontSize: "clamp(0.8rem, 1.8vw, 1.2rem)", 
+                textOverflow: "ellipsis",
+                fontSize: "clamp(11pt, 13pt, 15pt)",
                 fontFamily: "Raleway, sans-serif",
                 textDecoration: "none",
-                color: "text.primary",
-                //multiline
-                display: "-webkit-box", 
-                WebkitBoxOrient: "vertical", 
-                WebkitLineClamp: 1, 
-                lineHeight: "1", 
-                height: "1em", 
+                color: "primary.light",
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 1,
+                lineHeight: "1",
+                height: "1em",
+                "&:hover": {
+                  color: "primary.main",
+                },
+                fontWeight:"bolder",
               }}
             >
               {themes[activeStep].title}
             </Typography>
 
             <Typography
+              variant="body2"
               sx={{
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                fontSize: "clamp(0.6rem,1.5vw, 1rem)",
+                fontSize: "clamp(8pt, 10pt, 12pt)",
                 fontFamily: "Raleway, sans-serif",
               }}
             >
               {themes[activeStep].description}
             </Typography>
 
-            <Typography
+            <Box
               sx={{
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                fontSize: "clamp(0.5rem, 1vw, 1rem)",
-                fontFamily: "Raleway, sans-serif",
-                color: "primary.main",
+                margin: 0,
+                padding: 0,
+                display: "flex",
+                justifyContent: "space-between",
               }}
             >
-              {/* {courses[activeStep].studyProgram.name} &nbsp; | &nbsp;{" "}
-            //   {courses[activeStep].year.name} */} ...............PROMIJENITI OVO
-            </Typography>
+              <Typography
+                sx={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  fontSize: "clamp(8pt, 10pt, 12pt)",
+                  fontFamily: "Raleway, sans-serif",
+                  color: "primary.main",
+                }}
+              >
+                {new Date(themes[activeStep].date).toLocaleDateString("sr-RS")}
+              </Typography>
+              <Typography
+                sx={{
+                  color: "primary.main",
+                  fontSize: "clamp(8pt, 10pt, 12pt)",
+                }}
+              >
+                Broj poruka: {themes[activeStep].messages.length}
+              </Typography>
+            </Box>
           </Grid>
         </Grid>
 
@@ -122,11 +156,13 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
           sx={{
             flexGrow: 1,
             padding: 0,
+            backgroundColor:"transparent",
+
             "& .MuiMobileStepper-dot": {
               backgroundColor: "background.paper",
             },
             "& .MuiMobileStepper-dotActive": {
-              backgroundColor: "common.black", 
+              backgroundColor: "common.black",
             },
           }}
           nextButton={
@@ -134,7 +170,8 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
               size="small"
               onClick={handleNext}
               disabled={activeStep === themes.length - 1}
-              sx={{ color: "common.black" }}
+              sx={{ color: "primary.dark",  fontSize: "clamp(6pt, 8pt, 10pt)",
+              }}
             >
               Sljedeća
               {designTheme.direction === "rtl" ? (
@@ -149,7 +186,7 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
               size="small"
               onClick={handleBack}
               disabled={activeStep === 0}
-              sx={{ color: "common.black" }}
+              sx={{ color: "primary.dark",fontSize: "clamp(6pt, 8pt, 10pt)", }}
             >
               {designTheme.direction === "rtl" ? (
                 <KeyboardArrowRight />
@@ -160,7 +197,7 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
             </Button>
           }
         />
-      </div>
+      </Box>
     );
   else
     return (

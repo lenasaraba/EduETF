@@ -9,6 +9,10 @@ import {
   CardContent,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   Grid,
   Menu,
@@ -20,7 +24,11 @@ import {
 } from "@mui/material";
 import { createMessage, fetchMessagesAsync } from "./messageSlice";
 import { useEffect, useRef, useState } from "react";
-import { fetchThemesAsync, updateThemeStatus } from "./themeSlice";
+import {
+  deleteThemeAsync,
+  fetchThemesAsync,
+  updateThemeStatus,
+} from "./themeSlice";
 import { Author } from "../onlineStudy/components/Author";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -61,7 +69,7 @@ export default function Theme() {
       if (topOfPageRef.current) {
         window.scrollTo({ top: 0, behavior: "instant" });
         console.log("Stranica skrolovana na vrh");
-      }      
+      }
     });
   }, [id, dispatch]);
 
@@ -69,6 +77,7 @@ export default function Theme() {
   const open = Boolean(anchorEl);
   const idMenu = open ? "simple-popover" : undefined;
   const [loadingStatus, setLoadingStatus] = React.useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget); // Postavlja element na koji je kliknuto
@@ -89,6 +98,26 @@ export default function Theme() {
     } finally {
       setLoadingStatus(false); // Zaustavlja indikator
       setAnchorEl(null); // Zatvara meni
+    }
+  };
+
+  const handleDeleteClick = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleConfirmDelete = async (event: React.MouseEvent<HTMLElement>) => {
+    try {
+      await dispatch(deleteThemeAsync(theme!.id));
+      navigate("/themes?type=all");
+    } catch (error) {
+      console.error("Greška prilikom brisanja teme:", error);
+    } finally {
+      setAnchorEl(null); // Zatvara meni
+      setOpenDialog(false);
     }
   };
 
@@ -218,48 +247,46 @@ export default function Theme() {
                     <Typography variant="h5" fontWeight="bold">
                       {theme.title}
                     </Typography>
+
+                    <Chip
+                      // variant="soft"
+                      size="small"
+                      icon={
+                        // {
+                        //   true: <CheckRoundedIcon />,
+                        //   false: <BlockIcon />,
+                        // }[theme.active]
+                        loadingStatus ? (
+                          <CircularProgress size={16} sx={{ color: "#fff" }} />
+                        ) : theme.active ? (
+                          <CheckRoundedIcon />
+                        ) : (
+                          <BlockIcon />
+                        )
+                      }
+                      sx={{
+                        backgroundColor: loadingStatus
+                          ? "grey" // Boja dok traje učitavanje
+                          : theme.active
+                            ? "text.primaryChannel"
+                            : "text.secondaryChannel", // Prilagođene boje
+                        color: "#fff", // Tekst u beloj boji
+                        borderRadius: "16px", // Primer prilagođenog oblika
+                        ".MuiChip-icon": {
+                          color: "#fff",
+                        },
+                      }}
+                      // label={theme.active ? "Aktivno" : "Zatvoreno"}
+                      label={
+                        loadingStatus
+                          ? "Ažuriranje..."
+                          : theme.active
+                            ? "Aktivno"
+                            : "Zatvoreno"
+                      }
+                    />
                     {user && user.username == theme.user.username ? (
                       <>
-                        <Chip
-                          // variant="soft"
-                          size="small"
-                          icon={
-                            // {
-                            //   true: <CheckRoundedIcon />,
-                            //   false: <BlockIcon />,
-                            // }[theme.active]
-                            loadingStatus ? (
-                              <CircularProgress
-                                size={16}
-                                sx={{ color: "#fff" }}
-                              />
-                            ) : theme.active ? (
-                              <CheckRoundedIcon />
-                            ) : (
-                              <BlockIcon />
-                            )
-                          }
-                          sx={{
-                            backgroundColor: loadingStatus
-                              ? "grey" // Boja dok traje učitavanje
-                              : theme.active
-                                ? "text.primaryChannel"
-                                : "text.secondaryChannel", // Prilagođene boje
-                            color: "#fff", // Tekst u beloj boji
-                            borderRadius: "16px", // Primer prilagođenog oblika
-                            ".MuiChip-icon": {
-                              color: "#fff",
-                            },
-                          }}
-                          // label={theme.active ? "Aktivno" : "Zatvoreno"}
-                          label={
-                            loadingStatus
-                              ? "Ažuriranje..."
-                              : theme.active
-                                ? "Aktivno"
-                                : "Zatvoreno"
-                          }
-                        />
                         <div>
                           <Box
                             aria-describedby={idMenu}
@@ -304,6 +331,7 @@ export default function Theme() {
                                 paddingY: 1,
                                 "&:hover": {
                                   cursor: "pointer",
+                                  color: "primary.light",
                                 },
                                 fontFamily: "Raleway, sans-serif",
                                 color: "text.primary",
@@ -312,7 +340,73 @@ export default function Theme() {
                             >
                               {theme.active ? "Zaključaj" : "Otključaj"}
                             </Typography>
+                            <Typography
+                              onClick={handleDeleteClick} // Otvara dijalog
+                              variant="body2"
+                              sx={{
+                                paddingX: 2,
+                                paddingY: 1,
+                                "&:hover": {
+                                  cursor: "pointer",
+                                  color: "primary.light",
+                                },
+                                fontFamily: "Raleway, sans-serif",
+                                color: "text.secondaryChannel",
+                                backgroundColor: "background.paper",
+                              }}
+                            >
+                              Obriši
+                            </Typography>
                           </Popover>
+                          <Dialog
+                            open={openDialog}
+                            onClose={handleCloseDialog}
+                            sx={{
+                              "& .MuiDialog-paper": {
+                                borderRadius: "12pt",
+                                padding: 3,
+                                minWidth: 300,
+                                textAlign: "center",
+                              },
+                            }}
+                          >
+                            <DialogTitle
+                              sx={{
+                                fontFamily: "Raleway, sans-serif",
+                                fontSize: "1.2rem",
+                              }}
+                            >
+                              Potvrda brisanja
+                            </DialogTitle>
+                            <DialogContent>
+                              <Typography
+                                sx={{
+                                  fontFamily: "Raleway, sans-serif",
+                                  color: "text.secondary",
+                                }}
+                              >
+                                Da li ste sigurni da želite da obrišete ovu
+                                temu?
+                              </Typography>
+                            </DialogContent>
+                            <DialogActions
+                              sx={{ justifyContent: "center", gap: 2 }}
+                            >
+                              <Button
+                                onClick={handleCloseDialog}
+                                sx={{ color: "text.primary" }}
+                              >
+                                Odustani
+                              </Button>
+                              <Button
+                                onClick={handleConfirmDelete}
+                                color="error"
+                                variant="contained"
+                              >
+                                Obriši
+                              </Button>
+                            </DialogActions>
+                          </Dialog>
                         </div>
                       </>
                     ) : (

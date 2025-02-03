@@ -674,7 +674,8 @@ namespace API.Migrations
                 {
                     b.HasOne("API.Entities.Course", "Course")
                         .WithMany("Themes")
-                        .HasForeignKey("CourseId");
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("API.Entities.User", "User")
                         .WithMany()

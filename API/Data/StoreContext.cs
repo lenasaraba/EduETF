@@ -36,34 +36,37 @@ namespace API.Data
                 );
             builder.Entity<Year>()
                 .HasData(
-                    new Year { Id = 1, Name = "Prva godina", Description="Prva godina" },
-                    new Year { Id = 2, Name = "Druga godina", Description="Druga godina" },
-                    new Year { Id = 3, Name = "Treća godina", Description="Treća godina" },
-                    new Year { Id = 4, Name = "Četvrta godina", Description="Četvrta godina" }
+                    new Year { Id = 1, Name = "Prva godina", Description = "Prva godina" },
+                    new Year { Id = 2, Name = "Druga godina", Description = "Druga godina" },
+                    new Year { Id = 3, Name = "Treća godina", Description = "Treća godina" },
+                    new Year { Id = 4, Name = "Četvrta godina", Description = "Četvrta godina" }
                 );
             builder.Entity<StudyProgram>()
                 .HasData(
-                    new StudyProgram{Id=1, Name="Računarstvo i informatika", Description="RiI"},
-                    new StudyProgram{Id=2, Name="Automatika i elektronika", Description="AiE"},
-                    new StudyProgram{Id=3, Name="Elektroenergetika", Description="EE"},
-                    new StudyProgram{Id=4, Name="Zajedničke osnove", Description="ZO"}
+                    new StudyProgram { Id = 1, Name = "Računarstvo i informatika", Description = "RiI" },
+                    new StudyProgram { Id = 2, Name = "Automatika i elektronika", Description = "AiE" },
+                    new StudyProgram { Id = 3, Name = "Elektroenergetika", Description = "EE" },
+                    new StudyProgram { Id = 4, Name = "Zajedničke osnove", Description = "ZO" }
                 );
 
             builder.Entity<MaterialType>()
                 .HasData(
-                    new MaterialType{Id=1, Name="Video", Description="Video"},
-                    new MaterialType{Id=2, Name="PDF", Description="PDF"},
-                    new MaterialType{Id=3, Name="Link", Description="Link"},
-                    new MaterialType{Id=4, Name="Dokument", Description="Dokument"},
-                    new MaterialType{Id=5, Name="Slika", Description="Slika"}
+                    new MaterialType { Id = 1, Name = "Video", Description = "Video" },
+                    new MaterialType { Id = 2, Name = "PDF", Description = "PDF" },
+                    new MaterialType { Id = 3, Name = "Link", Description = "Link" },
+                    new MaterialType { Id = 4, Name = "Dokument", Description = "Dokument" },
+                    new MaterialType { Id = 5, Name = "Slika", Description = "Slika" }
                 );
-            
+
+
+
             builder.Entity<Message>()
                 .HasOne(p => p.Theme)
                 .WithMany(t => t.Messages)
                 .HasForeignKey(p => p.ThemeId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            //PROVJERITI STA DA BUDE AKO SE OBRISE KORISNIK
             builder.Entity<Message>()
             .HasOne(m => m.User)
             .WithMany()
@@ -75,6 +78,20 @@ namespace API.Data
             .WithMany()
             .HasForeignKey(m => m.UserId)
             .OnDelete(DeleteBehavior.SetNull);
+
+
+            builder.Entity<Theme>()
+            .HasOne(t => t.Course)
+            .WithMany(c => c.Themes)
+            .HasForeignKey(t => t.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
+// builder.Entity<Theme>()
+//     .HasOne(t => t.Course)
+//     .WithMany(c => c.Themes) // Veza mora biti eksplicitno definisana u Course modelu
+//     .HasForeignKey(t => t.CourseId)
+//     .OnDelete(DeleteBehavior.Cascade); 
         }
     }
 }

@@ -84,6 +84,36 @@ export const fetchProfessorYearsProgramsAsync = createAsyncThunk<
   }
 );
 
+
+
+export const deleteProfessorsThemeAsync = createAsyncThunk<
+  { id: number; idProfessor: number }, 
+  { id: number; idProfessor: number }, 
+  { state: RootState }
+>("theme/deleteProfessorsTheme", async ({ id, idProfessor }, thunkAPI) => {
+  try {
+    await agent.Theme.deleteTheme(id);
+    
+    return { id, idProfessor };
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
+export const deleteProfessorsCourseAsync = createAsyncThunk<
+  { id: number; idProfessor: number }, 
+  { id: number; idProfessor: number }, 
+  { state: RootState }
+>("course/deleteProfessorsCourseAsync", async ({ id, idProfessor }, thunkAPI) => {
+  try {
+    await agent.Course.deleteCourse(id);
+    
+    return { id, idProfessor };
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
 export const fetchProfessorThemesAsync = createAsyncThunk<void, number>(
   "professor/fetchProfessorThemesAsync",
   async (id, thunkAPI) => {
@@ -132,6 +162,32 @@ export const fetchFilters = createAsyncThunk(
     }
   }
 );
+interface UpdateThemeDto {
+  id: number;
+  active: boolean;
+}
+
+export const updateThemeStatus = createAsyncThunk<void, UpdateThemeDto>(
+  "theme/updateTheme",
+  async (themeData, thunkAPI) => {
+    try {
+      const themeDto = await agent.Theme.updateTheme(themeData); // Pozivanje agenta sa parametrima
+      const professorThemes = await agent.Theme.getProfessorThemes(themeDto.user.id);
+
+      // console.log(professorThemes);
+
+      thunkAPI.dispatch(
+        setProfessorThemes({
+          professorId: themeDto.user.id,
+          themes: professorThemes,
+        })
+      );
+      // return themeDto;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
 
 export const professorSlice = createSlice({
   name: "professor",
@@ -163,8 +219,9 @@ export const professorSlice = createSlice({
         state.coursesLoaded = allCoursesLoaded;
       }
     },
-    setProfessorThemes:(state, action)=>{
-      state.professorThemes![action.payload.professorId]=action.payload.themes;
+    setProfessorThemes: (state, action) => {
+      state.professorThemes![action.payload.professorId] =
+        action.payload.themes;
     },
     setCoursesLoaded: (state, action) => {
       state.coursesLoaded = action.payload;
@@ -190,6 +247,13 @@ export const professorSlice = createSlice({
     builder.addCase(fetchFilters.rejected, (state, action) => {
       state.status = "idle";
     });
+    builder.addCase(updateThemeStatus.pending, (state) => {
+      state.status = "pendingUpdateTheme";
+    });
+    builder.addCase(updateThemeStatus.rejected, (state) => {
+      state.status = "idle";
+    });
+
     builder.addCase(fetchProfessorYearsProgramsAsync.pending, (state) => {
       state.status = "pendingFetchProfessorCoursesAsync";
       state.coursesLoaded = false;
@@ -203,6 +267,27 @@ export const professorSlice = createSlice({
       // state.coursesLoaded = true;
       state.status = "idle";
     });
+    builder.addCase(deleteProfessorsThemeAsync.fulfilled, (state, action) => {
+      
+      state.status = "idle";
+      state.professorThemes![action.payload.idProfessor] = state.professorThemes![action.payload.idProfessor].filter(
+        (theme) => theme.id !== action.payload.id
+      );
+
+    });
+    builder.addCase(deleteProfessorsCourseAsync.fulfilled, (state, action) => {
+      
+      state.status = "idle";
+      state.professorCourses![action.payload.idProfessor] = state.professorCourses![action.payload.idProfessor].filter(
+        (course) => course.id !== action.payload.id
+      );
+      
+      state.professorThemes![action.payload.idProfessor] = state.professorThemes![action.payload.idProfessor].filter(
+        (theme) => theme.course?.id !== action.payload.id
+      );
+    });
+    
+    
   },
 });
 
@@ -212,5 +297,5 @@ export const {
   setProfessorCourses,
   resetProfessorsParams,
   setCoursesLoaded,
-  setProfessorThemes
+  setProfessorThemes,
 } = professorSlice.actions;

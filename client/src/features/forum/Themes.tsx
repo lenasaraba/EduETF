@@ -11,6 +11,7 @@ import ThemeTable from "./components/ThemeTable";
 import { Breadcrumbs, Grid, useTheme } from "@mui/material";
 import { useAppSelector } from "../../app/store/configureStore";
 import ThemeList from "./components/ThemeList";
+import WaveAnimation from "./components/WaveAnimation";
 
 // import ThemeList from "./components/ThemeList";
 
@@ -140,6 +141,7 @@ export default function Themes() {
           <ThemeTable themeM={theme} />
           {/* <ThemeList /> */}
           {/* OVO SE NE PRIKAZUJE NA LAPTOPU, ALI FINO IZGLEDA, POGLEDATI */}
+          {/* <WaveAnimation /> */}
         </Grid>
       </Grid>
     </CssVarsProvider>

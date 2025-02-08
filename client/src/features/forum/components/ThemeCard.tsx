@@ -152,9 +152,13 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
           </Box>
         </Box>
         <CardContent>
-          <Typography variant="body2" color="text.secondary">
+          {/* <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: "clamp(9pt, 10pt, 11pt)" }}
+          >
             Opis: <br />{" "}
-          </Typography>
+          </Typography> */}
           <Typography
             sx={{
               color: "text.primary",
@@ -165,11 +169,12 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
               lineHeight: "1", // Podešava razmak između linija
               height: "3em", // Fiksna visina: broj linija * lineHeight
               textOverflow: "ellipsis", // Dodaje tri tačke
+              fontSize: "clamp(10pt, 11pt, 14pt)",
+              mb: 2,
             }}
           >
             {theme.description}
           </Typography>
-
           <Box
             sx={{
               margin: 0,

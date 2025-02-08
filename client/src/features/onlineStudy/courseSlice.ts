@@ -1,8 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
+  AddMaterial,
   Course,
   CoursesParams,
   CreateCourse,
+  Material,
   StudyProgram,
   Year,
 } from "../../app/models/course";
@@ -14,12 +16,15 @@ export interface CourseState {
   courses: Course[] | null;
   allCourses: Course[] | null;
   currentCourse: Course | null;
+  currentCourseMaterials: Material[] | null;
+  materialsLoaded: boolean;
   // myCourses: Course[] | null;
   professorCourses: Record<number, Course[]> | null;
   status: string;
   filtersLoaded: boolean;
   allcoursesLoaded: boolean;
   pagecoursesLoaded: boolean;
+  currentCourseLoaded: boolean;
 
   years: Year[] | null;
   programs: StudyProgram[] | null;
@@ -32,11 +37,15 @@ const initialState: CourseState = {
   courses: null,
   // myCourses: null,
   allCourses: null,
-  currentCourse:null,
+  currentCourse: null,
+  currentCourseMaterials: null,
+  materialsLoaded: false,
   professorCourses: {},
   status: "idle",
   allcoursesLoaded: false,
-  pagecoursesLoaded:false,
+  pagecoursesLoaded: false,
+  currentCourseLoaded: false,
+
   filtersLoaded: false,
   years: null,
   programs: null,
@@ -81,37 +90,32 @@ function getAxiosParams(coursesParams: CoursesParams) {
 }
 
 export const fetchCoursesAsync = createAsyncThunk<
-  { coursesDto: Course[], metaData: MetaData }, // Tip povratne vrednosti: objekat sa kursevima i meta podacima
+  { coursesDto: Course[]; metaData: MetaData }, // Tip povratne vrednosti: objekat sa kursevima i meta podacima
   void, // Parametri koje šaljemo (i dalje undefined, pa je tip void)
   { state: RootState } // Tip za state (koristiš RootState za pristup stanjima u aplikaciji)
->(
-  "course/fetchCoursesAsync",
-  async (_, thunkAPI) => {
-    try {
-      // Pristup parametrima iz stanja
-      const params = getAxiosParams(thunkAPI.getState().course.coursesParams);
+>("course/fetchCoursesAsync", async (_, thunkAPI) => {
+  try {
+    // Pristup parametrima iz stanja
+    const params = getAxiosParams(thunkAPI.getState().course.coursesParams);
 
-      // Logovanje parametara radi debagovanja
-      //params.forEach((a) => console.log(a));
+    // Logovanje parametara radi debagovanja
+    //params.forEach((a) => console.log(a));
 
-      // Pozivanje API-ja za kurs
-      const response = await agent.Course.list(params);
+    // Pozivanje API-ja za kurs
+    const response = await agent.Course.list(params);
 
-      console.log(response);
-      // Pretpostavljamo da odgovor sadrži kurseve (coursesDto) i meta podatke (metaData)
-      return {
-        coursesDto: response.coursesDto,  // Ovo je lista kurseva
-        metaData: response.metaData,   // Ovo su meta podaci
-      };
-    } catch (error: any) {
-      console.log(error.data);
-      // Ako dođe do greške, vraćanje greške sa rejectWithValue
-      return thunkAPI.rejectWithValue({ error: error.data });
-    }
+    console.log(response);
+    // Pretpostavljamo da odgovor sadrži kurseve (coursesDto) i meta podatke (metaData)
+    return {
+      coursesDto: response.coursesDto, // Ovo je lista kurseva
+      metaData: response.metaData, // Ovo su meta podaci
+    };
+  } catch (error: any) {
+    console.log(error.data);
+    // Ako dođe do greške, vraćanje greške sa rejectWithValue
+    return thunkAPI.rejectWithValue({ error: error.data });
   }
-);
-
-
+});
 
 export const fetchCoursesListAsync = createAsyncThunk<
   Course[],
@@ -122,7 +126,7 @@ export const fetchCoursesListAsync = createAsyncThunk<
 
   try {
     const courses = await agent.Course.fullList();
-
+    console.log(courses);
     //thunkAPI.dispatch(setAllCourses(courses));
     //thunkAPI.dispatch(setMetaData(courses.metaData));
     return courses;
@@ -132,20 +136,18 @@ export const fetchCoursesListAsync = createAsyncThunk<
   }
 });
 
-
-export const fetchCourseAsync = createAsyncThunk<
-  Course,
-  number
->("course/fetchCourseAsync", async (id, thunkAPI) => {
-
-  try {
-    const course = await agent.Course.getCourse(id);
-    return course;
-  } catch (error: any) {
-    console.log(error.data);
-    return thunkAPI.rejectWithValue({ error: error.data });
+export const fetchCourseAsync = createAsyncThunk<Course, number>(
+  "course/fetchCourseAsync",
+  async (id, thunkAPI) => {
+    try {
+      const course = await agent.Course.getCourse(id);
+      return course;
+    } catch (error: any) {
+      console.log(error.data);
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
   }
-});
+);
 
 export const fetchProfessorCoursesAsync = createAsyncThunk<
   Record<number, Course[]>,
@@ -177,6 +179,17 @@ export const fetchFilters = createAsyncThunk(
   }
 );
 
+export const fetchAllYearsPrograms = createAsyncThunk(
+  "course/fetchAllYearsPrograms",
+  async (_, thunkAPI) => {
+    try {
+      return agent.Course.fetchAllYearsPrograms();
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
+  }
+);
+
 export const createCourseAsync = createAsyncThunk<Course, CreateCourse>(
   "course/createCourse",
   async (newCourse, thunkAPI) => {
@@ -189,32 +202,82 @@ export const createCourseAsync = createAsyncThunk<Course, CreateCourse>(
   }
 );
 export const deleteCourseAsync = createAsyncThunk<
-  number, 
-  number, 
+  number,
+  number,
   { state: RootState }
 >("course/deleteCourse", async (id, thunkAPI) => {
   try {
-    
     await agent.Course.deleteCourse(id);
     // console.log(thunkAPI.fulfillWithValue(id))
-    return id; 
+    return id;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(error.message);
   }
 });
 
 export const deletePaginatedCourseAsync = createAsyncThunk<
-  number, 
-  number, 
+  number,
+  number,
   { state: RootState }
 >("course/deletePaginatedCourse", async (id, thunkAPI) => {
   try {
-    
     await agent.Course.deleteCourse(id);
     // console.log(thunkAPI.fulfillWithValue(id))
-    return id; 
+    return id;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
+export const uploadMaterials = createAsyncThunk<Material[], AddMaterial[]>(
+  "course/uploadMaterials",
+  async (materials, thunkAPI) => {
+    try {
+      materials.forEach((m) => console.log(m));
+      const response = await agent.Course.uploadMaterials(materials);
+      return response.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data || "Greška pri uploadu materijala"
+      );
+    }
+  }
+);
+
+export const uploadFile = createAsyncThunk(
+  "materials/uploadFile",
+  async (
+    {
+      file,
+      courseId,
+      weekNumber,
+    }: { file: File; courseId: number; weekNumber: number },
+    thunkAPI
+  ) => {
+    try {
+      // Koristi agent za slanje 'FormData' sa fajlom
+      const response = await agent.Course.upload(file, courseId, weekNumber);
+
+      if (!response.ok) throw new Error("Failed to upload file");
+
+      const data = await response.json();
+      return data.filePath; // Vraća putanju fajla
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
+export const fetchCurrentCourseMaterialAsync = createAsyncThunk<
+  Material[],
+  number
+>("course/fetchCurrentCourseMaterialAsync", async (id, thunkAPI) => {
+  try {
+    const materials = await agent.Course.getMaterialsByCourseId(id);
+    return materials;
+  } catch (error: any) {
+    console.log(error.data);
+    return thunkAPI.rejectWithValue({ error: error.data });
   }
 });
 
@@ -257,8 +320,10 @@ export const courseSlice = createSlice({
     // },
   },
   extraReducers: (builder) => {
-    builder.addCase(createCourseAsync.fulfilled, (state) => {
-      state.status = "idle"; 
+    builder.addCase(createCourseAsync.fulfilled, (state, action) => {
+      state.status = "idle";
+      console.log(action.payload);
+      state.currentCourse = action.payload;
 
       // if (state.allCourses) {
       //   state.allCourses.push(action.payload);
@@ -273,26 +338,29 @@ export const courseSlice = createSlice({
     });
     builder.addCase(fetchCoursesListAsync.pending, (state) => {
       state.status = "pendingFetchCoursesList";
-      state.allcoursesLoaded=false;
+      state.allcoursesLoaded = false;
     });
     builder.addCase(fetchCoursesListAsync.fulfilled, (state, action) => {
       state.allCourses = action.payload;
       state.status = "idle";
-      state.allcoursesLoaded=true;;
+      state.allcoursesLoaded = true;
     });
     builder.addCase(fetchCoursesListAsync.rejected, (state) => {
       state.status = "idle";
     });
-    builder.addCase(fetchCourseAsync.pending, (state)=>{
-      state.status='pendingFetchCourse';
-     });
-   builder.addCase(fetchCourseAsync.fulfilled, (state, action)=>{
-    state.status='idle';
-    state.currentCourse=action.payload;
-   });
-   builder.addCase(fetchCourseAsync.rejected, (state)=>{
-    state.status='idle';
-   });
+    builder.addCase(fetchCourseAsync.pending, (state) => {
+      state.status = "pendingFetchCourse";
+      state.currentCourseLoaded = false;
+    });
+    builder.addCase(fetchCourseAsync.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.currentCourse = action.payload;
+      state.currentCourseLoaded = true;
+    });
+    builder.addCase(fetchCourseAsync.rejected, (state) => {
+      state.status = "idle";
+      state.currentCourseLoaded = true;
+    });
     builder.addCase(fetchFilters.pending, (state) => {
       state.status = "pendingFetchFilters";
     });
@@ -306,25 +374,22 @@ export const courseSlice = createSlice({
     builder.addCase(fetchFilters.rejected, (state) => {
       state.status = "idle";
     });
-    // builder.addCase(fetchUserCoursesAsync.pending, (state) => {
-    //   //state.loading = true; // Postavi loading na true
-    //   state.status='pendingFetchCourses';
-
-    // });
-    // builder.addCase(fetchUserCoursesAsync.fulfilled, (state) => {
-    //   //state.loading = false; // Postavi loading na true
-    //   state.coursesLoaded = true;
-    //   state.status='idle';
-
-    // });
-    // builder.addCase(fetchUserCoursesAsync.rejected, (state) => {
-    //   //state.loading = false;
-    //   state.status='idle';
-
-    // });
+    builder.addCase(fetchAllYearsPrograms.pending, (state) => {
+      state.status = "pendingfetchAllYearsPrograms";
+    });
+    builder.addCase(fetchAllYearsPrograms.fulfilled, (state, action) => {
+      state.years = action.payload.years;
+      state.programs = action.payload.programs;
+      state.status = "idle";
+      state.filtersLoaded = true;
+      //state.loading = false;
+    });
+    builder.addCase(fetchAllYearsPrograms.rejected, (state) => {
+      state.status = "idle";
+    });
     builder.addCase(fetchCoursesAsync.pending, (state) => {
       state.status = "pendingFetchCourses";
-      state.pagecoursesLoaded=false;
+      state.pagecoursesLoaded = false;
     });
     builder.addCase(fetchCoursesAsync.rejected, (state) => {
       //state.loading = false;
@@ -333,46 +398,53 @@ export const courseSlice = createSlice({
     builder.addCase(fetchCoursesAsync.fulfilled, (state, action) => {
       //state.loading = false; // Postavi loading na true
       console.log(action.payload);
-      state.courses=action.payload.coursesDto;
-      state.metaData=action.payload.metaData;
+      state.courses = action.payload.coursesDto;
+      state.metaData = action.payload.metaData;
       state.status = "idle";
       state.pagecoursesLoaded = true;
     });
     builder.addCase(deleteCourseAsync.fulfilled, (state, action) => {
-          state.status = "idle";
-          state.allCourses = state.allCourses!.filter((course) => course.id !== action.payload);
-        });
-    // builder.addCase(fetchProfessorCoursesAsync.pending, (state) => {
-    //   state.status = "pendingFetchProfessorCoursesAsync";
-    // });
-    // builder.addCase(fetchProfessorCoursesAsync.rejected, (state) => {
-    //   //state.loading = false;
-    //   state.status = "idle";
-    // });
-    // builder.addCase(fetchProfessorCoursesAsync.fulfilled, (state) => {
-    //   //state.loading = false; // Postavi loading na true
-    //   state.status = "idle";
-    //   state.coursesLoaded = true;
-    // });
-    // builder.addCase(createCourseAsync.fulfilled, (state, action) => {
-    //   state.status = "succeeded"; // Ažuriramo status kako bismo pokazali da je operacija uspešna
-    //   if (state.allCourses) {
-    //     console.log("State.allcourses push");
-    //     state.allCourses.push(action.payload);
-    //     console.log(state.allCourses);
-    //   } else {
-    //     console.log("State.allcourses push");
-    //     state.allCourses = [action.payload];
-    //   }
-    //   if (state.courses) {
-    //     console.log("State.courses push");
-    //     state.courses.push(action.payload);
-    //     console.log(state.courses);
-    //   } else {
-    //     console.log("State.courses push");
-    //     state.courses = [action.payload];
-    //   }
-    // });
+      state.status = "idle";
+      state.allCourses = state.allCourses!.filter(
+        (course) => course.id !== action.payload
+      );
+    });
+
+    builder.addCase(uploadMaterials.pending, (state) => {
+      state.status = "pendingUploadMaterials";
+      state.materialsLoaded = false;
+    });
+    builder.addCase(uploadMaterials.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.currentCourseMaterials?.concat(action.payload); // Ažuriranje liste materijala
+      console.log(action.payload);
+      if (action.payload[0].week > state.currentCourse!.weekCount)
+        state.currentCourse!.weekCount = action.payload[0].week;
+    });
+    builder.addCase(uploadMaterials.rejected, (state, action) => {
+      state.status = "idle";
+    });
+
+    builder.addCase(fetchCurrentCourseMaterialAsync.pending, (state) => {
+      state.status = "fetchCurrentCourseMaterialAsync";
+      state.materialsLoaded = false;
+    });
+    builder.addCase(
+      fetchCurrentCourseMaterialAsync.fulfilled,
+      (state, action) => {
+        state.status = "idle";
+        state.currentCourseMaterials = action.payload; // Ažuriranje liste materijala
+        state.materialsLoaded = true;
+
+        console.log(action.payload);
+      }
+    );
+    builder.addCase(
+      fetchCurrentCourseMaterialAsync.rejected,
+      (state, action) => {
+        state.status = "idle";
+      }
+    );
   },
 });
 

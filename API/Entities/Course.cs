@@ -19,6 +19,8 @@ namespace API.Entities
         public DateTime CourseCreationDate { get; set; }
         public List<UserCourse>? UsersCourse { get; set; }
         public List<ProfessorCourse>? ProfessorsCourse { get; set; }
+        public string Password {get;set;}=string.Empty;
+        public int WeekCount {get;set;}=0;
 
 
     }

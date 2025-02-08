@@ -18,6 +18,7 @@ export interface CreateTheme {
 }
 
 export interface Message {
+  id?: number;
   content: string;
   creationDate: string;
   user: User;

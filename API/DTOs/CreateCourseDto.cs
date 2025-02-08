@@ -9,6 +9,8 @@ namespace API.DTOs
         public int YearId { get; set; }
         public int StudyProgramId { get; set; }
         public DateTime CourseCreationDate { get; set; }
+        public string Password{ get; set; } = string.Empty;
+
 
     }
 }

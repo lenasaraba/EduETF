@@ -136,16 +136,16 @@ export default function ThemeCard2({ theme }: ThemeCardProps) {
 
                 width: "100%",
 
-                color: "text.primary", // Koristi boju teksta iz roditeljskog elementa
+                color: "#c4e1f6", // Koristi boju teksta iz roditeljskog elementa
                 "&:visited": {
-                  color: "text.primary", // Zadrži istu boju za visited linkove
+                  color: "#c4e1f6", // Zadrži istu boju za visited linkove
                 },
                 "&:hover": {
                   color: "primary.main", // Zadrži istu boju pri hover-u
                   cursor: "pointer",
                 },
                 "&:active": {
-                  color: "text.primary", // Zadrži istu boju pri aktivnom linku
+                  color: "#c4e1f6", // Zadrži istu boju pri aktivnom linku
                 },
               }}
             >
@@ -175,7 +175,7 @@ export default function ThemeCard2({ theme }: ThemeCardProps) {
           {theme.course ? theme.course.name : "Slobodna tema"}
         </Typography> */}
 
-        <CardContent>
+        <CardContent sx={{ padding: 2 }}>
           {/* <Typography
             sx={{
               textAlign: "center",
@@ -186,12 +186,16 @@ export default function ThemeCard2({ theme }: ThemeCardProps) {
           >
             Autor: {theme.user.firstName + " " + theme.user.lastName}
           </Typography> */}
-          <Typography variant="body2" color="text.secondary">
+          {/* <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ fontSize: "clamp(9pt, 10pt, 11pt)" }}
+          >
             Opis: <br />{" "}
-          </Typography>
+          </Typography> */}
           <Typography
             sx={{
-              color: "text.primary",
+              color: "text.secondary",
               overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
               display: "-webkit-box", // Neophodno za multi-line truncation
               WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
@@ -199,6 +203,8 @@ export default function ThemeCard2({ theme }: ThemeCardProps) {
               lineHeight: "1", // Podešava razmak između linija
               height: "3em", // Fiksna visina: broj linija * lineHeight
               textOverflow: "ellipsis", // Dodaje tri tačke
+              fontSize: "clamp(10pt, 11pt, 14pt)",
+              mb: 2,
             }}
           >
             {theme.description}

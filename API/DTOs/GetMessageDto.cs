@@ -7,6 +7,7 @@ namespace API.DTOs
 {
     public class GetMessageDto
     {
+        public int Id {get;set;}
         public string Content { get; set; }=string.Empty;
         public DateTime CreationDate { get; set; }
         public UserDto User { get; set; }=default!;

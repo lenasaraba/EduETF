@@ -510,8 +510,8 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                   },
                 }}
               >
-                {!(coursesLoaded && professorsLoaded) ? (
-                  <RowSkeleton themeM={themeM}/>
+                {!coursesLoaded ? (
+                  <RowSkeleton themeM={themeM} />
                 ) : (
                   sortedProfessors &&
                   [...sortedProfessors]

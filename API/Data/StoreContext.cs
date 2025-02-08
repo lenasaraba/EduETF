@@ -16,6 +16,8 @@ namespace API.Data
 
         }
         public DbSet<Course> Courses { get; set; } = null!;
+        public DbSet<CourseMaterial> CourseMaterials { get; set; } = null!;
+
         public DbSet<Theme> Themes { get; set; } = null!;
         public DbSet<Message> Messages { get; set; } = null!;
         public DbSet<StudyProgram> StudyPrograms { get; set; } = null!;
@@ -86,6 +88,11 @@ namespace API.Data
             .HasForeignKey(t => t.CourseId)
             .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<CourseMaterial>()
+            .HasOne(t => t.Course)
+            .WithMany(c => c.Materials)
+            .HasForeignKey(t => t.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
 
 // builder.Entity<Theme>()
 //     .HasOne(t => t.Course)

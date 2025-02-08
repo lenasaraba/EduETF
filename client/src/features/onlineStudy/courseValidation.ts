@@ -22,10 +22,9 @@ export const validationSchema = yup.object().shape({
     .string()
     .required("Studijski program je obavezan.")
     .notOneOf(["0"], "Studijski program je obavezan."),
-  // .positive("ID studijskog programa mora biti pozitivan broj.")
-  // .integer("ID studijskog programa mora biti ceo broj."),
-  //   date: yup
-  //     .date()
-  //     .required("Datum je obavezan.")
-  //     .typeError("Unesite ispravan datum."),
+  password: yup
+    .string()
+    .required("Lozinka je obavezna.")
+    .min(8, "Lozinka mora imati najmanje 8 karaktera.")
+    .max(20, "Lozinka može imati najviše 20 karaktera."),
 });

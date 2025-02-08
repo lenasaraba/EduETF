@@ -28,6 +28,8 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
   const handleBack = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
+  console.log(themes[activeStep].title);
+  console.log(themes[activeStep].messages);
 
   if (themes[activeStep] != null)
     return (
@@ -40,8 +42,7 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
           borderRadius: "20pt",
           borderColor: themes[activeStep].active ? "primary.main" : "gray",
           boxShadow: 3,
-          backgroundColor:"secondary.main",
-
+          backgroundColor: "secondary.main",
         }}
       >
         <Grid
@@ -89,7 +90,7 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
                 "&:hover": {
                   color: "primary.main",
                 },
-                fontWeight:"bolder",
+                fontWeight: "bolder",
               }}
             >
               {themes[activeStep].title}
@@ -156,7 +157,7 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
           sx={{
             flexGrow: 1,
             padding: 0,
-            backgroundColor:"transparent",
+            backgroundColor: "transparent",
 
             "& .MuiMobileStepper-dot": {
               backgroundColor: "background.paper",
@@ -170,8 +171,7 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
               size="small"
               onClick={handleNext}
               disabled={activeStep === themes.length - 1}
-              sx={{ color: "primary.dark",  fontSize: "clamp(6pt, 8pt, 10pt)",
-              }}
+              sx={{ color: "primary.dark", fontSize: "clamp(6pt, 8pt, 10pt)" }}
             >
               Sljedeća
               {designTheme.direction === "rtl" ? (
@@ -186,7 +186,7 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
               size="small"
               onClick={handleBack}
               disabled={activeStep === 0}
-              sx={{ color: "primary.dark",fontSize: "clamp(6pt, 8pt, 10pt)", }}
+              sx={{ color: "primary.dark", fontSize: "clamp(6pt, 8pt, 10pt)" }}
             >
               {designTheme.direction === "rtl" ? (
                 <KeyboardArrowRight />

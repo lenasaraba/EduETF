@@ -5,22 +5,26 @@ import { RootState } from "../../app/store/configureStore";
 
 export interface ThemeState {
   themes: Theme[];
+  currentTheme: Theme | null;
   status: string;
   themesParams: ThemesParams;
   filtersLoaded: boolean;
   themesLoaded: boolean;
   category: string[];
   themeStatus: string[];
+  currentThemeLoaded: boolean;
 }
 
 const initialState: ThemeState = {
   themes: [],
+  currentTheme: null,
   status: "idle",
   themesParams: initParams(),
   filtersLoaded: false,
   themesLoaded: false,
   category: [],
   themeStatus: [],
+  currentThemeLoaded: false,
 };
 
 function initParams() {
@@ -43,8 +47,7 @@ function getAxiosParams(themesParams: ThemesParams) {
     params.append("searchTerm", themesParams.searchTerm.toString());
   if (themesParams.category)
     params.append("category", themesParams.category.toString());
-  if (themesParams.type) 
-    params.append("type", themesParams.type.toString());
+  if (themesParams.type) params.append("type", themesParams.type.toString());
   return params;
 }
 
@@ -63,6 +66,20 @@ export const fetchThemesAsync = createAsyncThunk<
     return thunkAPI.rejectWithValue({ error: error.data });
   }
 });
+
+export const fetchThemeByIdAsync = createAsyncThunk<Theme, number>(
+  "theme/fetchThemeByIdAsync",
+  async (id, thunkAPI) => {
+    try {
+      const theme = await agent.Theme.getTheme(id);
+      console.log(theme);
+      return theme;
+    } catch (error: any) {
+      console.log(error.data);
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
+  }
+);
 
 export const fetchFilters = createAsyncThunk(
   "theme/fetchFilters",
@@ -108,13 +125,13 @@ export const updateThemeStatus = createAsyncThunk<Theme, UpdateThemeDto>(
 );
 
 export const deleteThemeAsync = createAsyncThunk<
-  number, 
-  number, 
+  number,
+  number,
   { state: RootState }
 >("theme/deleteTheme", async (id, thunkAPI) => {
   try {
     await agent.Theme.deleteTheme(id);
-    return id; 
+    return id;
   } catch (error: any) {
     return thunkAPI.rejectWithValue(error.message);
   }
@@ -128,7 +145,7 @@ export const themeSlice = createSlice({
       state.themes = action.payload;
     },
     setThemesParams: (state, action) => {
-      state.themesLoaded = false;
+      // state.themesLoaded = false;
       state.themesParams = {
         ...state.themesParams,
         ...action.payload,
@@ -140,14 +157,18 @@ export const themeSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(createThemeAsync.fulfilled, (state, action: PayloadAction<Theme>) => {
-      state.status = 'succeeded';
-      if (state.themes.length > 0) {
-        state.themes.push(action.payload);
-      } else {
-        state.themes = [action.payload];
+    builder.addCase(
+      createThemeAsync.fulfilled,
+      (state, action: PayloadAction<Theme>) => {
+        state.status = "succeeded";
+        if (state.themes.length > 0) {
+          state.themes.push(action.payload);
+        } else {
+          state.themes = [action.payload];
+        }
+        state.currentTheme = action.payload;
       }
-    });
+    );
     builder.addCase(fetchFilters.pending, (state) => {
       state.status = "pendingFetchFilters";
     });
@@ -164,6 +185,7 @@ export const themeSlice = createSlice({
     });
     builder.addCase(fetchThemesAsync.pending, (state) => {
       state.status = "pendingFetchThemes";
+      state.themesLoaded = false;
     });
     builder.addCase(fetchThemesAsync.rejected, (state) => {
       //state.loading = false;
@@ -185,6 +207,8 @@ export const themeSlice = createSlice({
       const index = state.themes?.findIndex(
         (theme) => theme.id === action.payload.id
       );
+      if (state.currentTheme?.id == action.payload.id)
+        state.currentTheme.active = action.payload.active;
 
       if (index !== undefined && index !== -1 && state.themes) {
         state.themes[index] = { ...state.themes[index], ...action.payload };
@@ -192,10 +216,24 @@ export const themeSlice = createSlice({
     });
     builder.addCase(deleteThemeAsync.fulfilled, (state, action) => {
       state.status = "idle";
-      state.themes = state.themes.filter((theme) => theme.id !== action.payload);
+      state.themes = state.themes.filter(
+        (theme) => theme.id !== action.payload
+      );
+    });
+    builder.addCase(fetchThemeByIdAsync.pending, (state) => {
+      state.status = "pendingFetchThemeByIdAsync";
+      state.currentThemeLoaded = false;
+    });
+    builder.addCase(fetchThemeByIdAsync.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.currentTheme = action.payload;
+      state.currentThemeLoaded = true;
+    });
+    builder.addCase(fetchThemeByIdAsync.rejected, (state) => {
+      state.status = "idle";
+      state.currentThemeLoaded = true;
     });
   },
-  
 });
 export const { setThemes, setThemesParams, resetThemesParams } =
   themeSlice.actions;

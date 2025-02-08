@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import NotFound from "../../app/errors/NotFound";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import {
   Avatar,
   Box,
@@ -15,18 +16,20 @@ import {
   DialogTitle,
   Divider,
   Grid,
-  Menu,
-  MenuItem,
   Popover,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { createMessage, fetchMessagesAsync } from "./messageSlice";
+import {
+  createMessage,
+  deleteMessageAsync,
+  fetchMessagesAsync,
+} from "./messageSlice";
 import { useEffect, useRef, useState } from "react";
 import {
   deleteThemeAsync,
-  fetchThemesAsync,
+  fetchThemeByIdAsync,
   updateThemeStatus,
 } from "./themeSlice";
 import { Author } from "../onlineStudy/components/Author";
@@ -37,8 +40,43 @@ import React from "react";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import ChatTwoToneIcon from "@mui/icons-material/ChatTwoTone";
 import LoadingComponent from "../../app/layout/LoadingComponent";
+import { Message } from "../../app/models/theme";
+import { Theme as ThemeMod } from "../../app/models/theme";
+
 export default function Theme() {
   const navigate = useNavigate();
+
+  // const open = Boolean(anchorEl);
+  const [openMessageDialog, setOpenMessageDialog] = useState(false);
+  const [selectedMessage, sestSelectedMessage] = useState<Message>();
+
+  const handleDeleteMessage = (
+    // event: React.MouseEvent<HTMLElement>,
+    message: Message
+  ) => {
+    // console.log(courseSelected);
+    // setCourseSelected(course);
+    sestSelectedMessage(message);
+    setOpenMessageDialog(true);
+  };
+  const handleCloseMessageDialog = () => {
+    sestSelectedMessage(undefined);
+    setOpenMessageDialog(false);
+    // setAnchorEl(null);
+  };
+
+  const handleConfirmDeleteMessage = async () => {
+    try {
+      console.log(selectedMessage);
+      if (selectedMessage)
+        await dispatch(deleteMessageAsync(selectedMessage.id!));
+      setOpenMessageDialog(false);
+
+      // await dispatch(fetchMessagesAsync(parseInt(id!)));
+    } catch (error) {
+      console.error("Greška prilikom brisanja poruke:", error);
+    }
+  };
 
   const { id } = useParams<{ id: string }>(); // Osigurava da je `id` uvek string
   // const themes = useAppSelector((state) => state.theme.themes);
@@ -50,14 +88,11 @@ export default function Theme() {
   const dispatch = useAppDispatch();
 
   // const theme = themes!.find((i) => i.id === parseInt(id!));
-  const theme = useAppSelector((state) => {
-    if (!id) return undefined; // Ako je `id` undefined, vrati `undefined`
-    return state.theme.themes.find((t) => t.id === parseInt(id));
-  });
+  const theme = useAppSelector((state) => state.theme.currentTheme);
 
-  const themesLoaded = useAppSelector((state) => state.theme.themesLoaded);
+  const themeLoaded = useAppSelector((state) => state.theme.currentThemeLoaded);
   useEffect(() => {
-    dispatch(fetchThemesAsync());
+    dispatch(fetchThemeByIdAsync(parseInt(id!)));
   }, [dispatch]);
 
   const topOfPageRef = useRef<HTMLDivElement>(null);
@@ -84,11 +119,34 @@ export default function Theme() {
     console.log(anchorEl);
   };
 
-  const updateStatus = async (event: React.MouseEvent<HTMLElement>) => {
-    setLoadingStatus(true); // Pokreće indikator
+  // const updateStatus = async (event: React.MouseEvent<HTMLElement>) => {
+  //   setLoadingStatus(true); // Pokreće indikator
+  //   const updateData = {
+  //     id: theme!.id!,
+  //     active: !theme!.active,
+  //   };
+
+  //   try {
+  //     await dispatch(updateThemeStatus(updateData));
+  //   } catch (error) {
+  //     console.error("Greška prilikom ažuriranja statusa:", error);
+  //   } finally {
+  //     setLoadingStatus(false); // Zaustavlja indikator
+  //     setAnchorEl(null); // Zatvara meni
+  //   }
+  // };
+
+  const updateStatus = async (
+    event: React.MouseEvent<HTMLElement>,
+    theme: ThemeMod
+  ) => {
+    event.preventDefault(); // Sprečava osvežavanje stranice
+
+    setLoadingStatus(true); // Postavi loading za određenu temu
+
     const updateData = {
-      id: theme!.id!,
-      active: !theme!.active,
+      id: theme.id,
+      active: !theme.active,
     };
 
     try {
@@ -96,8 +154,7 @@ export default function Theme() {
     } catch (error) {
       console.error("Greška prilikom ažuriranja statusa:", error);
     } finally {
-      setLoadingStatus(false); // Zaustavlja indikator
-      setAnchorEl(null); // Zatvara meni
+      setLoadingStatus(false); // Isključi loading nakon završetka
     }
   };
 
@@ -109,7 +166,7 @@ export default function Theme() {
     setOpenDialog(false);
   };
 
-  const handleConfirmDelete = async (event: React.MouseEvent<HTMLElement>) => {
+  const handleConfirmDelete = async () => {
     try {
       await dispatch(deleteThemeAsync(theme!.id));
       navigate("/themes?type=all");
@@ -125,7 +182,7 @@ export default function Theme() {
     setAnchorEl(null); // Zatvara Popover
   };
 
-  if (!themesLoaded) return <LoadingComponent message="Učitavanje teme.." />;
+  if (!themeLoaded) return <LoadingComponent message="Učitavanje teme.." />;
 
   if (theme == undefined) return <NotFound />;
 
@@ -324,7 +381,7 @@ export default function Theme() {
                             }}
                           >
                             <Typography
-                              onClick={updateStatus}
+                              onClick={(event) => updateStatus(event, theme)}
                               variant="body2"
                               sx={{
                                 paddingX: 2,
@@ -522,9 +579,11 @@ export default function Theme() {
                   variant="contained"
                   color="primary"
                   sx={{ marginTop: 2 }}
-                  onClick={() =>
-                    (window.location.href = `/courses/${theme.course.id}`)
-                  }
+                  // onClick={() =>
+                  //   (window.location.href = `/courses/${theme.course.id}`)
+                  // }
+                  component={Link}
+                  to={`/courses/${theme.course.id}`}
                 >
                   Idi na kurs
                 </Button>
@@ -732,22 +791,27 @@ export default function Theme() {
                                   style={{
                                     fontSize: "12px",
                                     color: "common.black",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "flex-end",
                                   }}
                                 >
-                                  {new Date(
-                                    message.creationDate
-                                  ).toLocaleTimeString("sr-RS", {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    second: "2-digit",
-                                  })}{" "}
-                                  {new Date(
-                                    message.creationDate
-                                  ).toLocaleDateString("sr-RS", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  })}
+                                  <Typography variant="caption">
+                                    {new Date(
+                                      message.creationDate
+                                    ).toLocaleTimeString("sr-RS", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      second: "2-digit",
+                                    })}{" "}
+                                    {new Date(
+                                      message.creationDate
+                                    ).toLocaleDateString("sr-RS", {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                    })}
+                                  </Typography>
                                 </span>
                               </Typography>
                               <Typography
@@ -757,6 +821,77 @@ export default function Theme() {
                               >
                                 {message.content}
                               </Typography>
+                              {user && user.email == message.user.email ? (
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                  }}
+                                >
+                                  <Box
+                                    aria-describedby={idMenu}
+                                    // variant="contained"
+                                    onClick={() => handleDeleteMessage(message)}
+                                    sx={{
+                                      display: "flex",
+                                      width: "fit-content",
+                                      borderRadius: "20pt",
+                                      padding: 0,
+                                      color: "text.disabled",
+                                      // marginRight: 2,
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        color: "text.primary",
+                                        // backgroundColor: "primary.main",
+                                      },
+                                    }}
+                                  >
+                                    <DeleteOutlineOutlinedIcon
+                                      sx={{ fontSize: "14pt" }}
+                                    />
+                                  </Box>
+                                  {/* <Popover
+                                  id={idMenu}
+                                  open={open}
+                                  anchorEl={anchorEl}
+                                  onClose={handleClose}
+                                  anchorOrigin={{
+                                    vertical: "bottom",
+                                    horizontal: "center",
+                                  }}
+                                  slotProps={{
+                                    paper: {
+                                      sx: {
+                                        borderRadius: "10pt",
+                                        "&:hover": {
+                                          cursor: "pointer",
+                                        },
+                                      },
+                                    },
+                                  }}
+                                >
+                                  <Typography
+                                    onClick={handleDeleteClick}
+                                    variant="body2"
+                                    sx={{
+                                      paddingX: 2,
+                                      paddingY: 1,
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        color: "primary.light",
+                                      },
+                                      fontFamily: "Raleway, sans-serif",
+                                      color: "text.secondaryChannel",
+                                      backgroundColor: "background.paper",
+                                    }}
+                                  >
+                                    Obriši kurs
+                                  </Typography>
+                                </Popover> */}
+                                </div>
+                              ) : (
+                                ""
+                              )}
                             </Box>
                           </Stack>
                         </Box>
@@ -849,6 +984,60 @@ export default function Theme() {
           </Grid>
         </Grid>
       </Grid>
+      <Dialog
+        open={openMessageDialog}
+        onClose={handleCloseMessageDialog}
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "12pt",
+            padding: 3,
+            minWidth: 300,
+            textAlign: "center",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Raleway, sans-serif",
+            fontSize: "1.2rem",
+          }}
+        >
+          Potvrda brisanja
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            sx={{
+              fontFamily: "Raleway, sans-serif",
+              color: "text.secondary",
+            }}
+          >
+            Da li ste sigurni da želite da obrišete poruku?
+          </Typography>
+          {/* <Typography
+            color="info.light"
+            sx={{ fontSize: "clamp(9pt, 10pt, 11pt)" }}
+          >
+            {course?.name}
+            {"-"}
+            {course?.description}
+          </Typography> */}
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
+          <Button
+            onClick={handleCloseMessageDialog}
+            sx={{ color: "text.primary" }}
+          >
+            Odustani
+          </Button>
+          <Button
+            onClick={handleConfirmDeleteMessage}
+            color="error"
+            variant="contained"
+          >
+            Obriši
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

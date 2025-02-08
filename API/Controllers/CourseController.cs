@@ -38,6 +38,7 @@ namespace API.Controllers
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
             .Include(c => c.UsersCourse)
             .Include(t => t.Themes)
+            
             .AsQueryable();
 
 
@@ -138,7 +139,7 @@ namespace API.Controllers
             var course = await _context.Courses
         .Include(y => y.Year)
         .Include(s => s.StudyProgram)
-        .Include(t => t.Themes)
+        .Include(t => t.Themes).ThenInclude(m=>m.Messages)
         .Include(pc=>pc.ProfessorsCourse).ThenInclude(u=>u.User)
         .Include(uc=>uc.UsersCourse).ThenInclude(u=>u.User)
         .FirstOrDefaultAsync(c => c.Id == id);
@@ -156,6 +157,16 @@ namespace API.Controllers
         {
             var years = await _context.Courses.Select(c => c.Year!).Distinct().ToListAsync();
             var programs = await _context.Courses.Select(c => c.StudyProgram!).Distinct().ToListAsync();
+
+
+            return Ok(new { years, programs });
+        }
+
+        [HttpGet("yearsPrograms")]
+        public async Task<IActionResult> GetYearsPrograms()
+        {
+            var years = await _context.Years.ToListAsync();
+            var programs = await _context.StudyPrograms.ToListAsync();
 
 
             return Ok(new { years, programs });
@@ -225,6 +236,111 @@ namespace API.Controllers
 
             return Ok(response); // Vraćamo JSON sa ID-jem i porukom
         }
+
+        [Authorize]
+        [HttpPost("AddMaterial")]
+        public async Task<ActionResult<List<GetCourseMaterialDto>>> AddMaterials( CreateCourseMaterialDto[] materials)
+        {
+            var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == materials[0].CourseId);
+
+            if (course == null)
+                return NotFound("Course not found");
+
+            var addedMaterials = new List<CourseMaterial>();
+
+            foreach (var material in materials)
+            {
+                var m = _mapper.Map<CourseMaterial>(material);
+                m.MaterialType = await _context.MaterialTypes.FirstOrDefaultAsync(mt => mt.Id == m.MaterialTypeId);
+                m.Course = course;
+                m.CreationDate = DateTime.UtcNow;
+
+                // Prvo dodaj materijal u bazu da dobije ID
+                _context.CourseMaterials.Add(m);
+                await _context.SaveChangesAsync(); // Potrebno da bi se generisao ID
+                var fileExtension = Path.GetExtension(material.Title);
+                var newFileName = $"{Path.GetFileNameWithoutExtension(material.Title)}_{m.CourseId}_{m.Week}{fileExtension}";
+                    m.FilePath = $"/uploads/{newFileName}";
+
+
+                    await _context.SaveChangesAsync(); // Ažuriraj materijal sa putanjom fajla
+                
+
+                addedMaterials.Add(m);
+            }
+
+            if (course.WeekCount < materials[0].Week)
+                course.WeekCount = materials[0].Week;
+
+            await _context.SaveChangesAsync();
+
+            var response = new
+            {
+                Method = "AddMaterials",
+                Status = "Success",
+                Data = _mapper.Map<List<GetCourseMaterialDto>>(addedMaterials)
+            };
+
+            return CreatedAtAction(nameof(GetCourseMaterial), new { id = course.Id }, response);
+        }
+
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadFile(IFormFile file)
+        {
+                var courseId = int.Parse(Request.Form["courseId"]);
+    var weekNumber = int.Parse(Request.Form["weekNumber"]);
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadsFolder); // Kreira folder ako ne postoji
+
+            var fileExtension = Path.GetExtension(file.FileName);
+
+            var uniqueFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{courseId}_{weekNumber}{fileExtension}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Vraćamo relativnu putanju fajla (bez root putanje)
+            return Ok(new { filePath = $"uploads/{uniqueFileName}" });
+        }
+
+
+        [HttpGet("getCourseMaterialById/{id}")]
+        public async Task<ActionResult<GetCourseMaterialDto>> GetCourseMaterial(int id)
+        {
+            var material = await _context.CourseMaterials.Include(m=>m.MaterialType)
+        .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (material == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(_mapper.Map<GetCourseMaterialDto>(material));
+        }
+
+        [HttpGet("getCourseMaterialsByCourseId/{courseId}")]
+        public async Task<ActionResult<List<GetCourseMaterialDto>>> GetCourseMaterialsByCourseId(int courseId)
+        {
+            var materials = await _context.CourseMaterials.Where(c => c.CourseId == courseId).Include(m=>m.MaterialType).ToListAsync();
+       
+
+            if (materials == null)
+            {
+                return NotFound();
+            }
+
+            return materials.Select(m => _mapper.Map<GetCourseMaterialDto>(m)).ToList();
+        }
+
 
     }
 }

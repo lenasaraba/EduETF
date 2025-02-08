@@ -16,6 +16,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+//sta je ovo azure
+// var tenantId = "TVOJ_TENANT_ID";
+// var clientId = "TVOJ_CLIENT_ID";
+// var clientSecret = "TVOJ_CLIENT_SECRET";
+// var userId = "TVOJ_CLIENT_SECRET";
+
+
+// builder.Services.AddSingleton(new GraphService(tenantId, clientId, clientSecret, userId));
+
 builder.Services.AddSwaggerGen(c =>
 {
     var jwtSecurityScheme = new OpenApiSecurityScheme
@@ -106,7 +115,7 @@ app.UseCors(opt =>
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();

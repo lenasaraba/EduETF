@@ -10,34 +10,45 @@ import {
   FormHelperText,
   Button,
   Typography,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Controller, FieldValues, useForm } from "react-hook-form";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { createCourseAsync, fetchFilters } from "./courseSlice";
+import { createCourseAsync, fetchAllYearsPrograms } from "./courseSlice";
 import { useNavigate } from "react-router-dom";
 import { validationSchema } from "./courseValidation";
 import LoadingComponent from "../../app/layout/LoadingComponent";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 export default function CreateCourse() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { years } = useAppSelector((state) => state.course);
+  const { years, currentCourseLoaded, currentCourse } = useAppSelector(
+    (state) => state.course
+  );
   const studyPrograms = useAppSelector((state) => state.course.programs);
   const filtersLoaded = useAppSelector((state) => state.course.filtersLoaded);
 
   const statusC = useAppSelector((state) => state.course.status);
 
-  console.log(
-    "GODINE I PROGRAMII :                         " + years,
-    studyPrograms
-  );
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleTogglePassword = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  // console.log(
+  //   "GODINE I PROGRAMII :                         " + years,
+  //   studyPrograms
+  // );
   const methods = useForm({
     mode: "all",
     resolver: yupResolver(validationSchema),
   });
   useEffect(() => {
-    if (!filtersLoaded) dispatch(fetchFilters());
+    if (!filtersLoaded) dispatch(fetchAllYearsPrograms());
   }, [dispatch, filtersLoaded]);
   const {
     control,
@@ -63,7 +74,14 @@ export default function CreateCourse() {
     };
     console.log(newCourse);
 
+    // try {
     const resultAction = await dispatch(createCourseAsync(newCourse));
+    // } catch (error: any) {
+    //   console.log(error);
+    // } finally {
+    //   console.log(currentCourse);
+    //   navigate(`/courses/${currentCourse.id}`);
+    // }
 
     if (createCourseAsync.fulfilled.match(resultAction)) {
       navigate(`/courses/${resultAction.payload.id}`);
@@ -147,13 +165,13 @@ export default function CreateCourse() {
                   variant="outlined"
                   fullWidth
                   multiline
-                  rows={5}
+                  rows={4}
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message || ""}
                   {...register("description", {
                     required: "Opis kursa je obavezan.",
                   })}
-                  sx={{ height: "9.5rem", maxHeight: "9.5rem" }}
+                  sx={{ height: "8rem", maxHeight: "8rem" }}
                 />
               )}
             />
@@ -256,34 +274,45 @@ export default function CreateCourse() {
               {/* <FormHelperText>{errors.yearId?.message}</FormHelperText> */}
             </FormControl>
           </Grid>
-
-          {/* <Grid>
-            <FormControl fullWidth error={!!errors.studyProgramId}>
-              <InputLabel id="studyProgramId-label">
-                Studijski program
-              </InputLabel>
-              <Controller
-                name="studyProgramId"
-                control={control}
-                rules={{ required: "Izbor studijskog programa je obavezan." }}
-                render={({ field, fieldState }) => (
-                  <Select
-                    {...field}
-                    labelId="studyProgramId-label"
-                    label="Studijski program"
-                    error={!!fieldState.error}
-                  >
-                    {studyPrograms?.map((program) => (
-                      <MenuItem key={program.id} value={program.id}>
-                        {program.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-              />
-              <FormHelperText>{errors.studyProgramId?.message}</FormHelperText>
-            </FormControl>
-          </Grid> */}
+          <Grid>
+            <Controller
+              name="password"
+              control={control}
+              defaultValue=""
+              render={({ field, fieldState }) => (
+                <TextField
+                  {...field}
+                  label="Lozinka"
+                  variant="outlined"
+                  fullWidth
+                  type={showPassword ? "text" : "password"}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message || ""}
+                  {...register("password", {
+                    required: "Lozinka je obavezna.",
+                    minLength: {
+                      value: 8,
+                      message: "Lozinka mora imati najmanje 8 karaktera.",
+                    },
+                    maxLength: {
+                      value: 20,
+                      message: "Lozinka može imati najviše 20 karaktera.",
+                    },
+                  })}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={handleTogglePassword} edge="end">
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ height: "3.5rem", maxHeight: "3.5rem" }}
+                />
+              )}
+            />
+          </Grid>
 
           <Grid
             sx={{ display: "flex", justifyContent: "space-evenly", padding: 0 }}

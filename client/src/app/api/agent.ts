@@ -30,10 +30,11 @@ axios.interceptors.response.use(
       if (response.data.method == "CreateCourse") toast.success("Kurs kreiran");
 
       // Ako želite, možete dodati specifičnu logiku za status 201
-    }
-    else if(response.status===200){
-      if (response.data.method == "DeleteTheme") toast.success(response.data.message);
-      if (response.data.method == "DeleteCourse") toast.success(response.data.message);
+    } else if (response.status === 200) {
+      if (response.data.method == "DeleteTheme")
+        toast.success(response.data.message);
+      if (response.data.method == "DeleteCourse")
+        toast.success(response.data.message);
     }
 
     // const pagination = response.headers["pagination"];
@@ -110,10 +111,28 @@ const Course = {
   // getMy: (id: string) => requests.get(`course/getMyCourses/${id}`),
   getProfessorCourses: (id: number) =>
     requests.get(`course/getProfessorsCourses/${id}`),
-  getCourse:(id:number)=>requests.get(`course/getCourseById/${id}`),
+  getCourse: (id: number) => requests.get(`course/getCourseById/${id}`),
   fetchFilters: () => requests.get("course/filters"),
+  fetchAllYearsPrograms: () => requests.get("course/yearsPrograms"),
   create: (values: any) => requests.post("course/CreateCourse", values),
-  deleteCourse:(id:number)=>requests.delete(`course/DeleteCourse/${id}`),
+  deleteCourse: (id: number) => requests.delete(`course/DeleteCourse/${id}`),
+  uploadMaterials: (materials: any) =>
+    requests.post("course/AddMaterial", materials),
+  // upload: (file: any, courseId: number, weekNumber: number) =>
+  //   requests.post("course/upload", { file, courseId, weekNumber }),
+  // U agentu
+  upload: (file: File, courseId: number, weekNumber: number) => {
+    console.log(courseId, weekNumber);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("courseId", courseId.toString());
+    formData.append("weekNumber", weekNumber.toString());
+
+    // Koristi agent za slanje podataka sa 'FormData'
+    return requests.post("course/upload", formData);
+  },
+  getMaterialsByCourseId: (id: number) =>
+    requests.get(`course/getCourseMaterialsByCourseId/${id}`),
 };
 
 const Professor = {
@@ -131,13 +150,15 @@ const Theme = {
   fetchFilters: () => requests.get("theme/filters"),
   updateTheme: (themeData: any) =>
     requests.post("theme/updateTheme", themeData),
-  getProfessorThemes:(id:number)=>requests.get(`theme/getProfessorThemes/${id}`),
+  getProfessorThemes: (id: number) =>
+    requests.get(`theme/getProfessorThemes/${id}`),
   deleteTheme: (id: number) => requests.delete(`theme/DeleteTheme/${id}`),
-
+  getTheme: (id: number) => requests.get(`theme/GetTheme/${id}`),
 };
 const Message = {
-  getAll: (id:number) => requests.get(`theme/GetAllMessages/${id}`),
+  getAll: (id: number) => requests.get(`theme/GetAllMessages/${id}`),
   createMessage: (values: any) => requests.post("theme/CreateMessage", values),
+  deleteMessage: (id: number) => requests.delete(`theme/DeleteMessage/${id}`),
 };
 
 const agent = {

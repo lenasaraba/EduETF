@@ -41,7 +41,14 @@ namespace API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("StudyProgramId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WeekCount")
                         .HasColumnType("int");
 
                     b.Property<int>("YearId")
@@ -71,7 +78,6 @@ namespace API.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FilePath")
@@ -86,8 +92,10 @@ namespace API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Url")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Week")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -95,7 +103,7 @@ namespace API.Migrations
 
                     b.HasIndex("MaterialTypeId");
 
-                    b.ToTable("CourseMaterial");
+                    b.ToTable("CourseMaterials");
                 });
 
             modelBuilder.Entity("API.Entities.MaterialType", b =>

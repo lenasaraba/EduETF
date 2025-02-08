@@ -9,7 +9,10 @@ namespace API.Mapping
         {
             CreateMap<Course, CourseDto>();
             CreateMap<Course, GetThemeCourseDto>();
-            CreateMap<CourseMaterial, CourseMaterialDto>();
+            CreateMap<CourseMaterial, GetCourseMaterialDto>();
+            CreateMap<CreateCourseMaterialDto, CourseMaterial>();
+
+
             CreateMap<CreateThemeDto, Theme>();
             CreateMap<Theme, GetThemeDto>();
             CreateMap<User, UserDto>();

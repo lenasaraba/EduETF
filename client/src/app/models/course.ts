@@ -9,6 +9,8 @@ export interface Course {
   courseCreationDate: string;
   usersCourse: UsersCourse[];
   professorsCourse: ProfessorsCourse[];
+  password: string;
+  weekCount: number;
 }
 
 export interface CreateCourse {
@@ -36,7 +38,7 @@ export interface ProfessorsCourse {
 }
 
 export interface User {
-  id:number;
+  id: number;
   email: string;
   username: string;
   token: string;
@@ -52,7 +54,6 @@ export interface Theme {
   userId: number;
   messages: Message[];
   active: string;
-
 }
 
 export interface Message {
@@ -62,6 +63,7 @@ export interface Message {
 }
 
 export interface Material {
+  id: number;
   courseId: number;
   title: string;
   description: string;
@@ -69,6 +71,18 @@ export interface Material {
   url: string;
   materialType: MaterialType;
   creationDate: string;
+  week: number;
+}
+
+export interface AddMaterial {
+  courseId: number;
+  title: string;
+  description?: string;
+  filePath: string;
+  url: string;
+  materialTypeId: number;
+  creationDate: string;
+  week: number;
 }
 
 export interface Year {

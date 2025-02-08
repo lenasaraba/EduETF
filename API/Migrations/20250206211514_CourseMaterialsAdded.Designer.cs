@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(StoreContext))]
-    [Migration("20250202171916_Initial2")]
-    partial class Initial2
+    [Migration("20250206211514_CourseMaterialsAdded")]
+    partial class CourseMaterialsAdded
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,7 +44,14 @@ namespace API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("StudyProgramId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WeekCount")
                         .HasColumnType("int");
 
                     b.Property<int>("YearId")
@@ -74,7 +81,6 @@ namespace API.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FilePath")
@@ -89,8 +95,10 @@ namespace API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Url")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Week")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -98,7 +106,7 @@ namespace API.Migrations
 
                     b.HasIndex("MaterialTypeId");
 
-                    b.ToTable("CourseMaterial");
+                    b.ToTable("CourseMaterials");
                 });
 
             modelBuilder.Entity("API.Entities.MaterialType", b =>

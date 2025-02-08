@@ -214,7 +214,9 @@ namespace API.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     YearId = table.Column<int>(type: "int", nullable: false),
                     StudyProgramId = table.Column<int>(type: "int", nullable: false),
-                    CourseCreationDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CourseCreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WeekCount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -241,11 +243,12 @@ namespace API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CourseId = table.Column<int>(type: "int", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FilePath = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Url = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Url = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     MaterialTypeId = table.Column<int>(type: "int", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Week = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -318,7 +321,8 @@ namespace API.Migrations
                         name: "FK_Themes_Courses_CourseId",
                         column: x => x.CourseId,
                         principalTable: "Courses",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(

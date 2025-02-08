@@ -124,7 +124,7 @@ export default function CreateTheme() {
           <Typography
             variant="h6"
             sx={{ textAlign: "center", fontFamily: "Raleway, sans-serif" }}
-            mb={2}
+            mb={1}
           >
             Kreiranje teme
           </Typography>
@@ -162,13 +162,13 @@ export default function CreateTheme() {
                   variant="outlined"
                   fullWidth
                   multiline
-                  rows={5}
+                  rows={4}
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message || ""}
                   {...register("description", {
                     required: "Description is required.",
                   })}
-                  sx={{ height: "9rem", maxHeight: "9rem" }}
+                  sx={{ height: "8rem", maxHeight: "8rem" }}
                 />
               )}
             />

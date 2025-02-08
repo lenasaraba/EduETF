@@ -147,7 +147,7 @@ export default function AppAppBar() {
                 component={Link}
                 to="/courses?type=my"
               >
-                Moje učenje
+                Moji kursevi
               </Button>
             </Box>
           </Box>

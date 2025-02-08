@@ -12,6 +12,7 @@ import {
   Typography,
   InputAdornment,
   IconButton,
+  Box,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Controller, FieldValues, useForm } from "react-hook-form";
@@ -111,8 +112,10 @@ export default function CreateCourse() {
           spacing={3}
           sx={{
             gap: 4,
+            direction:"column",
             width: "100%",
             padding: 2,
+            paddingX:4,
             backgroundColor: "background.default",
             borderRadius: "20px",
             border: "2px solid",
@@ -126,12 +129,12 @@ export default function CreateCourse() {
           <Typography
             variant="h6"
             sx={{ textAlign: "center", fontFamily: "Raleway, sans-serif" }}
-            mb={2}
+            mb={1}
           >
             Dodavanje kursa
           </Typography>
 
-          <Grid>
+          <Grid sx={{ paddingLeft: 0 }}>
             <Controller
               name="name"
               control={control}
@@ -147,13 +150,13 @@ export default function CreateCourse() {
                   {...register("name", {
                     required: "Naziv kursa je obavezan.",
                   })}
-                  sx={{ height: "3.5rem", maxHeight: "3.5rem" }}
+                  sx={{ height: "3rem", maxHeight: "3rem" }}
                 />
               )}
             />
           </Grid>
 
-          <Grid>
+          <Grid sx={{ padding: 0 }}>
             <Controller
               name="description"
               control={control}
@@ -177,104 +180,98 @@ export default function CreateCourse() {
             />
           </Grid>
 
-          <Grid>
-            <FormControl
-              fullWidth
-              error={!!errors.yearId}
-              sx={{ height: "3.5rem", maxHeight: "3.5rem" }}
-            >
-              <InputLabel id="yearId-label">Godina</InputLabel>
-              <Controller
-                name="yearId"
-                control={control}
-                rules={{ required: "Izbor godine je obavezan." }}
-                render={({ field, fieldState }) => (
-                  <>
-                    <Select
-                      {...field}
-                      labelId="yearId-label"
-                      value={field.value || "0"}
-                      label="Godina"
-                      error={!!fieldState.error}
-                      onChange={(e) => {
-                        // console.log(e.target.value);
-                        setValue("yearId", e.target.value || "0", {
-                          shouldValidate: true,
-                        });
-                      }}
-                    >
-                      <MenuItem value={0}>Izaberite godinu</MenuItem>
-                      {years?.map((year) => (
-                        <MenuItem key={year.id} value={year.id}>
-                          {year.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {fieldState.error && (
-                      <FormHelperText>
-                        {fieldState.error?.message || "Greška u izboru godine"}
-                      </FormHelperText>
-                    )}
-                  </>
-                )}
-              />
-              {/* <FormHelperText>{errors.yearId?.message}</FormHelperText> */}
-            </FormControl>
+          <Grid container sx={{ padding: 0, display:"flex" }}>
+            <Box component={Grid} sx={{ width:"48%", margin:0, padding:0 }}>
+              <FormControl
+                fullWidth
+                error={!!errors.yearId}
+                sx={{ height: "3.5rem", maxHeight: "3.5rem" }}
+              >
+                <InputLabel id="yearId-label">Godina</InputLabel>
+                <Controller
+                  name="yearId"
+                  control={control}
+                  rules={{ required: "Izbor godine je obavezan." }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        {...field}
+                        labelId="yearId-label"
+                        value={field.value || "0"}
+                        label="Godina"
+                        error={!!fieldState.error}
+                        onChange={(e) => {
+                          // console.log(e.target.value);
+                          setValue("yearId", e.target.value || "0", {
+                            shouldValidate: true,
+                          });
+                        }}
+                      >
+                        <MenuItem value={0}>Izaberite godinu</MenuItem>
+                        {years?.map((year) => (
+                          <MenuItem key={year.id} value={year.id}>
+                            {year.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {fieldState.error && (
+                        <FormHelperText>
+                          {fieldState.error?.message ||
+                            "Greška u izboru godine"}
+                        </FormHelperText>
+                      )}{" "}
+                    </>
+                  )}
+                />
+              </FormControl>
+            </Box>
+            <Box component={Grid} sx={{ width:"48%", margin:0, padding:0 }}>
+              <FormControl
+                fullWidth
+                error={!!errors.studyProgramId}
+                sx={{ height: "3.5rem", maxHeight: "3.5rem" }}
+              >
+                <InputLabel id="studyProgramId-label">Smjer</InputLabel>
+                <Controller
+                  name="studyProgramId"
+                  control={control}
+                  rules={{ required: "Izbor smjera je obavezan." }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        {...field}
+                        labelId="studyProgramId-label"
+                        value={field.value || "0"}
+                        label="Smjer"
+                        error={!!fieldState.error}
+                        onChange={(e) => {
+                          // console.log(e.target.value);
+                          setValue("studyProgramId", e.target.value || "0", {
+                            shouldValidate: true,
+                          });
+                        }}
+                      >
+                        <MenuItem value={0}>Izaberite smjer</MenuItem>
+                        {studyPrograms?.map((program) => (
+                          <MenuItem key={program.id} value={program.id}>
+                            {program.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {fieldState.error && (
+                        <FormHelperText>
+                          {fieldState.error?.message ||
+                            "Greška u izboru smjera"}
+                        </FormHelperText>
+                      )}
+                    </>
+                  )}
+                />
+              </FormControl>
+            </Box>
           </Grid>
 
-          <Grid>
-            <FormControl
-              fullWidth
-              error={!!errors.studyProgramId}
-              sx={{ height: "3.5rem", maxHeight: "3.5rem" }}
-            >
-              <InputLabel id="studyProgramId-label">Smjer</InputLabel>
-              <Controller
-                name="studyProgramId"
-                control={control}
-                rules={{ required: "Izbor smjera je obavezan." }}
-                render={({ field, fieldState }) => (
-                  <>
-                    <Select
-                      {...field}
-                      labelId="studyProgramId-label"
-                      value={field.value || "0"}
-                      label="Smjer"
-                      error={!!fieldState.error}
-                      onChange={(e) => {
-                        // console.log(e.target.value);
-                        setValue("studyProgramId", e.target.value || "0", {
-                          shouldValidate: true,
-                        });
-                      }}
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            maxHeight: 120,
-                            overflowY: "auto",
-                          },
-                        },
-                      }}
-                    >
-                      <MenuItem value={0}>Izaberite smjer</MenuItem>
-                      {studyPrograms?.map((program) => (
-                        <MenuItem key={program.id} value={program.id}>
-                          {program.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {fieldState.error && (
-                      <FormHelperText>
-                        {fieldState.error?.message || "Greška u izboru smjera"}
-                      </FormHelperText>
-                    )}
-                  </>
-                )}
-              />
-              {/* <FormHelperText>{errors.yearId?.message}</FormHelperText> */}
-            </FormControl>
-          </Grid>
-          <Grid>
+          <Grid sx={{ padding: 0 }}>
             <Controller
               name="password"
               control={control}

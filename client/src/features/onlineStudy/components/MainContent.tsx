@@ -89,8 +89,6 @@ export default function MainContent() {
   );
 
   const handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
-    // console.log(courseSelected);
-    // setCourseSelected(course);
     setOpenDialog(true);
   };
 
@@ -191,7 +189,7 @@ export default function MainContent() {
             <Typography sx={{ fontFamily: "Raleway, sans-serif" }}>
               Pronađite kurs koji vam odgovara.
             </Typography>
-            {user && (
+            {user && user.role=="Profesor" && (
               <Button
                 component={Link}
                 to="/createCourse"

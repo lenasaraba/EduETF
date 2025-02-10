@@ -57,6 +57,10 @@ export default function CourseList() {
     [dispatch] // Zavisi samo od dispatch-ap
   );
 
+  useEffect(() => {
+    setSearchTerm("");
+  }, [courseType]);
+
   const allCourses = useAppSelector((state) => state.course.courses);
 
   let courseTitle = "";
@@ -113,7 +117,6 @@ export default function CourseList() {
     <Grid
       container
       sx={{
-        //PROVJERITI SA ŠICOM
         display: "block",
         direction: "column",
         position: "relative",
@@ -127,13 +130,10 @@ export default function CourseList() {
           display: "flex",
           flexDirection: "column",
           margin: 0,
-          // my: 16,
           paddingX: 10,
           paddingY: 3,
-          // gap: 4,
         }}
       >
-        {/* <Box sx={{ display: "flex", flexDirection: "column", margin: 0 }}> */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Breadcrumbs
             //size="small"
@@ -177,48 +177,6 @@ export default function CourseList() {
             </Typography>
           </Breadcrumbs>
         </Box>
-        {/* <Box
-          sx={{
-            display: "flex",
-            mb: 1,
-            gap: 1,
-            flexDirection: { xs: "column", sm: "row" },
-            alignItems: { xs: "start", sm: "center" },
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-          }}
-        >
-          <Typography
-            variant="h2"
-            // component="h1"
-            sx={{
-              fontFamily: "Raleway, sans-serif",
-              marginY: 4,
-              fontWeight: "bolder",
-              color: "primary.main",
-            }}
-          >
-            Kursevi
-          </Typography>
-          <Button
-            component={Link}
-            to="/createCourse"
-            //onClick={handleOpen}
-            sx={{
-              backgroundColor: "primary.dark",
-              color: "white",
-              padding: "10px 20px",
-              borderRadius: "20px",
-              fontSize: "16px",
-              "&:hover": {
-                backgroundColor: "primary.light",
-              },
-            }}
-          >
-            <AddIcon />
-          </Button>
-        </Box> */}
-
         <div
           style={{
             marginTop: "32px",
@@ -230,27 +188,23 @@ export default function CourseList() {
         >
           <Typography
             variant="h2"
-            // gutterBottom
             sx={{
               fontFamily: "Raleway, sans-serif",
-              // marginY: 4,
               fontWeight: "bolder",
               color: "primary.main",
             }}
           >
             Kursevi
           </Typography>
-          {user && courseType!=="myLearning" && (
+          {user && user.role == "Profesor" && (
             <Button
               component={Link}
               to="/createCourse"
-              //onClick={handleOpen}
               sx={{
                 backgroundColor: "primary.dark",
                 color: "white",
                 padding: "10px 20px",
                 borderRadius: "20px",
-                // fontSize: "16px",
                 "&:hover": {
                   backgroundColor: "primary.light",
                 },
@@ -258,7 +212,6 @@ export default function CourseList() {
                 minWidth: 0,
                 width: "3rem",
                 boxSizing: "border-box",
-                // height: "auto",
               }}
             >
               <AddIcon sx={{ fontSize: "16pt" }} />
@@ -368,43 +321,46 @@ export default function CourseList() {
               dispatch(setCoursesParams({ studyPrograms: pr, years: yr }));
             }}
           />
-
-          {/* VALJA  */}
-
-          {/* ovdje dodati dio koji ide u main content sa grid 86. linija */}
         </Box>
         {pagecoursesLoaded ? (
           <>
-            {(courseType == "my" &&
-              coursesToDisplay &&
-              coursesToDisplay.length > 0) ||
-            (courseType == "all" &&
-              coursesToDisplay &&
-              coursesToDisplay.length > 0) ? (
-              <Grid
-                container
-                spacing={0} // Uklanjamo automatski razmak između elemenata
-                justifyContent="flex-start" // Elementi idu redom, bez centriranja ili raspodele
-                columns={12}
-                sx={{
-                  width: "100%",
-                  gap: "2.5%",
-                  mt: 4,
-                  rowGap: 4,
-                }}
-              >
-                {coursesToDisplay!.map((course) => (
-                  <Grid
-                    item
-                    xs={12} // Na najmanjim ekranima zauzima celu širinu
-                    sm={5.8} // Na manjim ekranima dve kartice u redu
-                    md={3.8} // Na srednjim ekranima tri kartice u redu sa prostorom između njih
-                    key={course.id}
-                  >
-                    <CourseCard course={course} />
-                  </Grid>
-                ))}
-              </Grid>
+            {coursesToDisplay && coursesToDisplay.length > 0 ? (
+              <>
+                <Grid
+                  container
+                  spacing={0}
+                  justifyContent="flex-start"
+                  columns={12}
+                  sx={{
+                    width: "100%",
+                    gap: "2.5%",
+                    mt: 4,
+                    rowGap: 4,
+                  }}
+                >
+                  {coursesToDisplay!.map((course) => (
+                    <Grid
+                      item
+                      xs={12} // Na najmanjim ekranima zauzima celu širinu
+                      sm={5.8} // Na manjim ekranima dve kartice u redu
+                      md={3.8} // Na srednjim ekranima tri kartice u redu sa prostorom između njih
+                      key={course.id}
+                    >
+                      <CourseCard course={course} />
+                    </Grid>
+                  ))}
+                </Grid>
+                <Box sx={{ mb: 2, mt: 2 }}>
+                  {metaData && (
+                    <AppPagination
+                      metaData={metaData}
+                      onPageChange={(page: number) =>
+                        dispatch(setPageNumber({ pageNumber: page }))
+                      }
+                    />
+                  )}
+                </Box>
+              </>
             ) : (
               <Box sx={{ display: "flex", flexDirection: "column", mt: 0 }}>
                 <Typography
@@ -420,22 +376,12 @@ export default function CourseList() {
                 </Typography>
               </Box>
             )}
-            <Box sx={{ mb: 2, mt: 2 }}>
-              {metaData && (
-                <AppPagination
-                  metaData={metaData}
-                  onPageChange={(page: number) =>
-                    dispatch(setPageNumber({ pageNumber: page }))
-                  }
-                />
-              )}
-            </Box>
           </>
         ) : (
           <Grid
             container
-            spacing={0} // Uklanjamo automatski razmak između elemenata
-            justifyContent="flex-start" // Elementi idu redom, bez centriranja ili raspodele
+            spacing={0}
+            justifyContent="flex-start"
             columns={12}
             sx={{
               width: "100%",
@@ -445,19 +391,12 @@ export default function CourseList() {
             }}
           >
             {[0, 1, 2]!.map((index) => (
-              <Grid
-                item
-                xs={12} // Na najmanjim ekranima zauzima celu širinu
-                sm={5.8} // Na manjim ekranima dve kartice u redu
-                md={3.8} // Na srednjim ekranima tri kartice u redu sa prostorom između njih
-                key={index}
-              >
+              <Grid item xs={12} sm={5.8} md={3.8} key={index}>
                 <CourseCardSkeleton />
               </Grid>
             ))}
           </Grid>
         )}
-        {/* </Box> */}
       </Grid>
     </Grid>
   );

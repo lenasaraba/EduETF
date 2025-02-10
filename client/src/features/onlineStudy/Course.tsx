@@ -937,6 +937,7 @@ export default function Course() {
                           )}
                           showFile={showFile}
                           handleDelete={handleDeleteMaterialClick}
+                          isEditing={isEditing}
                         />
                       ) : (
                         <ListItem>

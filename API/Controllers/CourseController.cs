@@ -64,15 +64,28 @@ namespace API.Controllers
             .Include(t => t.Themes)
             .AsQueryable();
 
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+
             //trenutno prikazuje samo kurseve koje je neko napravio, a ne na koje je upisan
             if (coursesParams.Type == "my")
             {
 
-                var user = await _userManager.FindByNameAsync(User.Identity.Name);
                 query = _context.Courses.Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == user!.Id))
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
+            .Include(c => c.UsersCourse).ThenInclude(uc => uc.User)
+            .Include(c => c.UsersCourse)
+            .Include(t => t.Themes)
+            .AsQueryable();
+            }
+            if (coursesParams.Type == "myLearning")
+            {
+                query = _context.Courses.Where(c => c.UsersCourse!.Any(uc => uc.UserId == user!.Id))
+            .Include(y => y.Year)
+            .Include(s => s.StudyProgram)
+            .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
+            .Include(c => c.UsersCourse).ThenInclude(uc => uc.User)
             .Include(c => c.UsersCourse)
             .Include(t => t.Themes)
             .AsQueryable();

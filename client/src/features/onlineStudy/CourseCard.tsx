@@ -14,16 +14,22 @@ import {
   TextField,
   FormControl,
   FormHelperText,
+  Divider,
+  PopperPlacementType,
+  Fade,
+  Paper,
+  Popper,
 } from "@mui/material";
 import { Course } from "../../app/models/course";
 import CourseCardMedia from "./components/CourseCardMedia";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Box } from "@mui/system";
+import { Box, maxHeight } from "@mui/system";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { deletePaginatedCourseAsync, enrollOnCourse } from "./courseSlice";
 import { LoadingButton } from "@mui/lab";
+import { Author } from "./components/Author";
 
 interface Props {
   course: Course;
@@ -37,21 +43,28 @@ export default function CourseCard({ course }: Props) {
   const open = Boolean(anchorEl);
   const [openDialog, setOpenDialog] = useState(false);
 
+  const [anchorElProf, setAnchorElProf] = useState<HTMLButtonElement | null>(
+    null
+  );
+  const [openProf, setOpenProf] = useState(false);
+  const [placement, setPlacement] = useState<PopperPlacementType>();
+  const handleClickProfessor =
+    (newPlacement: PopperPlacementType) =>
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorElProf(event.currentTarget);
+      setOpenProf((prev) => placement !== newPlacement || !prev);
+      setPlacement(newPlacement);
+    };
+
   const idMenu = open ? "simple-popover" : undefined;
 
   const status = useAppSelector((state) => state.course.status);
-
-  // const [courseSelected, setCourseSelected] = useState<Course | undefined>(
-  //   undefined
-  // );
 
   const [openEnrollDialog, setOpenEnrollDialog] = useState(false);
   const [coursePassword, setCoursePassword] = useState("");
   const [error, setError] = useState(false);
 
   const handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
-    // console.log(courseSelected);
-    // setCourseSelected(course);
     setOpenDialog(true);
   };
 
@@ -67,9 +80,8 @@ export default function CourseCard({ course }: Props) {
     } catch (error) {
       console.error("Greška prilikom brisanja kursa:", error);
     } finally {
-      setAnchorEl(null); // Zatvara meni
+      setAnchorEl(null);
       setOpenDialog(false);
-      //setCourseSelected(undefined);
     }
   };
 
@@ -80,12 +92,10 @@ export default function CourseCard({ course }: Props) {
         setError(false);
 
         await dispatch(enrollOnCourse(course.id));
-        // console.log(coursePassword);
-        setOpenEnrollDialog(false); // Zatvori dijalog ako je tačna šifra
+        setOpenEnrollDialog(false);
         navigate(`/courses/${course.id}`);
-
       } else {
-        setError(true); // Prikazati grešku ako je netačna
+        setError(true);
       }
     } catch (error) {
       console.error("Greška prilikom upisa na kurs:", error);
@@ -97,37 +107,27 @@ export default function CourseCard({ course }: Props) {
     course: Course
   ) => {
     console.log(course);
-    setAnchorEl(event.currentTarget); // Postavlja element na koji je kliknuto
-    //setCourseSelected(course);
+    setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {
-    //setCourseSelected(undefined);
     setAnchorEl(null);
   };
-
-  // console.log("Course card:" + course.name);
   return (
     <>
       <Card
         sx={{
-          // width: "100%" /* Postavlja karticu da zauzme 100% širine roditelja */,
+          maxHeight: 300,
           boxSizing: "border-box",
           borderRadius: "20pt",
           backgroundColor: "background.default",
-
           border: "2px solid",
           borderColor: "background.paper",
-          // backdropFilter:"blur(36px)",
           transition: "transform 0.3s ease",
           "&:hover": {
             transform: "scale(1.05)",
             boxShadow: (theme) => `0px 8px 24px ${theme.palette.primary.dark}`,
           },
-          // "&:hover":{
-          //   borderColor: "primary.dark",
-
-          // }
         }}
       >
         <Box
@@ -239,11 +239,10 @@ export default function CourseCard({ course }: Props) {
           studyProgram={course.studyProgram}
           sx={{
             height: 140,
+
             backgroundSize: "contain",
             bgcolor: "primary.light",
           }}
-          //  image={course.pictureURL}
-          //title={course.name}
         />
         <CardContent>
           <Typography
@@ -252,7 +251,7 @@ export default function CourseCard({ course }: Props) {
             sx={{
               fontFamily: "Raleway,sans-serif",
               fontSize: "clamp(12px, 14px, 16px)",
-              overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
+              overflow: "hidden",
               display: "-webkit-box", // Neophodno za multi-line truncation
               WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
               WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
@@ -265,36 +264,51 @@ export default function CourseCard({ course }: Props) {
           </Typography>
         </CardContent>
         <CardActions sx={{ display: "flex", justifyContent: "space-evenly" }}>
-          {/* <LoadingButton
-            loading={status == "pendingAddItem" + product.id}
-            onClick={() =>
-              dispatch(addBasketItemAsync({ productId: product.id }))
-            }
-            size="small"
-          >
-            Add to cart
-          </LoadingButton> */}
-          <Button
-            onClick={() => setOpenEnrollDialog(true)}
-            sx={{
-              fontFamily: "Raleway, sans-serif",
-              m: 0,
-              ml: 0,
-              p: 0,
-              borderRadius: "20pt",
-              paddingX: 1,
-              "&:hover": {
-                backgroundColor: "primary.main",
-                color: "background.paper",
-              },
-            }}
-          >
-            Upiši se
-          </Button>
-          <Button
-            component={Link}
-            to={`/courses/${course.id}`}
-            size="small"
+          {user && user.role == "Student" && (
+            <Button
+              onClick={() => setOpenEnrollDialog(true)}
+              sx={{
+                fontFamily: "Raleway, sans-serif",
+                m: 0,
+                ml: 0,
+                p: 0,
+                borderRadius: "20pt",
+                paddingX: 1,
+                "&:hover": {
+                  backgroundColor: "primary.main",
+                  color: "background.paper",
+                },
+              }}
+            >
+              Upiši se
+            </Button>
+          )}
+          {user &&
+          course.professorsCourse.some(
+            (pc) => pc.user.username === user.username
+          ) ? (
+            <Button
+              component={Link}
+              to={`/courses/${course.id}`}
+              size="small"
+              sx={{
+                fontFamily: "Raleway, sans-serif",
+                m: 0,
+                ml: 0,
+                p: 0,
+                paddingX: 1,
+                borderRadius: "20pt",
+
+                "&:hover": {
+                  backgroundColor: "primary.main",
+                  color: "background.paper",
+                },
+              }}
+            >
+              Otvori
+            </Button>
+          ) : (
+            <Button onClick={handleClickProfessor("right-start")} size="small"
             sx={{
               fontFamily: "Raleway, sans-serif",
               m: 0,
@@ -307,10 +321,10 @@ export default function CourseCard({ course }: Props) {
                 backgroundColor: "primary.main",
                 color: "background.paper",
               },
-            }}
-          >
-            Otvori
-          </Button>
+            }}>
+              Prikaži profesore
+            </Button>
+          )}
         </CardActions>
       </Card>
       <Dialog
@@ -418,6 +432,26 @@ export default function CourseCard({ course }: Props) {
           </LoadingButton>
         </DialogActions>
       </Dialog>
+
+      <Popper
+        sx={{ zIndex: 1200 }}
+        open={openProf}
+        anchorEl={anchorElProf}
+        placement={placement}
+        transition
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={350}>
+            <Paper>
+              {course.professorsCourse.map((prof, index) => (
+                <Typography key={index} sx={{ paddingX: 2, paddingY:1, fontSize:"11pt" }}>
+                  {prof.user.firstName} {prof.user.lastName}
+                </Typography>
+              ))}
+            </Paper>
+          </Fade>
+        )}
+      </Popper>
     </>
     // </Box>
   );

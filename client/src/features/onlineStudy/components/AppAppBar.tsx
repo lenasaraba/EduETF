@@ -4,8 +4,10 @@ import Button from "@mui/material/Button";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import { Link, useNavigate } from "react-router-dom";
 import { Grid } from "@mui/joy";
+import { useAppSelector } from "../../../app/store/configureStore";
 
 export default function AppAppBar() {
+  const user = useAppSelector((state) => state.account.user);
   const navigate = useNavigate();
   const handleNavigate = () => {
     navigate("/onlineStudy", { replace: true });
@@ -94,117 +96,125 @@ export default function AppAppBar() {
                 Svi kursevi
               </Button>
             </Box>
-            <Box
-              onClick={handleNavigate}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                cursor: "pointer", // Dodano da miš postane pointer
-                "&:hover": {
-                  cursor: "pointer", // Osigurano i za hover stanje
-                },
-              }}
-            >
-              <AutoStoriesIcon
-                sx={{
-                  color: "text.primary",
-                  fontWeight: "bold",
-                  margin: 0,
-                  padding: 0,
-                  transition: "all 0.5s ease", // Dodaje animaciju
-                  // backgroundColor: "transparent",
-                  "&:hover": {
-                    color: "primary.main", // Promijeni boju na hover
-                  },
-                  fontFamily: "Raleway, sans-serif",
-                }}
-              />
-            </Box>
+            {user && user.role == "Profesor" && (
+              <>
+                <Box
+                  onClick={handleNavigate}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer", // Dodano da miš postane pointer
+                    "&:hover": {
+                      cursor: "pointer", // Osigurano i za hover stanje
+                    },
+                  }}
+                >
+                  <AutoStoriesIcon
+                    sx={{
+                      color: "text.primary",
+                      fontWeight: "bold",
+                      margin: 0,
+                      padding: 0,
+                      transition: "all 0.5s ease", // Dodaje animaciju
+                      // backgroundColor: "transparent",
+                      "&:hover": {
+                        color: "primary.main", // Promijeni boju na hover
+                      },
+                      fontFamily: "Raleway, sans-serif",
+                    }}
+                  />
+                </Box>
 
-            <Box
-              sx={{
-                display: { xs: "none", md: "flex" },
-                margin: 0,
-                padding: 0,
-              }}
-            >
-              <Button
-                variant="text"
-                size="small"
-                sx={{
-                  paddingX: 2,
-                  borderRadius: "25pt",
-                  color: "text.primary",
-                  fontWeight: "bold",
-                  transition: "all 0.5s ease", // Dodaje animaciju
-                  backgroundColor: "transparent",
-                  "&:hover": {
-                    color: "action.hover", // Promijeni boju na hover
-                    backgroundColor: "action.active",
-                  },
-                  fontFamily: "Raleway, sans-serif",
-                }}
-                component={Link}
-                to="/courses?type=my"
-              >
-                Moji kursevi
-              </Button>
-            </Box>
-            <Box
-              onClick={handleNavigate}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                cursor: "pointer", // Dodano da miš postane pointer
-                "&:hover": {
-                  cursor: "pointer", // Osigurano i za hover stanje
-                },
-              }}
-            >
-              <AutoStoriesIcon
-                sx={{
-                  color: "text.primary",
-                  fontWeight: "bold",
-                  margin: 0,
-                  padding: 0,
-                  transition: "all 0.5s ease", // Dodaje animaciju
-                  // backgroundColor: "transparent",
-                  "&:hover": {
-                    color: "primary.main", // Promijeni boju na hover
-                  },
-                  fontFamily: "Raleway, sans-serif",
-                }}
-              />
-            </Box>
-            <Box
-              sx={{
-                display: { xs: "none", md: "flex" },
-                margin: 0,
-                padding: 0,
-              }}
-            >
-              <Button
-                variant="text"
-                size="small"
-                sx={{
-                  paddingX: 2,
-                  borderRadius: "25pt",
-                  color: "text.primary",
-                  fontWeight: "bold",
-                  transition: "all 0.5s ease", // Dodaje animaciju
-                  backgroundColor: "transparent",
-                  "&:hover": {
-                    color: "action.hover", // Promijeni boju na hover
-                    backgroundColor: "action.active",
-                  },
-                  fontFamily: "Raleway, sans-serif",
-                }}
-                component={Link}
-                to="/courses?type=myLearning"
-              >
-                Moje učenje
-              </Button>
-            </Box>
+                <Box
+                  sx={{
+                    display: { xs: "none", md: "flex" },
+                    margin: 0,
+                    padding: 0,
+                  }}
+                >
+                  <Button
+                    variant="text"
+                    size="small"
+                    sx={{
+                      paddingX: 2,
+                      borderRadius: "25pt",
+                      color: "text.primary",
+                      fontWeight: "bold",
+                      transition: "all 0.5s ease", // Dodaje animaciju
+                      backgroundColor: "transparent",
+                      "&:hover": {
+                        color: "action.hover", // Promijeni boju na hover
+                        backgroundColor: "action.active",
+                      },
+                      fontFamily: "Raleway, sans-serif",
+                    }}
+                    component={Link}
+                    to="/courses?type=my"
+                  >
+                    Moji kursevi
+                  </Button>
+                </Box>
+              </>
+            )}
+            {user && user.role == "Student" && (
+              <>
+                <Box
+                  onClick={handleNavigate}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer", // Dodano da miš postane pointer
+                    "&:hover": {
+                      cursor: "pointer", // Osigurano i za hover stanje
+                    },
+                  }}
+                >
+                  <AutoStoriesIcon
+                    sx={{
+                      color: "text.primary",
+                      fontWeight: "bold",
+                      margin: 0,
+                      padding: 0,
+                      transition: "all 0.5s ease", // Dodaje animaciju
+                      // backgroundColor: "transparent",
+                      "&:hover": {
+                        color: "primary.main", // Promijeni boju na hover
+                      },
+                      fontFamily: "Raleway, sans-serif",
+                    }}
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: { xs: "none", md: "flex" },
+                    margin: 0,
+                    padding: 0,
+                  }}
+                >
+                  <Button
+                    variant="text"
+                    size="small"
+                    sx={{
+                      paddingX: 2,
+                      borderRadius: "25pt",
+                      color: "text.primary",
+                      fontWeight: "bold",
+                      transition: "all 0.5s ease", // Dodaje animaciju
+                      backgroundColor: "transparent",
+                      "&:hover": {
+                        color: "action.hover", // Promijeni boju na hover
+                        backgroundColor: "action.active",
+                      },
+                      fontFamily: "Raleway, sans-serif",
+                    }}
+                    component={Link}
+                    to="/courses?type=myLearning"
+                  >
+                    Moje učenje
+                  </Button>
+                </Box>
+              </>
+            )}
           </Box>
         </Toolbar>
       </Grid>

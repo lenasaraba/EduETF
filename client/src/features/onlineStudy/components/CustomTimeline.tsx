@@ -13,14 +13,19 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import DuoIcon from "@mui/icons-material/Duo";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-
 interface Props {
   materials: Material[];
   showFile: (material: Material) => void;
   handleDelete: (material: Material) => void;
+  isEditing: boolean;
 }
 
-export default function CustomTimeline({ materials, showFile, handleDelete }: Props) {
+export default function CustomTimeline({
+  materials,
+  showFile,
+  handleDelete,
+  isEditing,
+}: Props) {
   const getFileIcon = (material: Material) => {
     if (material.materialType.name == "Slika") {
       return (
@@ -116,12 +121,14 @@ export default function CustomTimeline({ materials, showFile, handleDelete }: Pr
                 >
                   {material.title}
                 </Typography>
-                <IconButton
-                  onClick={() => handleDelete(material)}
-                  sx={{ color: "error.main" }}
-                >
-                  <DeleteIcon />
-                </IconButton>
+                {isEditing && (
+                  <IconButton
+                    onClick={() => handleDelete(material)}
+                    sx={{ color: "error.main" }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                )}
               </TimelineContent>
             </TimelineItem>
           ))}

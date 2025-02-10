@@ -11,15 +11,19 @@ import {
   DialogContent,
   DialogTitle,
   Popover,
+  TextField,
+  FormControl,
+  FormHelperText,
 } from "@mui/material";
 import { Course } from "../../app/models/course";
 import CourseCardMedia from "./components/CourseCardMedia";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Box } from "@mui/system";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { deletePaginatedCourseAsync } from "./courseSlice";
+import { deletePaginatedCourseAsync, enrollOnCourse } from "./courseSlice";
+import { LoadingButton } from "@mui/lab";
 
 interface Props {
   course: Course;
@@ -28,16 +32,22 @@ interface Props {
 export default function CourseCard({ course }: Props) {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.account.user);
-
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const [openDialog, setOpenDialog] = useState(false);
 
   const idMenu = open ? "simple-popover" : undefined;
 
+  const status = useAppSelector((state) => state.course.status);
+
   // const [courseSelected, setCourseSelected] = useState<Course | undefined>(
   //   undefined
   // );
+
+  const [openEnrollDialog, setOpenEnrollDialog] = useState(false);
+  const [coursePassword, setCoursePassword] = useState("");
+  const [error, setError] = useState(false);
 
   const handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
     // console.log(courseSelected);
@@ -46,10 +56,8 @@ export default function CourseCard({ course }: Props) {
   };
 
   const handleCloseDialog = () => {
-    
-      setOpenDialog(false);
-      setAnchorEl(null);
-    
+    setOpenDialog(false);
+    setAnchorEl(null);
   };
 
   const handleConfirmDelete = async (event: React.MouseEvent<HTMLElement>) => {
@@ -62,6 +70,25 @@ export default function CourseCard({ course }: Props) {
       setAnchorEl(null); // Zatvara meni
       setOpenDialog(false);
       //setCourseSelected(undefined);
+    }
+  };
+
+  const confirmEnroll = async () => {
+    try {
+      console.log(course);
+      if (coursePassword === course.password) {
+        setError(false);
+
+        await dispatch(enrollOnCourse(course.id));
+        // console.log(coursePassword);
+        setOpenEnrollDialog(false); // Zatvori dijalog ako je tačna šifra
+        navigate(`/courses/${course.id}`);
+
+      } else {
+        setError(true); // Prikazati grešku ako je netačna
+      }
+    } catch (error) {
+      console.error("Greška prilikom upisa na kurs:", error);
     }
   };
 
@@ -152,7 +179,7 @@ export default function CourseCard({ course }: Props) {
                     width: "fit-content",
                     borderRadius: "20pt",
                     padding: 0,
-                    marginRight:2,
+                    marginRight: 2,
                     "&:hover": {
                       cursor: "pointer",
                       color: "text.primary",
@@ -248,6 +275,7 @@ export default function CourseCard({ course }: Props) {
             Add to cart
           </LoadingButton> */}
           <Button
+            onClick={() => setOpenEnrollDialog(true)}
             sx={{
               fontFamily: "Raleway, sans-serif",
               m: 0,
@@ -334,6 +362,60 @@ export default function CourseCard({ course }: Props) {
           >
             Obriši
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openEnrollDialog}
+        onClose={() => setOpenEnrollDialog(false)}
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "12pt",
+            padding: 3,
+            minWidth: 300,
+            textAlign: "center",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Raleway, sans-serif",
+            fontSize: "1.2rem",
+          }}
+        >
+          Unesite šifru kursa
+        </DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth error={error}>
+            <TextField
+              label="Šifra"
+              type="password"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 1 }}
+              value={coursePassword}
+              onChange={(e) => setCoursePassword(e.target.value)}
+            />
+            {error && (
+              <FormHelperText>Pogrešna šifra, pokušajte ponovo.</FormHelperText>
+            )}
+          </FormControl>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
+          <Button
+            onClick={() => setOpenEnrollDialog(false)}
+            sx={{ color: "text.primary" }}
+          >
+            Odustani
+          </Button>
+          <LoadingButton
+            loading={status == "loadingEnrollOnCourse"}
+            onClick={() => confirmEnroll()}
+            color="primary"
+            variant="contained"
+          >
+            Potvrdi
+          </LoadingButton>
         </DialogActions>
       </Dialog>
     </>

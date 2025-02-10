@@ -28,6 +28,11 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
+        public class EnrollRequest
+        {
+            public int CourseId { get; set; }
+        }
+
 
         [HttpGet("getAllCoursesList")]
         public async Task<ActionResult<List<CourseDto>>> GetCoursesList()
@@ -38,7 +43,7 @@ namespace API.Controllers
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
             .Include(c => c.UsersCourse)
             .Include(t => t.Themes)
-            
+
             .AsQueryable();
 
 
@@ -97,7 +102,7 @@ namespace API.Controllers
             Response.AddPaginationHeader(pagedCourses.MetaData);
 
             // Vraćanje mapiranih podataka bez dodatne paginacije
-            return Ok(new{coursesDto, pagedCourses.MetaData});  // Samo mapirani podaci
+            return Ok(new { coursesDto, pagedCourses.MetaData });  // Samo mapirani podaci
 
 
         }
@@ -128,7 +133,7 @@ namespace API.Controllers
         {
             var courses = await _context.Courses
             .Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == id))
-            .Include(y => y.Year).Include(s => s.StudyProgram).Include(pc=>pc.ProfessorsCourse).ThenInclude(u=>u.User).Include(uc=>uc.UsersCourse).ThenInclude(u=>u.User).ToListAsync();
+            .Include(y => y.Year).Include(s => s.StudyProgram).Include(pc => pc.ProfessorsCourse).ThenInclude(u => u.User).Include(uc => uc.UsersCourse).ThenInclude(u => u.User).ToListAsync();
 
             return courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
         }
@@ -139,9 +144,9 @@ namespace API.Controllers
             var course = await _context.Courses
         .Include(y => y.Year)
         .Include(s => s.StudyProgram)
-        .Include(t => t.Themes).ThenInclude(m=>m.Messages)
-        .Include(pc=>pc.ProfessorsCourse).ThenInclude(u=>u.User)
-        .Include(uc=>uc.UsersCourse).ThenInclude(u=>u.User)
+        .Include(t => t.Themes).ThenInclude(m => m.Messages)
+        .Include(pc => pc.ProfessorsCourse).ThenInclude(u => u.User)
+        .Include(uc => uc.UsersCourse).ThenInclude(u => u.User)
         .FirstOrDefaultAsync(c => c.Id == id);
 
             if (course == null)
@@ -239,57 +244,56 @@ namespace API.Controllers
 
         [Authorize]
         [HttpPost("AddMaterial")]
-        public async Task<ActionResult<List<GetCourseMaterialDto>>> AddMaterials( CreateCourseMaterialDto[] materials)
+        public async Task<ActionResult<GetCourseMaterialDto>> AddMaterial(CreateCourseMaterialDto material)
         {
             var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
-            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == materials[0].CourseId);
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == material.CourseId);
 
             if (course == null)
                 return NotFound("Course not found");
 
-            var addedMaterials = new List<CourseMaterial>();
-
-            foreach (var material in materials)
-            {
-                var m = _mapper.Map<CourseMaterial>(material);
-                m.MaterialType = await _context.MaterialTypes.FirstOrDefaultAsync(mt => mt.Id == m.MaterialTypeId);
-                m.Course = course;
-                m.CreationDate = DateTime.UtcNow;
-
-                // Prvo dodaj materijal u bazu da dobije ID
-                _context.CourseMaterials.Add(m);
-                await _context.SaveChangesAsync(); // Potrebno da bi se generisao ID
-                var fileExtension = Path.GetExtension(material.Title);
-                var newFileName = $"{Path.GetFileNameWithoutExtension(material.Title)}_{m.CourseId}_{m.Week}{fileExtension}";
-                    m.FilePath = $"/uploads/{newFileName}";
+            // var addedMaterials = new List<CourseMaterial>();
 
 
-                    await _context.SaveChangesAsync(); // Ažuriraj materijal sa putanjom fajla
-                
+            var m = _mapper.Map<CourseMaterial>(material);
+            m.MaterialType = await _context.MaterialTypes.FirstOrDefaultAsync(mt => mt.Id == m.MaterialTypeId);
+            m.Course = course;
+            m.CreationDate = DateTime.UtcNow;
 
-                addedMaterials.Add(m);
-            }
+            // Prvo dodaj materijal u bazu da dobije ID
+            _context.CourseMaterials.Add(m);
+            await _context.SaveChangesAsync(); // Potrebno da bi se generisao ID
+                                               // var fileExtension = Path.GetExtension(material.Title);
+                                               // var newFileName = $"{Path.GetFileNameWithoutExtension(material.Title)}_{m.CourseId}_{m.Week}{fileExtension}";
+            m.FilePath = material.FilePath;
 
-            if (course.WeekCount < materials[0].Week)
-                course.WeekCount = materials[0].Week;
+
+            await _context.SaveChangesAsync(); // Ažuriraj materijal sa putanjom fajla
+
+
+            // addedMaterials.Add(m);
+
+
+            if (course.WeekCount < material.Week)
+                course.WeekCount = material.Week;
 
             await _context.SaveChangesAsync();
 
             var response = new
             {
-                Method = "AddMaterials",
+                Method = "AddMaterial",
                 Status = "Success",
-                Data = _mapper.Map<List<GetCourseMaterialDto>>(addedMaterials)
+                Data = _mapper.Map<GetCourseMaterialDto>(m)
             };
 
-            return CreatedAtAction(nameof(GetCourseMaterial), new { id = course.Id }, response);
+            return CreatedAtAction(nameof(GetCourseMaterial), new { id = m.Id }, response);
         }
 
         [HttpPost("upload")]
         public async Task<IActionResult> UploadFile(IFormFile file)
         {
-                var courseId = int.Parse(Request.Form["courseId"]);
-    var weekNumber = int.Parse(Request.Form["weekNumber"]);
+            var courseId = int.Parse(Request.Form["courseId"]);
+            var weekNumber = int.Parse(Request.Form["weekNumber"]);
             if (file == null || file.Length == 0)
             {
                 return BadRequest("No file uploaded.");
@@ -300,7 +304,9 @@ namespace API.Controllers
 
             var fileExtension = Path.GetExtension(file.FileName);
 
-            var uniqueFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{courseId}_{weekNumber}{fileExtension}";
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+            var uniqueFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{courseId}_{weekNumber}_{timestamp}{fileExtension}";
+
             var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
             using (var stream = new FileStream(filePath, FileMode.Create))
@@ -312,11 +318,45 @@ namespace API.Controllers
             return Ok(new { filePath = $"uploads/{uniqueFileName}" });
         }
 
+        [Authorize]
+        [HttpDelete("DeleteMaterial/{id}")]
+        public async Task<IActionResult> DeleteMaterial(int id)
+        {
+            var material = await _context.CourseMaterials.FindAsync(id);
+
+            if (material == null)
+                return NotFound("Material not found");
+
+            // Brisanje fajla iz uploads foldera
+            if (!string.IsNullOrEmpty(material.FilePath))
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", material.FilePath);
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+
+            // Brisanje materijala iz baze
+            _context.CourseMaterials.Remove(material);
+            await _context.SaveChangesAsync();
+
+            var response = new
+            {
+                Method = "DeleteMaterial",
+                Status = "Success",
+                Message = "Materijal je obrisan.",
+                Id = id
+            };
+            return Ok(response); // Vraćamo JSON sa ID-jem i porukom
+
+        }
+
 
         [HttpGet("getCourseMaterialById/{id}")]
         public async Task<ActionResult<GetCourseMaterialDto>> GetCourseMaterial(int id)
         {
-            var material = await _context.CourseMaterials.Include(m=>m.MaterialType)
+            var material = await _context.CourseMaterials.Include(m => m.MaterialType)
         .FirstOrDefaultAsync(c => c.Id == id);
 
             if (material == null)
@@ -330,8 +370,8 @@ namespace API.Controllers
         [HttpGet("getCourseMaterialsByCourseId/{courseId}")]
         public async Task<ActionResult<List<GetCourseMaterialDto>>> GetCourseMaterialsByCourseId(int courseId)
         {
-            var materials = await _context.CourseMaterials.Where(c => c.CourseId == courseId).Include(m=>m.MaterialType).ToListAsync();
-       
+            var materials = await _context.CourseMaterials.Where(c => c.CourseId == courseId).Include(m => m.MaterialType).ToListAsync();
+
 
             if (materials == null)
             {
@@ -341,6 +381,60 @@ namespace API.Controllers
             return materials.Select(m => _mapper.Map<GetCourseMaterialDto>(m)).ToList();
         }
 
+
+        [Authorize]
+        [HttpPost("enroll")]
+        public async Task<IActionResult> EnrollStudent([FromBody] EnrollRequest request)
+        {
+            int courseId = request.CourseId;
+
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId);
+
+            var student = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+
+
+            if (student == null)
+                return NotFound("Student nije pronađen");
+
+            if (course == null)
+                return NotFound("Kurs nije pronađen");
+
+            // Provera da li je student već upisan na kurs
+            var existingEnrollment = await _context.UserCourses
+                .FirstOrDefaultAsync(uc => uc.UserId == student.Id && uc.CourseId == courseId);
+
+            if (existingEnrollment != null)
+                return BadRequest("Student je već upisan na kurs.");
+
+            // Kreiranje novog zapisa
+            var enrollment = new UserCourse
+            {
+                UserId = student.Id,
+                CourseId = courseId,
+                EnrollDate = DateTime.UtcNow // Ako želiš da čuvaš datum upisa
+
+            };
+
+            _context.UserCourses.Add(enrollment);
+            await _context.SaveChangesAsync();
+
+            var studentDto = new UserDto
+            {
+                Email = student.Email,
+                Username = student.UserName,
+                FirstName = student.FirstName,
+                LastName = student.LastName,
+                Id = student.Id,
+            };
+            var courseDto = _mapper.Map<CourseDto>(course);
+
+            return Ok(new
+            {
+                Message = "Uspješan upis na kurs",
+                student = studentDto,
+                course = courseDto,
+            });
+        }
 
     }
 }

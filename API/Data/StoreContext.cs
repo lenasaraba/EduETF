@@ -24,6 +24,8 @@ namespace API.Data
         public DbSet<Year> Years { get; set; } = null!;
         public DbSet<MaterialType> MaterialTypes { get; set; } = null!;
         public DbSet<ProfessorCourse> ProfessorCourses { get; set; } = null!;
+        public DbSet<UserCourse> UserCourses { get; set; } = null!;
+
 
 
 

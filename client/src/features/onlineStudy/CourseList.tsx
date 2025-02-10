@@ -59,6 +59,22 @@ export default function CourseList() {
 
   const allCourses = useAppSelector((state) => state.course.courses);
 
+  let courseTitle = "";
+  switch (courseType) {
+    case "my":
+      courseTitle = "Moji kursevi";
+      break;
+    case "all":
+      courseTitle = "Svi kursevi";
+      break;
+    case "myLearning":
+      courseTitle = "Moje učenje";
+      break;
+    default:
+      courseTitle = "";
+      break;
+  }
+
   useEffect(() => {
     dispatch(resetCoursesParams());
     dispatch(setCoursesParams({ type: courseType }));
@@ -70,7 +86,7 @@ export default function CourseList() {
 
   const coursesToDisplay = allCourses;
   useEffect(() => {
-    if (courseType === "my" && !user) {
+    if ((courseType === "my" || courseType === "myLearning") && !user) {
       navigate("/login");
     }
   }, [user, courseType, navigate]);
@@ -157,7 +173,7 @@ export default function CourseList() {
                 fontFamily: "Raleway, sans-serif",
               }}
             >
-              {courseType === "my" ? "Moji kursevi" : "Svi kursevi"}
+              {courseTitle}
             </Typography>
           </Breadcrumbs>
         </Box>
@@ -224,7 +240,7 @@ export default function CourseList() {
           >
             Kursevi
           </Typography>
-          {user && (
+          {user && courseType!=="myLearning" && (
             <Button
               component={Link}
               to="/createCourse"
@@ -389,19 +405,20 @@ export default function CourseList() {
                   </Grid>
                 ))}
               </Grid>
-            ) : (<Box sx={{ display: "flex", flexDirection: "column", mt: 0 }}>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontFamily: "Raleway, sans-serif",
-                  paddingTop: 4,
-                  color: "text.primary",
-                  ml: 4,
-                }}
-              >
-                Nije pronađen nijedan kurs.
-              </Typography>
-            </Box>              
+            ) : (
+              <Box sx={{ display: "flex", flexDirection: "column", mt: 0 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontFamily: "Raleway, sans-serif",
+                    paddingTop: 4,
+                    color: "text.primary",
+                    ml: 4,
+                  }}
+                >
+                  Nije pronađen nijedan kurs.
+                </Typography>
+              </Box>
             )}
             <Box sx={{ mb: 2, mt: 2 }}>
               {metaData && (
@@ -416,29 +433,29 @@ export default function CourseList() {
           </>
         ) : (
           <Grid
-          container
-          spacing={0} // Uklanjamo automatski razmak između elemenata
-          justifyContent="flex-start" // Elementi idu redom, bez centriranja ili raspodele
-          columns={12}
-          sx={{
-            width: "100%",
-            gap: "2.5%",
-            mt: 4,
-            rowGap: 4,
-          }}
-        >
-          {[0,1,2]!.map((index) => (
-            <Grid
-              item
-              xs={12} // Na najmanjim ekranima zauzima celu širinu
-              sm={5.8} // Na manjim ekranima dve kartice u redu
-              md={3.8} // Na srednjim ekranima tri kartice u redu sa prostorom između njih
-              key={index}
-            >
-              <CourseCardSkeleton/>
-            </Grid>
-          ))}
-        </Grid>
+            container
+            spacing={0} // Uklanjamo automatski razmak između elemenata
+            justifyContent="flex-start" // Elementi idu redom, bez centriranja ili raspodele
+            columns={12}
+            sx={{
+              width: "100%",
+              gap: "2.5%",
+              mt: 4,
+              rowGap: 4,
+            }}
+          >
+            {[0, 1, 2]!.map((index) => (
+              <Grid
+                item
+                xs={12} // Na najmanjim ekranima zauzima celu širinu
+                sm={5.8} // Na manjim ekranima dve kartice u redu
+                md={3.8} // Na srednjim ekranima tri kartice u redu sa prostorom između njih
+                key={index}
+              >
+                <CourseCardSkeleton />
+              </Grid>
+            ))}
+          </Grid>
         )}
         {/* </Box> */}
       </Grid>

@@ -72,6 +72,7 @@ export default function CreateCourse() {
       yearId: data.yearId,
       studyProgramId: data.studyProgramId,
       courseCreationDate: adjustedDate.toISOString(),
+      password:data.password,
     };
     console.log(newCourse);
 

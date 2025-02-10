@@ -28,12 +28,17 @@ axios.interceptors.response.use(
     if (response.status === 201) {
       if (response.data.method == "CreateTheme") toast.success("Tema kreirana");
       if (response.data.method == "CreateCourse") toast.success("Kurs kreiran");
+      if (response.data.method == "AddMaterial") toast.success("Materijal dodat");
+
+
 
       // Ako želite, možete dodati specifičnu logiku za status 201
     } else if (response.status === 200) {
       if (response.data.method == "DeleteTheme")
         toast.success(response.data.message);
       if (response.data.method == "DeleteCourse")
+        toast.success(response.data.message);
+      if (response.data.method == "DeleteMaterial")
         toast.success(response.data.message);
     }
 
@@ -116,23 +121,19 @@ const Course = {
   fetchAllYearsPrograms: () => requests.get("course/yearsPrograms"),
   create: (values: any) => requests.post("course/CreateCourse", values),
   deleteCourse: (id: number) => requests.delete(`course/DeleteCourse/${id}`),
-  uploadMaterials: (materials: any) =>
-    requests.post("course/AddMaterial", materials),
-  // upload: (file: any, courseId: number, weekNumber: number) =>
-  //   requests.post("course/upload", { file, courseId, weekNumber }),
-  // U agentu
+  uploadMaterial: (material: any) => requests.post("course/AddMaterial", material),
+  deleteMaterial:(id:number)=>requests.delete(`course/DeleteMaterial/${id}`),
   upload: (file: File, courseId: number, weekNumber: number) => {
     console.log(courseId, weekNumber);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("courseId", courseId.toString());
     formData.append("weekNumber", weekNumber.toString());
-
-    // Koristi agent za slanje podataka sa 'FormData'
     return requests.post("course/upload", formData);
   },
   getMaterialsByCourseId: (id: number) =>
     requests.get(`course/getCourseMaterialsByCourseId/${id}`),
+  enrollOnCourse: (courseId: number) => requests.post("course/enroll", {courseId}),
 };
 
 const Professor = {

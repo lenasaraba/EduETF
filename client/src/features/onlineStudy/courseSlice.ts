@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import {
   AddMaterial,
   Course,
@@ -6,6 +6,7 @@ import {
   CreateCourse,
   Material,
   StudyProgram,
+  User,
   Year,
 } from "../../app/models/course";
 import agent from "../../app/api/agent";
@@ -20,6 +21,8 @@ export interface CourseState {
   materialsLoaded: boolean;
   // myCourses: Course[] | null;
   professorCourses: Record<number, Course[]> | null;
+  userCourses: Record<number, Course[]> | null;
+
   status: string;
   filtersLoaded: boolean;
   allcoursesLoaded: boolean;
@@ -41,6 +44,8 @@ const initialState: CourseState = {
   currentCourseMaterials: null,
   materialsLoaded: false,
   professorCourses: {},
+  userCourses: {},
+
   status: "idle",
   allcoursesLoaded: false,
   pagecoursesLoaded: false,
@@ -201,6 +206,26 @@ export const createCourseAsync = createAsyncThunk<Course, CreateCourse>(
     }
   }
 );
+interface EnrollResponse {
+  Message: string;
+  student: User;
+  course: Course;
+}
+
+export const enrollOnCourse = createAsyncThunk<EnrollResponse, number>(
+  "course/enrollOnCourse",
+  async (id, thunkAPI) => {
+    try {
+      const userCourse = await agent.Course.enrollOnCourse(id);
+      console.log(userCourse);
+      return userCourse;
+    } catch (error: any) {
+      console.log(error.data);
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
+  }
+);
+
 export const deleteCourseAsync = createAsyncThunk<
   number,
   number,
@@ -229,20 +254,32 @@ export const deletePaginatedCourseAsync = createAsyncThunk<
   }
 });
 
-export const uploadMaterials = createAsyncThunk<Material[], AddMaterial[]>(
-  "course/uploadMaterials",
-  async (materials, thunkAPI) => {
-    try {
-      materials.forEach((m) => console.log(m));
-      const response = await agent.Course.uploadMaterials(materials);
-      return response.data;
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data || "Greška pri uploadu materijala"
-      );
-    }
+export const deleteMaterialAsync = createAsyncThunk<
+  number,
+  number,
+  { state: RootState }
+>("course/deleteMaterial", async (id, thunkAPI) => {
+  try {
+    await agent.Course.deleteMaterial(id);
+    return id;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue(error.message);
   }
-);
+});
+// export const uploadMaterials = createAsyncThunk<Material[], AddMaterial[]>(
+//   "course/uploadMaterials",
+//   async (materials, thunkAPI) => {
+//     try {
+//       // materials.forEach((m) => console.log(m));
+//       const response = await agent.Course.uploadMaterials(materials);
+//       return response.data;
+//     } catch (error: any) {
+//       return thunkAPI.rejectWithValue(
+//         error.response?.data || "Greška pri uploadu materijala"
+//       );
+//     }
+//   }
+// );
 
 export const uploadFile = createAsyncThunk(
   "materials/uploadFile",
@@ -251,17 +288,25 @@ export const uploadFile = createAsyncThunk(
       file,
       courseId,
       weekNumber,
-    }: { file: File; courseId: number; weekNumber: number },
+      material,
+    }: {
+      file: File;
+      courseId: number;
+      weekNumber: number;
+      material: AddMaterial;
+    },
     thunkAPI
   ) => {
     try {
       // Koristi agent za slanje 'FormData' sa fajlom
       const response = await agent.Course.upload(file, courseId, weekNumber);
-
-      if (!response.ok) throw new Error("Failed to upload file");
-
-      const data = await response.json();
-      return data.filePath; // Vraća putanju fajla
+      console.log(response);
+      const responseMaterial = await agent.Course.uploadMaterial({
+        ...material,
+        filePath: response.filePath,
+      });
+      console.log(responseMaterial);
+      return responseMaterial.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.message);
     }
@@ -285,14 +330,6 @@ export const courseSlice = createSlice({
   name: "course",
   initialState,
   reducers: {
-    // setCourses: (state, action) => {
-    //   console.log(action.payload);
-    //   // if (action.payload.items) state.courses = action.payload.items;
-    //   // else state.courses = action.payload;
-    // },
-    // setAllCourses: (state, action) => {
-    //   state.allCourses = action.payload;
-    // },
     setProfessorCourses: (state, action) => {
       state.professorCourses![action.payload.professorId] =
         action.payload.courses;
@@ -315,26 +352,12 @@ export const courseSlice = createSlice({
     resetCoursesParams: (state) => {
       state.coursesParams = initParams();
     },
-    // setLoading(state, action) {
-    //   state.loading = action.payload;
-    // },
   },
   extraReducers: (builder) => {
     builder.addCase(createCourseAsync.fulfilled, (state, action) => {
       state.status = "idle";
       console.log(action.payload);
       state.currentCourse = action.payload;
-
-      // if (state.allCourses) {
-      //   state.allCourses.push(action.payload);
-      // } else {
-      //   state.allCourses = [action.payload];
-      // }
-      // if (state.courses) {
-      //   state.courses.push(action.payload);
-      // } else {
-      //   state.courses = [action.payload];
-      // }
     });
     builder.addCase(fetchCoursesListAsync.pending, (state) => {
       state.status = "pendingFetchCoursesList";
@@ -361,6 +384,28 @@ export const courseSlice = createSlice({
       state.status = "idle";
       state.currentCourseLoaded = true;
     });
+    builder.addCase(enrollOnCourse.pending, (state) => {
+      state.status = "loadingEnrollOnCourse";
+    });
+    builder.addCase(
+      enrollOnCourse.fulfilled,
+      (state, action: PayloadAction<EnrollResponse>) => {
+        state.status = "idle";
+        console.log(action.payload);
+        // Pretpostavljamo da je tip stanja 'userCourses' tipa Record<number, Course[]>
+        state.userCourses![action.payload.student.id] =
+          state.userCourses![action.payload.student.id] || [];
+        state.userCourses![action.payload.student.id].push(
+          action.payload.course
+        );
+        //OVO PROMIJENITI
+        //state.currentCourse?.usersCourse=state.currentCourse?.usersCourse.concat(action.payload);
+      }
+    );
+    builder.addCase(enrollOnCourse.rejected, (state) => {
+      state.status = "idle";
+    });
+
     builder.addCase(fetchFilters.pending, (state) => {
       state.status = "pendingFetchFilters";
     });
@@ -409,19 +454,36 @@ export const courseSlice = createSlice({
         (course) => course.id !== action.payload
       );
     });
+    builder.addCase(deleteMaterialAsync.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.currentCourse = {
+        ...state.currentCourse!,
+        materials:
+          state.currentCourse?.materials?.filter(
+            (mat) => mat.id !== action.payload
+          ) || [],
+      };
+      state.currentCourseMaterials = state.currentCourseMaterials!.filter(
+        (material) => material.id !== action.payload
+      );
+    });
 
-    builder.addCase(uploadMaterials.pending, (state) => {
-      state.status = "pendingUploadMaterials";
+    builder.addCase(uploadFile.pending, (state) => {
+      state.status = "pendingUploadMaterial";
       state.materialsLoaded = false;
     });
-    builder.addCase(uploadMaterials.fulfilled, (state, action) => {
+    builder.addCase(uploadFile.fulfilled, (state, action) => {
       state.status = "idle";
-      state.currentCourseMaterials?.concat(action.payload); // Ažuriranje liste materijala
+      state.currentCourseMaterials?.push(action.payload); // Ažuriranje liste materijala
+      state.currentCourse?.materials?.concat(action.payload);
       console.log(action.payload);
-      if (action.payload[0].week > state.currentCourse!.weekCount)
-        state.currentCourse!.weekCount = action.payload[0].week;
+      if (action.payload.week > state.currentCourse!.weekCount)
+        state.currentCourse!.weekCount = action.payload.week;
+      else {
+        state.materialsLoaded = true;
+      }
     });
-    builder.addCase(uploadMaterials.rejected, (state, action) => {
+    builder.addCase(uploadFile.rejected, (state) => {
       state.status = "idle";
     });
 
@@ -439,12 +501,9 @@ export const courseSlice = createSlice({
         console.log(action.payload);
       }
     );
-    builder.addCase(
-      fetchCurrentCourseMaterialAsync.rejected,
-      (state, action) => {
-        state.status = "idle";
-      }
-    );
+    builder.addCase(fetchCurrentCourseMaterialAsync.rejected, (state) => {
+      state.status = "idle";
+    });
   },
 });
 

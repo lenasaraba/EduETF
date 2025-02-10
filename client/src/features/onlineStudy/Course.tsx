@@ -26,12 +26,15 @@ import {
   Popover,
   CircularProgress,
 } from "@mui/material";
-import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { EditNote, ExpandLess, ExpandMore } from "@mui/icons-material";
 import CourseCardMedia from "./components/CourseCardMedia";
 import { Author } from "./components/Author";
 import SlideCardThemes from "./components/SlideCardThemes";
 import SpeakerNotesOffIcon from "@mui/icons-material/SpeakerNotesOff";
+import CloseIcon from "@mui/icons-material/Close";
 import {
+  deleteCourseAsync,
+  deleteMaterialAsync,
   fetchCourseAsync,
   fetchCurrentCourseMaterialAsync,
   uploadFile,
@@ -94,7 +97,12 @@ export default function Course() {
       return (
         <iframe
           src={fileUrl}
-          style={{ width: "100%", height: "100%", border: "none" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            border: "none",
+            minHeight: "59vh",
+          }}
           title="PDF Preview"
         />
       );
@@ -159,10 +167,18 @@ export default function Course() {
   const open = Boolean(anchorEl);
   const idMenu = open ? "simple-popover" : undefined;
   const [openDialog, setOpenDialog] = useState(false);
+  const [openDialogMaterial, setOpenDialogMaterial] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState<
+    Material | undefined
+  >(undefined);
+
   const { user } = useAppSelector((state) => state.account);
 
   const handleCloseWeek = async () => {
-    setAddingWeek(false);
+    setOpenWeeks((prev) => prev.map(() => false));
+
+    if (addingWeek) setAddingWeek(false);
+    else if (editingWeek) setEditingWeek(false);
   };
 
   const handleSaveWeek = async () => {
@@ -179,7 +195,7 @@ export default function Course() {
     const adjustedDate = new Date(localDate.getTime() - offset * 60000);
     selectedFiles.forEach((file) => {
       console.log(file);
-      materials.push({
+      const material = {
         courseId: parseInt(id!),
         title: file.name,
         filePath: file.webkitRelativePath,
@@ -187,19 +203,29 @@ export default function Course() {
         materialTypeId: getMaterialType(file),
         creationDate: adjustedDate.toISOString(),
         week: newWeek,
-      });
+      };
+
+      console.log(material);
+      //materials.push(material);
       dispatch(
-        uploadFile({ file: file, courseId: parseInt(id!), weekNumber: newWeek })
+        uploadFile({
+          file: file,
+          courseId: parseInt(id!),
+          weekNumber: newWeek,
+          material: material,
+        })
       );
     });
-    setAddingWeek(false);
+    if (addingWeek) setAddingWeek(false);
+    else if (editingWeek) setEditingWeek(false);
 
-    await dispatch(uploadMaterials(materials));
+    // await dispatch(uploadMaterials(materials));
     setSelectedFiles([]);
     // setNewWeek((prev) => prev + 1);
   };
 
   const [isEditing, setIsEditing] = useState(false);
+  // const [isEditingWeek, setIsEditingWeek] = useState(false);
 
   const toggleEdit = () => {
     setAnchorEl(null); // Dijalog se otvara nakon što se tema postavi
@@ -232,6 +258,10 @@ export default function Course() {
     (state) => state.course.currentCourseMaterials
   );
 
+  // useEffect(() => {
+  //     dispatch(fetchCurrentCourseMaterialAsync(parseInt(id!)));
+  // }, [courseMaterials]);
+
   const materialsLoaded = useAppSelector(
     (state) => state.course.materialsLoaded
   );
@@ -243,6 +273,8 @@ export default function Course() {
   //novo
   const [openWeeks, setOpenWeeks] = useState<boolean[]>([]);
   const [addingWeek, setAddingWeek] = useState(false);
+  const [editingWeek, setEditingWeek] = useState(false);
+
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [newWeek, setNewWeek] = useState(0);
 
@@ -257,9 +289,19 @@ export default function Course() {
       setOpenWeeks(Array(course.weekCount).fill(false));
       setNewWeek(course.weekCount);
       dispatch(fetchCurrentCourseMaterialAsync(course.id));
-      console.log("aaaaaaaaaaaa");
+      // console.log("aaaaaaaaaaaa");
     }
   }, [course]);
+
+  useEffect(() => {
+    if (selectedMaterial != undefined) {
+      console.log(selectedMaterial);
+      setOpenDialogMaterial(true);
+    } else {
+      console.log("USLA U ODUSTANI");
+      console.log(selectedMaterial);
+    }
+  }, [selectedMaterial]);
 
   if (!currentCourseLoaded)
     return <LoadingComponent message="Učitavanje kursa.." />;
@@ -270,7 +312,23 @@ export default function Course() {
     );
   };
 
+  const editWeek = (index: number) => {
+    console.log(index);
+    setOpenWeeks((prev) =>
+      prev.map((isOpen, i) => (i === index - 1 ? true : isOpen))
+    );
+
+    setNewWeek(index);
+
+    setTimeout(() => {
+      setEditingWeek(true);
+    }, 0);
+    console.log(newWeek);
+  };
+
   const handleAddWeek = () => {
+    setOpenWeeks((prev) => prev.map(() => false));
+
     setNewWeek(course!.weekCount + 1);
     setAddingWeek(true);
   };
@@ -292,9 +350,39 @@ export default function Course() {
     setOpenDialog(true);
     setAnchorEl(null);
   };
+  const handleDeleteMaterialClick = (material: Material) => {
+    setSelectedMaterial(material);
+  };
+
+  const handleDeleteMaterial = async () => {
+    console.log(selectedMaterial);
+    try {
+      console.log(selectedMaterial);
+      await dispatch(deleteMaterialAsync(selectedMaterial!.id));
+      
+      setOpenWeeks((prev) =>
+        prev.map((isOpen, i) =>
+          i === (selectedMaterial?.week ? parseInt(selectedMaterial.week.toString(), 10) - 1 : -1)
+            ? true
+            : isOpen
+        )
+      );
+      
+      setOpenDialogMaterial(false);
+    } catch (error) {
+      console.error("Greška prilikom brisanja kursa:", error);
+    } finally {
+      setOpenDialogMaterial(false);
+    }
+  };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+  };
+  const handleCloseDialogMaterial = () => {
+    setOpenDialogMaterial(false);
+
+    setSelectedMaterial(undefined);
   };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -308,9 +396,9 @@ export default function Course() {
 
   const handleConfirmDelete = async () => {
     try {
-      navigate("/courses");
+      navigate("/courses?type=all");
       console.log(course);
-      //await dispatch(deleteCourseAsync(course.id));
+      await dispatch(deleteCourseAsync(course.id));
     } catch (error) {
       console.error("Greška prilikom brisanja kursa:", error);
     } finally {
@@ -322,6 +410,10 @@ export default function Course() {
     setFileVisible(true);
     console.log(material);
     setCurrentMat(material);
+  };
+  const hideFile = () => {
+    setFileVisible(false);
+    setCurrentMat(undefined); // ili undefined, zavisno od tipa
   };
 
   return (
@@ -491,8 +583,8 @@ export default function Course() {
         </Grid>
 
         <Dialog
-          open={openDialog}
-          onClose={handleCloseDialog}
+          open={openDialog || openDialogMaterial}
+          onClose={openDialog ? handleCloseDialog : handleCloseDialogMaterial}
           sx={{
             "& .MuiDialog-paper": {
               borderRadius: "12pt",
@@ -517,15 +609,22 @@ export default function Course() {
                 color: "text.secondary",
               }}
             >
-              Da li ste sigurni da želite da obrišete ovaj kurs?
+              {openDialog
+                ? "Da li ste sigurni da želite da obrišete ovaj kurs?"
+                : "Da li ste sigurni da želite da obrišete ovaj materijal?"}
             </Typography>
           </DialogContent>
           <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
-            <Button onClick={handleCloseDialog} sx={{ color: "text.primary" }}>
+            <Button
+              onClick={
+                openDialog ? handleCloseDialog : handleCloseDialogMaterial
+              }
+              sx={{ color: "text.primary" }}
+            >
               Odustani
             </Button>
             <Button
-              onClick={handleConfirmDelete}
+              onClick={openDialog ? handleConfirmDelete : handleDeleteMaterial}
               color="error"
               variant="contained"
             >
@@ -720,21 +819,30 @@ export default function Course() {
         <Divider sx={{ width: "100%", marginY: 2 }} />
         {/* SEDMICE  */}
 
-        <Typography
-          variant="h5"
+        <Box
           sx={{
+            margin: 0,
+            padding: 0,
             mb: 2,
             width: "100%",
             display: "flex",
             justifyContent: "space-between",
           }}
         >
-          Sedmice i materijali{" "}
+          <Typography
+            variant="h5"
+            // sx={{
+
+            // }}
+          >
+            Sedmice i materijali{" "}
+          </Typography>
           {course.professorsCourse.some(
             (professor) => professor.user.email === user?.email
           ) &&
             isEditing &&
-            !addingWeek && (
+            !addingWeek &&
+            !editingWeek && (
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography variant="body1" sx={{ color: "primary.dark" }}>
                   Dodaj novu sedmicu&nbsp;
@@ -758,25 +866,39 @@ export default function Course() {
                 </Button>
               </Box>
             )}
-        </Typography>
+        </Box>
         {courseMaterials && courseMaterials.length > 0 ? (
-          <Box sx={{ margin: 0, padding: 0, display: "flex", width: "100%" }}>
+          <Box
+            sx={{
+              margin: 0,
+              padding: 0,
+              display: "flex",
+              width: "100%",
+              marginBottom: 5,
+              minHeight:
+                openWeeks.some((week) => week) || fileVisible ? "40vh" : "auto", // Ako su sve zatvorene, minHeight je auto
+              maxHeight: "60vh", // Sprečava preveliko širenje
+              transition: "max-height 0.3s ease-in-out", // Glatka animacija
+            }}
+          >
+            {" "}
             <List
               sx={{
                 maxWidth: "30vw",
                 width: "100%",
-                // height: "100%",
-                // maxHeight: "60vh",
-                // overflow: "auto",
+                maxHeight: "100%", // Lista prati roditeljsku visinu
+                overflowY: "auto", // Skrol samo ovde
+                overflowX: "hidden",
+                whiteSpace: "nowrap",
+                padding: 0,
               }}
             >
               {[...Array(course.weekCount)].map((_, index) => (
                 <div key={index}>
                   <ListItem
                     component="div"
-                    onClick={() => toggleWeek(index)}
                     sx={{
-                      cursor: "pointer",
+                      // cursor: "pointer",
                       padding: "8px 16px",
                       backgroundColor: openWeeks[index]
                         ? "rgba(0, 0, 0, 0.04)"
@@ -786,13 +908,26 @@ export default function Course() {
                     }}
                   >
                     <ListItemText primary={`Sedmica ${index + 1}`} />
+                    {isEditing && !editingWeek && !addingWeek && (
+                      <IconButton>
+                        <EditNote onClick={() => editWeek(index + 1)} />
+                      </IconButton>
+                    )}
                     <IconButton>
-                      {openWeeks[index] ? <ExpandLess /> : <ExpandMore />}
+                      {openWeeks[index] ? (
+                        <ExpandLess onClick={() => toggleWeek(index)} />
+                      ) : (
+                        <ExpandMore onClick={() => toggleWeek(index)} />
+                      )}
                     </IconButton>
                   </ListItem>
 
                   <Collapse in={openWeeks[index]} timeout="auto" unmountOnExit>
-                    <List component="div" disablePadding sx={{ width: "30vw" }}>
+                    <List
+                      component="div"
+                      disablePadding
+                      sx={{ width: "30vw", height: "100%" }}
+                    >
                       {courseMaterials.filter(
                         (material) => material.week === index + 1
                       ).length > 0 ? (
@@ -801,6 +936,7 @@ export default function Course() {
                             (material) => material.week === index + 1
                           )}
                           showFile={showFile}
+                          handleDelete={handleDeleteMaterialClick}
                         />
                       ) : (
                         <ListItem>
@@ -812,18 +948,57 @@ export default function Course() {
                 </div>
               ))}
             </List>
-            <Box
-              sx={{
-                height: "100%",
-                maxHeight: "60vh",
-                backgroundColor: "transparent",
-                width: "100%",
-                paddingX: 1,
-                display: fileVisible ? "block" : "none",
-              }}
-            >
-              {currentMat && getFilePreview(currentMat.filePath)}
-            </Box>
+            {currentMat ? (
+              <Box
+                sx={{
+                  height: "100%",
+                  // maxHeight: "60vh",
+                  // height:"60vh",
+                  backgroundColor: "transparent",
+                  width: "100%",
+                  paddingX: 1,
+                  display: fileVisible ? "block" : "none",
+                  // minHeight: fileVisible ? "40vh" : "0", // Ako su sve zatvorene, minHeight je auto
+                  // Skrol samo ovde
+
+                  // mb: 2,
+                }}
+              >
+                <Box
+                  sx={{
+                    margin: 0,
+                    padding: 0,
+                    maxHeight: "100%", // Sprečava preveliko širenje
+                    overflowY: "auto",
+                  }}
+                >
+                  {" "}
+                  {getFilePreview(currentMat.filePath)}
+                </Box>
+                <Button
+                  sx={{
+                    width: "100%",
+                    color: "text.primary",
+                    // paddingX: 2,
+                    borderRadius: "20pt",
+
+                    // display: "inline-block", // Ovo osigurava da padding i borderRadius funkcionišu ispravno
+                    "&:hover": {
+                      cursor: "pointer",
+                      backgroundColor: "action.acive",
+                      color: "primary.light",
+                    },
+                  }}
+                >
+                  <CloseIcon
+                    color="inherit" // Ovo sprečava preklapanje sa default stilovima
+                    onClick={() => hideFile()}
+                  />
+                </Button>
+              </Box>
+            ) : (
+              ""
+            )}
           </Box>
         ) : (
           !isEditing && (
@@ -838,7 +1013,7 @@ export default function Course() {
         )}
         {/* Forma za novu sedmicu */}
         {materialsLoaded ? (
-          addingWeek && (
+          addingWeek ? (
             <>
               <Box
                 sx={{
@@ -869,12 +1044,40 @@ export default function Course() {
                 )}
               </Box>
             </>
-          )
+          ) : editingWeek ? (
+            <>
+              <Box
+                sx={{
+                  margin: 0,
+                  padding: 0,
+                  display: "flex",
+                  justifyContent: "space-around",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
+                <Box sx={{ margin: 0, padding: 0, display: "flex" }}>
+                  <AppDropzone
+                    name="file"
+                    control={control}
+                    handleCloseWeek={handleCloseWeek}
+                    handleSaveWeek={handleSaveWeek}
+                    setSelectedFiles={setSelectedFiles}
+                    newWeek={newWeek}
+                  />{" "}
+                </Box>{" "}
+                {watchFile && (
+                  <img
+                    src={watchFile.preview}
+                    alt="nesh"
+                    style={{ maxHeight: "20vh" }}
+                  />
+                )}
+              </Box>
+            </>
+          ) : null
         ) : (
-          <CircularProgress
-            size={60}
-            sx={{ color: "text.secondary" }}
-          ></CircularProgress>
+          <CircularProgress size={60} sx={{ color: "text.secondary" }} />
         )}
 
         <Divider sx={{ marginY: 2, width: "100%" }} />

@@ -34,7 +34,7 @@ export interface ProfessorsCourse {
   user: User;
   courseId: number;
   enrollDate: string;
-  withdrawDate: string;
+  withdrawDate?: string;
 }
 
 export interface User {
@@ -44,6 +44,7 @@ export interface User {
   token: string;
   firstName: string;
   lastName: string;
+  role: string;
 }
 
 export interface Theme {

@@ -28,9 +28,8 @@ axios.interceptors.response.use(
     if (response.status === 201) {
       if (response.data.method == "CreateTheme") toast.success("Tema kreirana");
       if (response.data.method == "CreateCourse") toast.success("Kurs kreiran");
-      if (response.data.method == "AddMaterial") toast.success("Materijal dodat");
-
-
+      if (response.data.method == "AddMaterial")
+        toast.success("Materijal dodat");
 
       // Ako želite, možete dodati specifičnu logiku za status 201
     } else if (response.status === 200) {
@@ -77,10 +76,12 @@ axios.interceptors.response.use(
         toast.error(data.title);
         break;
       case 401:
-        toast.error("Neuspješna prijava");
+        // toast.error("Neuspješna prijava");
+        toast.error(data.title);
+
         break;
       case 404:
-        toast.error(data.title);
+        toast.error("Resurs nije pronađen.");
         break;
       case 500:
         toast.error(data.title);
@@ -121,8 +122,10 @@ const Course = {
   fetchAllYearsPrograms: () => requests.get("course/yearsPrograms"),
   create: (values: any) => requests.post("course/CreateCourse", values),
   deleteCourse: (id: number) => requests.delete(`course/DeleteCourse/${id}`),
-  uploadMaterial: (material: any) => requests.post("course/AddMaterial", material),
-  deleteMaterial:(id:number)=>requests.delete(`course/DeleteMaterial/${id}`),
+  uploadMaterial: (material: any) =>
+    requests.post("course/AddMaterial", material),
+  deleteMaterial: (id: number) =>
+    requests.delete(`course/DeleteMaterial/${id}`),
   upload: (file: File, courseId: number, weekNumber: number) => {
     console.log(courseId, weekNumber);
     const formData = new FormData();
@@ -133,7 +136,8 @@ const Course = {
   },
   getMaterialsByCourseId: (id: number) =>
     requests.get(`course/getCourseMaterialsByCourseId/${id}`),
-  enrollOnCourse: (courseId: number) => requests.post("course/enroll", {courseId}),
+  enrollOnCourse: (courseId: number) =>
+    requests.post("course/enroll", { courseId }),
 };
 
 const Professor = {
@@ -142,6 +146,8 @@ const Professor = {
   getProfessorYearsPrograms: (id: number) =>
     requests.get(`professor/getProfessorYearsPrograms/${id}`),
   fetchFilters: () => requests.get("professor/filters"),
+  addProfessorToCourse: (courseId: number, professorId: number) =>
+    requests.post("professor/addProfessorToCourse", { courseId, professorId }),
 };
 
 const Theme = {

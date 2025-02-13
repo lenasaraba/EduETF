@@ -30,7 +30,7 @@ export default function CreateCourse() {
     (state) => state.course
   );
   const studyPrograms = useAppSelector((state) => state.course.programs);
-  const filtersLoaded = useAppSelector((state) => state.course.filtersLoaded);
+  const filtersLoaded = useAppSelector((state) => state.course.optionsLoaded);
 
   const statusC = useAppSelector((state) => state.course.status);
 
@@ -72,7 +72,7 @@ export default function CreateCourse() {
       yearId: data.yearId,
       studyProgramId: data.studyProgramId,
       courseCreationDate: adjustedDate.toISOString(),
-      password:data.password,
+      password: data.password,
     };
     console.log(newCourse);
 
@@ -113,10 +113,10 @@ export default function CreateCourse() {
           spacing={3}
           sx={{
             gap: 4,
-            direction:"column",
+            direction: "column",
             width: "100%",
             padding: 2,
-            paddingX:4,
+            paddingX: 4,
             backgroundColor: "background.default",
             borderRadius: "20px",
             border: "2px solid",
@@ -181,8 +181,8 @@ export default function CreateCourse() {
             />
           </Grid>
 
-          <Grid container sx={{ padding: 0, display:"flex" }}>
-            <Box component={Grid} sx={{ width:"48%", margin:0, padding:0 }}>
+          <Grid container sx={{ padding: 0, display: "flex" }}>
+            <Box component={Grid} sx={{ width: "48%", margin: 0, padding: 0 }}>
               <FormControl
                 fullWidth
                 error={!!errors.yearId}
@@ -226,7 +226,7 @@ export default function CreateCourse() {
                 />
               </FormControl>
             </Box>
-            <Box component={Grid} sx={{ width:"48%", margin:0, padding:0 }}>
+            <Box component={Grid} sx={{ width: "48%", margin: 0, padding: 0 }}>
               <FormControl
                 fullWidth
                 error={!!errors.studyProgramId}

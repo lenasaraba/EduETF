@@ -70,27 +70,23 @@ namespace API.Controllers
 
         [Authorize]
         [HttpGet("currentUser")]
-        public async Task<IActionResult> GetCurrentUser()
+        public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
             var user = await _userManager.FindByNameAsync(User.Identity.Name);
             //ovim cemo dobiti name claim iz tokena
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault();
-            var userDto = new UserDto
+            
+            return new UserDto
             {
                 Email = user.Email,
-                Token = await _tokenService.GenerateToken(user),
+                Token = Request.Headers["Authorization"].ToString().Replace("Bearer ", ""),
                 Username = user.UserName,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Id = user.Id,
                 Role = role,
             };
-
-            return Ok(new
-            {
-                user = userDto,
-            });
         }
 
         [HttpPost("updateUser")]
@@ -125,5 +121,23 @@ namespace API.Controllers
 
 
         }
-    }
+
+        [HttpDelete("deleteUser/{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(new { message = "Failed to delete user", errors = result.Errors });
+            }
+
+            return Ok(new { message = "User deleted successfully" });
+        }
+            }
 }

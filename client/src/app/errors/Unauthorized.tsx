@@ -1,7 +1,6 @@
 import { Button, Container, Divider, Paper, Typography } from "@mui/material";
-import { Link } from "react-router-dom";
 
-export default function NotFound() {
+export default function Unauthorized() {
   return (
     <Container
       sx={{
@@ -28,13 +27,10 @@ export default function NotFound() {
         }}
       >
         <Typography gutterBottom variant="h4" fontWeight="bold" color="error">
-          Resurs nije pronađen
+          Pristup odbijen
         </Typography>
-        <Typography
-          variant="body1"
-          sx={{ mb: 2, color: "gray", fontSize: "14pt" }}
-        >
-          Ne možemo pronaći to što tražiš. 😕
+        <Typography variant="body1" sx={{ mb: 2, color: "gray" }}>
+          Nemate dozvolu za pregled ove stranice.
         </Typography>
         <Divider sx={{ width: "100%", my: 2 }} />
         <Button

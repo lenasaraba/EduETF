@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import PersonPinRoundedIcon from "@mui/icons-material/PersonPinRounded";
 import CourseCardMedia from "../../onlineStudy/components/CourseCardMedia";
+import PersonOffIcon from "@mui/icons-material/PersonOff";
 
 interface ThemeCardProps {
   theme: Theme;
@@ -191,24 +192,50 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
                 // mt: 2,
               }}
             >
-              <PersonPinRoundedIcon
-                sx={{
-                  fontSize: "1rem",
-                  color: "text.secondary",
-                  // mr: 0.5,
-                }}
-              />{" "}
-              <Typography
-                variant="body2"
-                sx={{
-                  fontSize: "0.9rem",
-                  color: "text.secondary",
-                  fontFamily: "Raleway, sans-serif",
-                  paddingLeft: 1,
-                }}
-              >
-                {theme.user.firstName + " " + theme.user.lastName}
-              </Typography>
+              {theme.user ? (
+                <>
+                  <PersonPinRoundedIcon
+                    sx={{
+                      fontSize: "1rem",
+                      color: "text.secondary",
+                      // mr: 0.5,
+                    }}
+                  />
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontSize: "0.9rem",
+                      color: "text.secondary",
+                      fontFamily: "Raleway, sans-serif",
+                      paddingLeft: 1,
+                    }}
+                  >
+                    {theme.user?.firstName + " " + theme.user?.lastName}
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <PersonOffIcon
+                    sx={{
+                      fontSize: "1rem",
+                      color: "gray",
+                      // mr: 0.5,
+                    }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontSize: "0.9rem",
+                      color: "gray",
+                      fontFamily: "Raleway, sans-serif",
+                      paddingLeft: 1,
+                    }}
+                  >
+                    [Obrisan korisnik]
+                  </Typography>
+                </>
+              )}
             </Box>
             <Box
               sx={{

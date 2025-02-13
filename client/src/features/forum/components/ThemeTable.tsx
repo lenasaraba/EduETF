@@ -53,10 +53,9 @@ import IconButton from "@mui/joy/IconButton";
 import React from "react";
 import { Theme as ThemeModel } from "../../../app/models/theme";
 
-import {
-  Modal,
-  Button as ButtonJ,
-} from "@mui/joy";
+import { Modal, Button as ButtonJ } from "@mui/joy";
+import { User } from "../../../app/models/user";
+import PersonOffIcon from "@mui/icons-material/PersonOff";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -93,7 +92,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
   const [themeSelected, setThemeSelected] = useState<ThemeModel | undefined>(
     undefined
   );
-
+  const [userSelected, setUserSelected] = useState<User | undefined>(undefined);
   // Ref za pristup svim Option elementima
   const optionRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
@@ -150,6 +149,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
   const user = useAppSelector((state) => state.account.user);
   const navigate = useNavigate();
   const [openDialog, setOpenDialog] = useState(false);
+  const [openDialogInfo, setOpenDialogInfo] = useState(false);
+
   const [loadingStatus, setLoadingStatus] = useState<{
     [key: number]: boolean;
   }>({});
@@ -224,6 +225,12 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
     } finally {
       setOpenDialog(false);
     }
+  };
+
+  const handleCloseDialogInfo = () => {
+    setUserSelected(undefined);
+
+    setOpenDialogInfo(false);
   };
 
   const pageTheme = extendTheme({
@@ -597,12 +604,12 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
               sx={{
                 "--TableCell-headBackground": themeM.palette.background.paper,
                 "--Table-headerUnderlineThickness": "1px",
-                "--TableRow-hoverBackground": themeM.palette.action.focus,
+                "--TableRow-hoverBackground": themeM.palette.background.paper,
                 "--TableCell-paddingY": "8px",
                 "--TableCell-paddingX": "12px",
                 backgroundColor: themeM.palette.background.paper,
                 display: "block",
-                tableLayout: "fixed", // Dodajemo fixed layout za preciznije pozicioniranje
+                tableLayout: "auto", // Dodajemo fixed layout za preciznije pozicioniranje
                 width: "100%",
               }}
             >
@@ -616,8 +623,14 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                     alignItems: "center", // Osiguravamo da su stavke poravnate
                   }}
                 >
-                  <th style={{ width: "25%", flex: 1, display:"flex",
-                            justifyContent:"center", }}>
+                  <th
+                    style={{
+                      width: "25%",
+                      flex: 1,
+                      display: "flex",
+                      justifyContent: "flex-start",
+                    }}
+                  >
                     <JoyLink
                       underline="none"
                       color="primary"
@@ -645,8 +658,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                       color: themeM.palette.primary.main,
                       // width: "25%",
                       flex: 1,
-                      display:"flex",
-                            justifyContent:"center",
+                      display: "flex",
+                      justifyContent: "flex-start",
                     }}
                   >
                     Datum
@@ -656,20 +669,31 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                       color: themeM.palette.primary.main,
                       //  width: "25%",
                       flex: 1,
-                      display:"flex",
-                            justifyContent:"center",
+                      display: "flex",
+                      justifyContent: "flex-start",
                     }}
                   >
                     Kategorija
                   </th>
                   <th
                     style={{
-                      // padding: "12px 12px",
                       color: themeM.palette.primary.main,
                       // width: "25%",
                       flex: 1,
-                      display:"flex",
-                            justifyContent:"center",
+                      display: "flex",
+                      justifyContent: "flex-start",
+                    }}
+                  >
+                    Kreator
+                  </th>
+                  <th
+                    style={{
+                      // padding: "12px 12px",
+                      color: themeM.palette.primary.main,
+                      width: "10%",
+                      // flex: 1,
+                      display: "flex",
+                      justifyContent: "center",
                     }}
                   >
                     Status
@@ -678,32 +702,22 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                     style={{
                       // padding: "12px 12px",
                       color: themeM.palette.primary.main,
-                      // width: "25%",
-                      flex: 1,
-                      display:"flex",
-                            justifyContent:"center",
+                      width: "10%",
+                      // flex: 1,
+                      display: "flex",
+                      justifyContent: "center",
                     }}
                   >
                     Broj poruka
                   </th>
+
                   <th
                     style={{
                       color: themeM.palette.primary.main,
-                      // width: "25%",
-                      flex: 1,
-                      display:"flex",
-                            justifyContent:"center",
-                    }}
-                  >
-                    Kreator
-                  </th>
-                  <th
-                    style={{
-                      color: themeM.palette.primary.main,
-                      // width: "25%",
-                      flex: 1,
-                      display:"flex",
-                            justifyContent:"center",
+                      width: "10%",
+                      // flex: 1,
+                      display: "flex",
+                      justifyContent: "center",
                     }}
                   >
                     Meni
@@ -760,8 +774,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             flex: 1,
                             height: "fit-content",
                             border: 0,
-                            display:"flex",
-                            justifyContent:"flex-start",
+                            display: "flex",
+                            justifyContent: "flex-start",
                           }}
                         >
                           <div>
@@ -772,7 +786,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                                 textDecoration: "none",
                                 color: themeM.palette.action.active,
                                 cursor: "pointer",
-                                fontSize:"12pt",
+                                fontSize: "12pt",
                                 overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
                                 display: "-webkit-box", // Neophodno za multi-line truncation
                                 WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
@@ -791,7 +805,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             </MuiTypo>
                             <MuiTypo
                               sx={{
-                                fontSize:"11pt",
+                                fontSize: "11pt",
                                 color: themeM.palette.action.active,
                                 overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
                                 display: "-webkit-box", // Neophodno za multi-line truncation
@@ -812,8 +826,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             flex: 1,
                             height: "fit-content",
                             border: 0,
-                            display:"flex",
-                            justifyContent:"center",
+                            display: "flex",
+                            justifyContent: "flex-start",
                           }}
                         >
                           <Typography
@@ -841,8 +855,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             flex: 1,
                             height: "fit-content",
                             border: 0,
-                            display:"flex",
-                            justifyContent:"flex-start",
+                            display: "flex",
+                            justifyContent: "flex-start",
                           }}
                         >
                           <Typography
@@ -869,14 +883,104 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                               : "Slobodna tema"}
                           </Typography>
                         </td>
+
                         <td
                           style={{
                             padding: "0 12px",
                             flex: 1,
                             height: "fit-content",
                             border: 0,
-                            display:"flex",
-                            justifyContent:"center",
+                            display: "flex",
+                            justifyContent: "flex-start",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              gap: 2,
+                              alignItems: "center",
+                            }}
+                          >
+                            <Avatar
+                              size="sm"
+                              sx={{ bgcolor: themeM.palette.primary.main }}
+                            >
+                              {theme1.user ? (
+                                theme1.user.firstName.charAt(0).toUpperCase()
+                              ) : (
+                                <PersonOffIcon />
+                              )}
+                            </Avatar>
+                            <div>
+                              {theme1.user ? (
+                                <Typography
+                                  level="body-xs"
+                                  sx={{
+                                    color: themeM.palette.action.active,
+                                    textDecoration: "none",
+                                    fontSize: "10pt",
+                                    fontWeight: "normal",
+                                    "&:hover": {
+                                      cursor: "pointer",
+                                      color: themeM.palette.primary.main, // Boja za hover stanje
+                                      fontWeight: "bold", // Boldovanje na hover
+                                    },
+                                  }}
+                                  //ovo raditi samo kad je profesor? i dodati da pise rola pored
+                                  // component={Link}
+                                  // to={
+                                  //   theme1.user.role == "Profesor"
+                                  //     ? `/professorInfo/${theme1.user.id}`
+                                  //     : `/profile/${theme1.user.id}`
+                                  // }
+                                  onClick={() => {
+                                    if (theme1.user.role === "Profesor") {
+                                      navigate(
+                                        `/professorInfo/${theme1.user.id}`
+                                      );
+                                    } else {
+                                      setUserSelected(theme1.user);
+                                      setOpenDialogInfo(true);
+                                    }
+                                  }}
+                                >
+                                  {" "}
+                                  {theme1.user.firstName} {theme1.user.lastName}
+                                </Typography>
+                              ) : (
+                                <Typography
+                                  level="body-xs"
+                                  sx={{
+                                    color: "gray",
+                                    textDecoration: "none",
+                                    fontSize: "10pt",
+                                    fontWeight: "normal",
+                                  }}
+                                >
+                                  [Obrisan korisnik]
+                                </Typography>
+                              )}
+                              <Typography
+                                level="body-xs"
+                                sx={{
+                                  color: themeM.palette.action.active,
+                                }}
+                              >
+                                {theme1.user ? theme1.user.email : ""}
+                              </Typography>
+                            </div>
+                          </Box>
+                        </td>
+
+                        <td
+                          style={{
+                            padding: "0 12px",
+                            // flex: 1,
+                            width: "10%",
+                            height: "fit-content",
+                            border: 0,
+                            display: "flex",
+                            justifyContent: "center",
                           }}
                         >
                           <Chip
@@ -917,11 +1021,12 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                         <td
                           style={{
                             padding: "0 12px",
-                            flex: 1,
+                            // flex: 1,
+                            width: "10%",
                             height: "fit-content",
                             border: 0,
-                            display:"flex",
-                            justifyContent:"center",
+                            display: "flex",
+                            justifyContent: "center",
                           }}
                         >
                           <MuiTypo
@@ -932,72 +1037,19 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             {theme1.messages.length.toString()}
                           </MuiTypo>
                         </td>
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            flex: 1,
-                            height: "fit-content",
-                            border: 0,
-                            display:"flex",
-                            justifyContent:"center",
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              display: "flex",
-                              gap: 2,
-                              alignItems: "center",
-                            }}
-                          >
-                            <Avatar
-                              size="sm"
-                              sx={{ bgcolor: themeM.palette.primary.main }}
-                            >
-                              {theme1.user.firstName.charAt(0).toUpperCase()}
-                            </Avatar>
-                            <div>
-                              <Typography
-                                level="body-xs"
-                                sx={{
-                                  color: themeM.palette.action.active,
-                                  textDecoration: "none",
-                                  fontSize: "10pt",
-                                  fontWeight: "normal",
-                                  "&:hover": {
-                                    cursor: "pointer",
-                                    color: themeM.palette.primary.main, // Boja za hover stanje
-                                    fontWeight: "bold", // Boldovanje na hover
-                                  },
-                                }}
-                                //ovo raditi samo kad je profesor? i dodati da pise rola pored
-                                component={Link}
-                                to={`/professorInfo/${theme1.user.id}`}
-                              >
-                                {theme1.user.firstName} {theme1.user.lastName}
-                              </Typography>
-                              <Typography
-                                level="body-xs"
-                                sx={{
-                                  color: themeM.palette.action.active,
-                                }}
-                              >
-                                {theme1.user.email}
-                              </Typography>
-                            </div>
-                          </Box>
-                        </td>
 
                         <td
                           style={{
                             padding: "0 12px",
-                            flex: 1,
+                            // flex: 1,
+                            width: "10%",
                             height: "fit-content",
                             border: 0,
                             display: "flex",
                             justifyContent: "center",
                           }}
                         >
-                          {user && user.username == theme1.user.username
+                          {user && user.username == theme1.user?.username
                             ? RowMenu(theme1)
                             : " "}
                         </td>
@@ -1113,6 +1165,146 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                   }}
                 >
                   Obriši
+                </ButtonJ>
+              </Box>
+            </Box>
+          </Modal>
+
+          <Modal
+            open={openDialogInfo}
+            onClose={handleCloseDialogInfo}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backdropFilter: "blur(6px)", // Blago zamagljenje pozadine
+              backgroundColor: "rgba(0, 0, 0, 0.3)", // Taman overlay efekat
+              zIndex: 1300,
+            }}
+          >
+            <Box
+              sx={{
+                borderRadius: "20pt",
+                padding: 3,
+                minWidth: 350,
+                maxWidth: 550,
+                backgroundColor: themeM.palette.background.paper,
+                boxShadow: 8,
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                position: "relative",
+                paddingX: 5,
+                animation: "fadeIn 0.3s ease-in-out",
+                width: 550,
+              }}
+            >
+              {/* Naslov */}
+              <MuiTypo
+                variant="h5"
+                sx={{
+                  fontFamily: "Raleway, sans-serif",
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  color: themeM.palette.primary.light,
+                }}
+              >
+                Podaci o studentu
+              </MuiTypo>
+
+              {/* Kartica sa podacima */}
+              {userSelected && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 1.5,
+                    padding: 2,
+                    borderRadius: "20pt",
+
+                    backgroundColor: themeM.palette.secondary.main,
+                    boxShadow: 2,
+                  }}
+                >
+                  {/* Ikona ili avatar */}
+                  <Box
+                    sx={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: "50%",
+                      backgroundColor: themeM.palette.primary.light,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      fontSize: "1.2rem",
+                      fontWeight: "bold",
+                      mr: 1,
+                    }}
+                  >
+                    {userSelected.firstName[0]}
+                  </Box>
+
+                  {/* Podaci */}
+                  <Box>
+                    <MuiTypo
+                      sx={{
+                        fontFamily: "Raleway, sans-serif",
+                        fontSize: "1rem",
+                        fontWeight: "bold",
+                        color: themeM.palette.text.primary,
+                      }}
+                    >
+                      {userSelected.firstName} {userSelected.lastName}
+                    </MuiTypo>
+                    <MuiTypo
+                      variant="body2"
+                      sx={{ color: themeM.palette.text.secondary }}
+                    >
+                      @{userSelected.username}
+                    </MuiTypo>
+                    <MuiTypo
+                      variant="body2"
+                      sx={{
+                        color: themeM.palette.primary.dark,
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      {userSelected.email}
+                    </MuiTypo>
+                  </Box>
+                </Box>
+              )}
+
+              {/* Dodatne informacije */}
+              <MuiTypo
+                sx={{
+                  color: themeM.palette.info.light,
+                  fontSize: "0.8rem",
+                  textAlign: "center",
+                }}
+              >
+                {themeSelected?.user.firstName} {themeSelected?.description}
+              </MuiTypo>
+
+              {/* Dugme za zatvaranje */}
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
+                <ButtonJ
+                  onClick={handleCloseDialogInfo}
+                  variant="soft"
+                  sx={{
+                    fontSize: "0.9rem",
+                    textTransform: "uppercase",
+                    paddingX: 3,
+                    borderRadius: "15pt",
+                    backgroundColor: themeM.palette.primary.main,
+                    color: "#fff",
+                    "&:hover": {
+                      backgroundColor: themeM.palette.primary.dark,
+                    },
+                  }}
+                >
+                  Zatvori
                 </ButtonJ>
               </Box>
             </Box>

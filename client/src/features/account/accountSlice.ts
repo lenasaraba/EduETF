@@ -26,8 +26,8 @@ export const signInUser = createAsyncThunk<User, FieldValues>(
 
       return user;
     } catch (error: any) {
-      console.log("-----------------------------------greska")
-      return thunkAPI.rejectWithValue({error:error.data})
+      console.log("-----------------------------------greska");
+      return thunkAPI.rejectWithValue({ error: error.data });
     }
   }
 );
@@ -95,7 +95,7 @@ export const accountSlice = createSlice({
       localStorage.removeItem("user");
 
       router.navigate("/");
-      toast.error("Session expired - please log in again.");
+      toast.error("Sesija istekla - prijavite se ponovo.");
     });
     builder.addMatcher(
       isAnyOf(signInUser.fulfilled, fetchCurrentUser.fulfilled),
@@ -103,8 +103,6 @@ export const accountSlice = createSlice({
         state.user = action.payload;
       }
     );
-
-    
   },
 });
 

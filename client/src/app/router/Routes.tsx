@@ -62,6 +62,14 @@ export const router = createBrowserRouter([
             path: "courses/:id",
             element: <Course />,
           },
+          // {
+          //   path: "profile/:id",
+          //   element: (
+          //     <RequireAuth>
+          //       <ProfilePage />
+          //     </RequireAuth>
+          //   ),
+          // },
           {
             path: "profile",
             element: (
@@ -91,8 +99,8 @@ export const router = createBrowserRouter([
             element: <CreateCourse />,
           },
           {
-            path:"professors",
-            element:<Professors />,
+            path: "professors",
+            element: <Professors />,
           },
           {
             path: "professorInfo/:id",

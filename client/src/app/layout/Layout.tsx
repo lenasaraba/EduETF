@@ -25,7 +25,7 @@ function CustomThemeToggle(): JSX.Element {
       color="inherit"
     >
       {mode !== "light" ? (
-        <LightModeTwoToneIcon sx={{ color: "#608bc1" }} />
+        <LightModeTwoToneIcon sx={{ color: "#A59D84" }} />
       ) : (
         <NightsStayTwoToneIcon sx={{ color: "#89a8b2" }} />
       )}

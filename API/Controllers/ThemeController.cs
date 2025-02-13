@@ -77,7 +77,15 @@ namespace API.Controllers
             }
 
             var themes = await query.ToListAsync();
-            return themes.Select(c => _mapper.Map<GetThemeDto>(c)).ToList();
+            var themesDto=themes.Select(c => _mapper.Map<GetThemeDto>(c)).ToList();
+            foreach(var theme in themesDto)
+            {
+                if(theme.User!=null){
+                var roles = await _userManager.GetRolesAsync( _mapper.Map<Theme>(theme).User);
+                var role = roles.FirstOrDefault();
+                theme.User.Role=role;}
+            }
+            return  themesDto;
         }
 
         [HttpGet("GetTheme/{id}")]

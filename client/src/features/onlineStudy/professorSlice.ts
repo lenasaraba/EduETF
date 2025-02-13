@@ -4,6 +4,7 @@ import { Professor, ProfessorsParams } from "../../app/models/professor";
 import { Course, StudyProgram, Year } from "../../app/models/course";
 import { RootState } from "../../app/store/configureStore";
 import { Theme } from "../../app/models/theme";
+import { User } from "../../app/models/user";
 
 export interface ProfessorState {
   professors: Professor[];
@@ -84,16 +85,14 @@ export const fetchProfessorYearsProgramsAsync = createAsyncThunk<
   }
 );
 
-
-
 export const deleteProfessorsThemeAsync = createAsyncThunk<
-  { id: number; idProfessor: number }, 
-  { id: number; idProfessor: number }, 
+  { id: number; idProfessor: number },
+  { id: number; idProfessor: number },
   { state: RootState }
 >("theme/deleteProfessorsTheme", async ({ id, idProfessor }, thunkAPI) => {
   try {
     await agent.Theme.deleteTheme(id);
-    
+
     return { id, idProfessor };
   } catch (error: any) {
     return thunkAPI.rejectWithValue(error.message);
@@ -101,18 +100,21 @@ export const deleteProfessorsThemeAsync = createAsyncThunk<
 });
 
 export const deleteProfessorsCourseAsync = createAsyncThunk<
-  { id: number; idProfessor: number }, 
-  { id: number; idProfessor: number }, 
+  { id: number; idProfessor: number },
+  { id: number; idProfessor: number },
   { state: RootState }
->("course/deleteProfessorsCourseAsync", async ({ id, idProfessor }, thunkAPI) => {
-  try {
-    await agent.Course.deleteCourse(id);
-    
-    return { id, idProfessor };
-  } catch (error: any) {
-    return thunkAPI.rejectWithValue(error.message);
+>(
+  "course/deleteProfessorsCourseAsync",
+  async ({ id, idProfessor }, thunkAPI) => {
+    try {
+      await agent.Course.deleteCourse(id);
+
+      return { id, idProfessor };
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
   }
-});
+);
 
 export const fetchProfessorThemesAsync = createAsyncThunk<void, number>(
   "professor/fetchProfessorThemesAsync",
@@ -172,7 +174,9 @@ export const updateThemeStatus = createAsyncThunk<void, UpdateThemeDto>(
   async (themeData, thunkAPI) => {
     try {
       const themeDto = await agent.Theme.updateTheme(themeData); // Pozivanje agenta sa parametrima
-      const professorThemes = await agent.Theme.getProfessorThemes(themeDto.user.id);
+      const professorThemes = await agent.Theme.getProfessorThemes(
+        themeDto.user.id
+      );
 
       // console.log(professorThemes);
 
@@ -212,11 +216,22 @@ export const professorSlice = createSlice({
       state.profPrograms![action.payload.professorId] = action.payload.programs;
       state.professorCourses![action.payload.professorId] =
         action.payload.courses;
-
-      if (state.profYears !== null) {
+      // console.log(
+      //   state.professorsParams.year,
+      //   state.professorsParams.program,
+      //   state.professorsParams.searchTerm
+      // );
+      if (
+        state.profYears !== null &&
+        state.professorsParams.year == null &&
+        state.professorsParams.program == null &&
+        state.professorsParams.searchTerm == undefined
+      ) {
         const allCoursesLoaded =
           Object.keys(state.profYears).length === action.payload.totalCount;
         state.coursesLoaded = allCoursesLoaded;
+      } else {
+        state.coursesLoaded = true;
       }
     },
     setProfessorThemes: (state, action) => {
@@ -229,7 +244,7 @@ export const professorSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(fetchProfessorsAsync.pending, (state) => {
-      state.status = "pendingFetchFilters";
+      state.status = "pendingFetchProfessors";
     });
     builder.addCase(fetchProfessorsAsync.fulfilled, (state) => {
       state.status = "idle";
@@ -268,26 +283,24 @@ export const professorSlice = createSlice({
       state.status = "idle";
     });
     builder.addCase(deleteProfessorsThemeAsync.fulfilled, (state, action) => {
-      
       state.status = "idle";
-      state.professorThemes![action.payload.idProfessor] = state.professorThemes![action.payload.idProfessor].filter(
-        (theme) => theme.id !== action.payload.id
-      );
-
+      state.professorThemes![action.payload.idProfessor] =
+        state.professorThemes![action.payload.idProfessor].filter(
+          (theme) => theme.id !== action.payload.id
+        );
     });
     builder.addCase(deleteProfessorsCourseAsync.fulfilled, (state, action) => {
-      
       state.status = "idle";
-      state.professorCourses![action.payload.idProfessor] = state.professorCourses![action.payload.idProfessor].filter(
-        (course) => course.id !== action.payload.id
-      );
-      
-      state.professorThemes![action.payload.idProfessor] = state.professorThemes![action.payload.idProfessor].filter(
-        (theme) => theme.course?.id !== action.payload.id
-      );
+      state.professorCourses![action.payload.idProfessor] =
+        state.professorCourses![action.payload.idProfessor].filter(
+          (course) => course.id !== action.payload.id
+        );
+
+      state.professorThemes![action.payload.idProfessor] =
+        state.professorThemes![action.payload.idProfessor].filter(
+          (theme) => theme.course?.id !== action.payload.id
+        );
     });
-    
-    
   },
 });
 

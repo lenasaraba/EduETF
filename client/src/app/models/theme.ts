@@ -56,6 +56,7 @@ export interface User {
   token: string;
   firstName: string;
   lastName: string;
+  role: string;
 }
 
 export interface ThemesParams {

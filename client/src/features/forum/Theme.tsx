@@ -2,6 +2,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import NotFound from "../../app/errors/NotFound";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import { MentionsInput, Mention } from "react-mentions";
 import {
   Avatar,
   Box,
@@ -42,6 +43,9 @@ import ChatTwoToneIcon from "@mui/icons-material/ChatTwoTone";
 import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Message } from "../../app/models/theme";
 import { Theme as ThemeMod } from "../../app/models/theme";
+
+import "./themeStyle.css";
+import { borderRadius } from "@mui/system";
 
 export default function Theme() {
   const navigate = useNavigate();
@@ -84,6 +88,23 @@ export default function Theme() {
   const messages = useAppSelector(
     (state) => state.message.messages![parseInt(id!)]
   );
+  // console.log(messages);
+  const uniqueUsers = Array.from(
+    new Map(
+      messages?.map((message) => [message.user?.id, message.user])
+    ).values()
+  );
+
+  const mentionUsers = uniqueUsers
+    ?.filter((user) => user?.username) // Filtriramo korisnike koji imaju username
+    .map((user) => ({
+      id: String(user?.id), // Pretvaramo ID u string
+      display: String(user?.username), // Pretvaramo username u string
+    }));
+
+  // mentionUsers.map((m) => console.log({ ...m }));
+  // console.log({ ...mentionUsers });
+
   const [messageContent, setMessageContent] = useState("");
   const dispatch = useAppDispatch();
 
@@ -342,7 +363,7 @@ export default function Theme() {
                             : "Zatvoreno"
                       }
                     />
-                    {user && user.username == theme.user.username ? (
+                    {user && user.username == theme.user?.username ? (
                       <>
                         <div>
                           <Box
@@ -477,12 +498,26 @@ export default function Theme() {
                     {`Objavljeno: ${new Date(theme.date).toLocaleDateString("sr-RS")}`}{" "}
                   </Typography>
                   <br />
-                  <Typography variant="caption" color="text.secondary">
-                    Autor:{" "}
-                    <b>
-                      {theme.user.firstName} {theme.user.lastName}
-                    </b>
-                  </Typography>
+                  {theme.user ? (
+                    <Typography variant="caption" color="text.secondary">
+                      Autor:{" "}
+                      <b>
+                        {theme.user?.firstName} {theme.user?.lastName}
+                      </b>
+                    </Typography>
+                  ) : (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "gray",
+                        textDecoration: "none",
+                        fontSize: "10pt",
+                        // fontWeight: "normal",
+                      }}
+                    >
+                      Autor: <b>[Obrisan korisnik]</b>
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
             </CardContent>
@@ -725,7 +760,7 @@ export default function Theme() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent:
-                            message.user.email === user?.email
+                            message.user?.email === user?.email
                               ? "flex-end"
                               : "flex-start", // Poravnanje poruka
                           marginBottom: 2,
@@ -734,7 +769,7 @@ export default function Theme() {
                         <Box
                           sx={{
                             backgroundColor:
-                              message.user.email === user?.email
+                              message.user?.email === user?.email
                                 ? "common.background"
                                 : "common.onBackground",
                             padding: 2,
@@ -755,7 +790,7 @@ export default function Theme() {
                               <Typography
                                 variant="subtitle1"
                                 fontWeight={
-                                  message.user.email === user?.email
+                                  message.user?.email === user?.email
                                     ? "bold"
                                     : "normal"
                                 }
@@ -767,9 +802,15 @@ export default function Theme() {
                                 }}
                               >
                                 <span>
-                                  {message.user.firstName}{" "}
-                                  {message.user.lastName}
-                                  {theme.user.email === message.user.email && (
+                                  {message.user ? (
+                                    `${message.user?.firstName} ${message.user?.lastName}`
+                                  ) : (
+                                    <span style={{ fontStyle: "italic" }}>
+                                      [Obrisan korisnik]
+                                    </span>
+                                  )}
+                                  {theme.user?.email ===
+                                    message.user?.email && (
                                     <span
                                       style={{
                                         color: "primary.main",
@@ -787,6 +828,7 @@ export default function Theme() {
                                     </span>
                                   )}
                                 </span>
+
                                 <span
                                   style={{
                                     fontSize: "12px",
@@ -816,12 +858,12 @@ export default function Theme() {
                               </Typography>
                               <Typography
                                 variant="body2"
-                                color="common.black"
+                                color="text.primary"
                                 sx={{ textAlign: "left" }}
                               >
                                 {message.content}
                               </Typography>
-                              {user && user.email == message.user.email ? (
+                              {user && user.email == message.user?.email ? (
                                 <div
                                   style={{
                                     display: "flex",
@@ -847,7 +889,7 @@ export default function Theme() {
                                     }}
                                   >
                                     <DeleteOutlineOutlinedIcon
-                                      sx={{ fontSize: "14pt" }}
+                                      sx={{ fontSize: "16pt" }}
                                     />
                                   </Box>
                                   {/* <Popover
@@ -929,9 +971,10 @@ export default function Theme() {
                   width: "100%",
                   backgroundColor: "background.paper",
                   borderRadius: "0 0 20px 20px",
+                  justifyContent: "space-around",
                 }}
               >
-                <TextField
+                {/* <TextField
                   fullWidth
                   disabled={!theme.active}
                   placeholder={
@@ -944,7 +987,44 @@ export default function Theme() {
                   sx={{ marginRight: 2 }}
                   value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
-                />
+                /> */}
+                <MentionsInput
+                  className="ssky-mention-input"
+                  value={messageContent}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                    let newValue = e.target.value;
+
+                    // Regex za pronalaženje @username(id) formata
+                    const regex = /@\[([a-zA-Z0-9_]+)\]\(\d+\)/g;
+                    //regex za @username :   @[a-zA-Z0-9_]+
+                    // Zamenjujemo sa @username
+                    newValue = newValue.replace(regex, "@$1");
+                    console.log(newValue);
+                    setMessageContent(newValue);
+                  }}
+                  style={{
+                    width: "92%",
+                    maxWidth: "92%",
+                    minHeight: "40px",
+                    padding: "5px",
+                    display: "flex",
+                  }}
+                  placeholder={
+                    theme.active
+                      ? "Unesite poruku..."
+                      : "Nije moguće slati poruke na zatvorenoj temi"
+                  }
+                >
+                  <Mention
+                    trigger="@"
+                    data={mentionUsers}
+                    displayTransform={(id: string, display: string) =>
+                      // `@${display}`
+                      "@" + display.toString()
+                    }
+                  />
+                </MentionsInput>
+
                 <Button
                   variant="contained"
                   color="primary"

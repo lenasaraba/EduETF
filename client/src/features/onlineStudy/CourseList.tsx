@@ -41,8 +41,8 @@ export default function CourseList() {
   const {
     pagecoursesLoaded,
     filtersLoaded,
-    years,
-    programs,
+    yearsFilter,
+    programsFilter,
     coursesParams,
     metaData,
   } = useAppSelector((state) => state.course);
@@ -96,13 +96,20 @@ export default function CourseList() {
   }, [user, courseType, navigate]);
 
   //kad se mijenja stranica da se pribave kursevi sa nove
+  // useEffect(() => {
+  //   // if (!filtersLoaded) {
+  //   console.log("????????????????????????????????????????????????????'");
+  //   dispatch(fetchFilters());
+  //   // }
+  // }, [dispatch]);
   useEffect(() => {
-    if (!pagecoursesLoaded) dispatch(fetchCoursesAsync());
+    if (!pagecoursesLoaded) {
+      dispatch(fetchCoursesAsync());
+      dispatch(fetchFilters());
+    }
   }, [pagecoursesLoaded, dispatch]);
 
-  useEffect(() => {
-    if (!filtersLoaded) dispatch(fetchFilters());
-  }, [dispatch, filtersLoaded]);
+  console.log(pagecoursesLoaded);
 
   useEffect(() => {
     return () => {
@@ -315,8 +322,8 @@ export default function CourseList() {
           </FormControl>
 
           <FilterSelectChip
-            programs={programs!}
-            years={years!}
+            programs={programsFilter!}
+            years={yearsFilter!}
             onChange={(pr: string[], yr: string[]) => {
               dispatch(setCoursesParams({ studyPrograms: pr, years: yr }));
             }}

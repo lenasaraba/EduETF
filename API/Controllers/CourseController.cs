@@ -152,9 +152,20 @@ namespace API.Controllers
         }
 
         [HttpGet("getCourseById/{id}")]
-        public async Task<ActionResult<CourseDto>> GetCourse(int id)
-        {
-            var course = await _context.Courses
+public async Task<ActionResult<CourseDto>> GetCourse(int id)
+{
+    var user = await _userManager.FindByNameAsync(User.Identity.Name);
+    if (user == null)
+    {
+        return Unauthorized();
+    }
+
+    // Dobijanje role korisnika
+    var roles = await _userManager.GetRolesAsync(user);
+    var role = roles.FirstOrDefault();
+
+    // Učitavanje kursa sa svim potrebnim podacima
+    var course = await _context.Courses
         .Include(y => y.Year)
         .Include(s => s.StudyProgram)
         .Include(t => t.Themes).ThenInclude(m => m.Messages)
@@ -162,13 +173,37 @@ namespace API.Controllers
         .Include(uc => uc.UsersCourse).ThenInclude(u => u.User)
         .FirstOrDefaultAsync(c => c.Id == id);
 
-            if (course == null)
-            {
-                return NotFound();
-            }
+    if (course == null)
+    {
+        return NotFound();
+    }
 
-            return Ok(_mapper.Map<CourseDto>(course));
-        }
+    // Provera da li korisnik ima pravo pristupa kursu
+    if (role == "Profesor")
+    {
+        if(course.ProfessorsCourse!=null)
+       { bool isProfessorOfCourse = course.ProfessorsCourse.Any(pc => pc.User.Id == user.Id);
+        if (!isProfessorOfCourse)
+        {
+            return Unauthorized(new {title="Nemate pristup ovom kursu.", status=401}); // Profesor nije predavač na ovom kursu
+        }}
+    }
+    else if (role == "Student")
+    {
+        if(course.UsersCourse!=null){
+
+        bool isStudentEnrolled = course.UsersCourse.Any(uc => uc.User.Id == user.Id);
+        if (!isStudentEnrolled)
+        {
+            return Unauthorized(new{title="Niste upisani na ovaj kurs.", status=401}); // Student nije upisan na kurs
+        }}
+          else  return Unauthorized(); // Student nije upisan na kurs
+         
+    }
+
+    return Ok(_mapper.Map<CourseDto>(course));
+}
+
 
         [HttpGet("filters")]
         public async Task<IActionResult> GetFilters()

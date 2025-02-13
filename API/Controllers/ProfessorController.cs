@@ -20,12 +20,21 @@ namespace API.Controllers
         private readonly StoreContext _context;
         private readonly IMapper _mapper;
         private readonly RoleManager<Role> _roleManager;
+        private readonly UserManager<User> _userManager;
 
-        public ProfessorController(StoreContext context, IMapper mapper, RoleManager<Role> roleManager)
+        public ProfessorController(StoreContext context, IMapper mapper, RoleManager<Role> roleManager, UserManager<User> userManager)
         {
             _context = context;
             _mapper = mapper;
-            _roleManager = roleManager;
+            _roleManager = roleManager; 
+            _userManager = userManager;
+        }
+
+        public class AddRequest
+        {
+            public int CourseId { get; set; }
+            public int ProfessorId { get; set; }
+
         }
 
         [HttpGet("GetAllProfessors")]
@@ -117,6 +126,64 @@ namespace API.Controllers
 
 
             return Ok(new { years, programs });
+        }
+
+
+        [Authorize(Roles="Profesor")]
+        [HttpPost("addProfessorToCourse")]
+        public async Task<IActionResult> AddProfessorToCourse([FromBody] AddRequest request)
+        {
+            int courseId = request.CourseId;
+            int professorId=request.ProfessorId;
+
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId);
+
+            var professor = await _userManager.FindByIdAsync(professorId.ToString());
+
+
+            if (professor == null)
+                return NotFound("Profesor nije pronađen");
+
+            if (course == null)
+                return NotFound("Kurs nije pronađen");
+
+            // Provera da li je student već upisan na kurs
+            var existingEnrollment = await _context.ProfessorCourses
+                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId);
+
+            if (existingEnrollment != null)
+                return BadRequest("Profesor je već dodat na kurs.");
+
+            // Kreiranje novog zapisa
+            var enrollment = new ProfessorCourse
+            {
+                UserId = professor.Id,
+                CourseId = courseId,
+                EnrollDate = DateTime.UtcNow // Ako želiš da čuvaš datum upisa
+
+            };
+
+            _context.ProfessorCourses.Add(enrollment);
+            await _context.SaveChangesAsync();
+
+            var professorDto = new UserDto
+            {
+                Email = professor.Email,
+                Username = professor.UserName,
+                FirstName = professor.FirstName,
+                LastName = professor.LastName,
+                Id = professor.Id,
+            };
+            var courseDto = _mapper.Map<CourseDto>(course);
+
+            return Ok(new
+            {
+                Message = "Uspješan upis na kurs",
+                professor = professorDto,
+                course = courseDto,
+                enrollDate=enrollment.EnrollDate,
+                pcId=enrollment.Id
+            });
         }
     }
 }

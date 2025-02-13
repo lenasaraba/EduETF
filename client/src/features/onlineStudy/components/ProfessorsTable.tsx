@@ -424,7 +424,7 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
               sx={{
                 "--TableCell-headBackground": themeM.palette.background.paper,
                 "--Table-headerUnderlineThickness": "1px",
-                "--TableRow-hoverBackground": themeM.palette.action.focus,
+                "--TableRow-hoverBackground": themeM.palette.background.paper,
                 "--TableCell-paddingY": "8px",
                 "--TableCell-paddingX": "12px",
                 backgroundColor: themeM.palette.background.paper,

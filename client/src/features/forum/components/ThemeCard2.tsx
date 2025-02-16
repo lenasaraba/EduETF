@@ -5,24 +5,21 @@ import CourseCardMedia from "../../onlineStudy/components/CourseCardMedia";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import PersonPinRoundedIcon from "@mui/icons-material/PersonPinRounded";
 import PersonOffIcon from "@mui/icons-material/PersonOff";
+import { useAppSelector } from "../../../app/store/configureStore";
 
 interface ThemeCardProps {
   theme: Theme;
 }
 
 export default function ThemeCard2({ theme }: ThemeCardProps) {
+  const user = useAppSelector((state) => state.account.user);
+
   const StyledCard = styled(Card)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
     padding: 0,
     height: "100%",
     backgroundColor: theme.palette.secondary.main,
-    // "&:hover": {
-    //   backgroundColor: "transparent",
-    //   // cursor: "pointer",
-    //   border: "1px solid",
-    //   borderColor: theme.palette.background.paper,
-    // },
     "&:focus-visible": {
       outline: "3px solid",
       outlineColor: "hsla(210, 98%, 48%, 0.5)",
@@ -38,28 +35,20 @@ export default function ThemeCard2({ theme }: ThemeCardProps) {
         width: "100%",
         padding: 0,
         "&:visited": {
-          color: "text.primary", // Zadrži istu boju za visited linkove
+          color: "text.primary", 
         },
         "&:hover": {
-          color: "primary.main", // Zadrži istu boju pri hover-u
+          color: "primary.main", 
         },
         "&:active": {
-          color: "text.primary", // Zadrži istu boju pri aktivnom linku
+          color: "text.primary", 
         },
         backgroundColor: "transparent",
       }}
     >
       <StyledCard
-        // component={Link}
-        // to={`/forum/${theme.id}`}
         variant="outlined"
-        // onFocus={() => handleFocus(index)}
-        // onBlur={handleBlur}
-        // tabIndex={index}
-        // className={focusedCardIndex === index ? "Mui-focused" : ""}
         sx={{
-          // backgroundColor:"secondary.main",
-
           border: "none",
           borderRadius: "16px",
           boxShadow: (theme) =>
@@ -84,7 +73,7 @@ export default function ThemeCard2({ theme }: ThemeCardProps) {
             padding: 0,
             margin: 0,
             position: "relative",
-            height: "200px", // Fiksna visina slike
+            height: "200px", 
             overflow: "hidden",
           }}
         >
@@ -95,29 +84,26 @@ export default function ThemeCard2({ theme }: ThemeCardProps) {
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              filter: "brightness(0.6)", // Tamniji filter da bi tekst bio čitljiv
+              filter: "brightness(0.6)", 
             }}
           />
           <Box
             sx={{
               position: "absolute",
               bottom: "0",
-              // left: "16px",
               color: "white",
               zIndex: 2,
               display: "flex",
               flexDirection: "column",
               width: "100%",
               backgroundColor: "rgba(0,0,0,0.6)",
-              // padding: 2,
               justifyContent: "center",
               alignItems: "center",
-              // backgroundColor: "red",
             }}
           >
             <Typography
               component={Link}
-              to={`/forum/${theme.id}`}
+              to={user ? `/forum/${theme.id}` :`/login`}
               sx={{
                 textAlign: "center",
                 fontWeight: "bold",

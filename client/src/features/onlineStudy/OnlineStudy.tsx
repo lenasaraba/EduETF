@@ -7,21 +7,17 @@ import LoadingComponent from "../../app/layout/LoadingComponent";
 import { fetchCoursesListAsync } from "./courseSlice";
 import { useEffect } from "react";
 import { fetchProfessorsAsync, resetProfessorsParams } from "./professorSlice";
-// import Footer from './components/Footer';
 
 export default function OnlineStudy() {
   const dispatch = useAppDispatch();
   useEffect(() => {
-    // dispatch(resetCoursesParams());
     dispatch(fetchCoursesListAsync());
     dispatch(resetProfessorsParams());
     dispatch(fetchProfessorsAsync());
   }, []);
-  const { status: courseStatus } = useAppSelector((state) => state.course);
-  // console.log(courseStatus);
-  if (courseStatus.includes("pending"))
-    return <LoadingComponent message="Učitavanje kurseva..." />;
-
+  // const { status: courseStatus } = useAppSelector((state) => state.course);
+  // if (courseStatus.includes("pending"))
+  //   return <LoadingComponent message="Učitavanje kurseva..." />;
   return (
     <>
       <Grid

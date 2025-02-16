@@ -19,15 +19,17 @@ import {
   Fade,
   Paper,
   Popper,
+  useTheme,
+  CircularProgress,
 } from "@mui/material";
 import { Course } from "../../app/models/course";
 import CourseCardMedia from "./components/CourseCardMedia";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Box, maxHeight } from "@mui/system";
+import { Box } from "@mui/system";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { deletePaginatedCourseAsync, enrollOnCourse } from "./courseSlice";
+import { deletePaginatedCourseAsync, enrollOnCourse, fetchCoursesAsync } from "./courseSlice";
 import { LoadingButton } from "@mui/lab";
 import { Author } from "./components/Author";
 
@@ -77,6 +79,7 @@ export default function CourseCard({ course }: Props) {
     try {
       console.log(course);
       await dispatch(deletePaginatedCourseAsync(course!.id));
+      await dispatch(fetchCoursesAsync());    //zbog meta data
     } catch (error) {
       console.error("Greška prilikom brisanja kursa:", error);
     } finally {
@@ -113,20 +116,26 @@ export default function CourseCard({ course }: Props) {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const theme = useTheme();
   return (
     <>
       <Card
         sx={{
-          maxHeight: 300,
+          maxHeight: 310,
+          paddingBottom: 2,
           boxSizing: "border-box",
           borderRadius: "20pt",
           backgroundColor: "background.default",
+          backgroundImage: "none",
           border: "2px solid",
           borderColor: "background.paper",
           transition: "transform 0.3s ease",
           "&:hover": {
-            transform: "scale(1.05)",
-            boxShadow: (theme) => `0px 8px 24px ${theme.palette.primary.dark}`,
+            transform: "scale(1.03)",
+            // boxShadow: (theme) => `0px 4px 10px ${theme.palette.background.paper}`,
+            backgroundColor: "action.focus",
+            // boxShadow: theme.shadows[12],
           },
         }}
       >
@@ -161,7 +170,22 @@ export default function CourseCard({ course }: Props) {
 
                 height: "1.2em", // Fiksna visina: broj linija * lineHeight
                 textOverflow: "ellipsis", // Dodaje tri tačke
+                "&:hover": {
+                  fontWeight: user ? "bold" : "900",
+                  cursor: user ? "normal" : "pointer",
+                  color: user ? "primary.main" : "primary.dark",
+                },
               },
+            }}
+            onClick={() => {
+              if (!user) {
+                // Ako korisnik nije prijavljen, preusmeri ga na stranicu za prijavu
+                navigate("/login");
+              }
+              // } else {
+              //   // Ako je korisnik prijavljen, obavi neku drugu akciju
+              //   navigate(`/course/${course.id}`);
+              // }
             }}
           />
           {user &&
@@ -264,29 +288,36 @@ export default function CourseCard({ course }: Props) {
           </Typography>
         </CardContent>
         <CardActions sx={{ display: "flex", justifyContent: "space-evenly" }}>
-          {user && user.role == "Student" && (
-            <Button
-              onClick={() => setOpenEnrollDialog(true)}
-              sx={{
-                fontFamily: "Raleway, sans-serif",
-                m: 0,
-                ml: 0,
-                p: 0,
-                borderRadius: "20pt",
-                paddingX: 1,
-                "&:hover": {
-                  backgroundColor: "primary.main",
-                  color: "background.paper",
-                },
-              }}
-            >
-              Upiši se
-            </Button>
-          )}
           {user &&
-          course.professorsCourse.some(
+            user.role === "Student" &&
+            !course.usersCourse.some(
+              (uc) => uc.user?.username === user.username
+            ) && (
+              <Button
+                onClick={() => setOpenEnrollDialog(true)}
+                sx={{
+                  fontFamily: "Raleway, sans-serif",
+                  m: 0,
+                  ml: 0,
+                  p: 0,
+                  borderRadius: "20pt",
+                  paddingX: 1,
+                  "&:hover": {
+                    backgroundColor: "primary.main",
+                    color: "background.paper",
+                  },
+                }}
+              >
+                Upiši se
+              </Button>
+            )}
+          {user &&
+          (course.professorsCourse.some(
             (pc) => pc.user.username === user.username
-          ) ? (
+          ) ||
+            course.usersCourse.some(
+              (uc) => uc.user?.username === user.username
+            )) ? (
             <Button
               component={Link}
               to={`/courses/${course.id}`}
@@ -307,23 +338,28 @@ export default function CourseCard({ course }: Props) {
             >
               Otvori
             </Button>
-          ) : (
-            <Button onClick={handleClickProfessor("right-start")} size="small"
-            sx={{
-              fontFamily: "Raleway, sans-serif",
-              m: 0,
-              ml: 0,
-              p: 0,
-              paddingX: 1,
-              borderRadius: "20pt",
+          ) : user?.role == "Profesor" ? (
+            <Button
+              onClick={handleClickProfessor("right-start")}
+              size="small"
+              sx={{
+                fontFamily: "Raleway, sans-serif",
+                m: 0,
+                ml: 0,
+                p: 0,
+                paddingX: 1,
+                borderRadius: "20pt",
 
-              "&:hover": {
-                backgroundColor: "primary.main",
-                color: "background.paper",
-              },
-            }}>
+                "&:hover": {
+                  backgroundColor: "primary.main",
+                  color: "background.paper",
+                },
+              }}
+            >
               Prikaži profesore
             </Button>
+          ) : (
+            <></>
           )}
         </CardActions>
       </Card>
@@ -369,13 +405,17 @@ export default function CourseCard({ course }: Props) {
           <Button onClick={handleCloseDialog} sx={{ color: "text.primary" }}>
             Odustani
           </Button>
-          <Button
+          <LoadingButton
+            loading={status == "pendingDeletePaginatedCourse"}
             onClick={handleConfirmDelete}
             color="error"
             variant="contained"
+            loadingIndicator={
+              <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+            }
           >
             Obriši
-          </Button>
+          </LoadingButton>
         </DialogActions>
       </Dialog>
 
@@ -427,6 +467,9 @@ export default function CourseCard({ course }: Props) {
             onClick={() => confirmEnroll()}
             color="primary"
             variant="contained"
+            loadingIndicator={
+              <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+            }
           >
             Potvrdi
           </LoadingButton>
@@ -444,7 +487,10 @@ export default function CourseCard({ course }: Props) {
           <Fade {...TransitionProps} timeout={350}>
             <Paper>
               {course.professorsCourse.map((prof, index) => (
-                <Typography key={index} sx={{ paddingX: 2, paddingY:1, fontSize:"11pt" }}>
+                <Typography
+                  key={index}
+                  sx={{ paddingX: 2, paddingY: 1, fontSize: "11pt" }}
+                >
                   {prof.user.firstName} {prof.user.lastName}
                 </Typography>
               ))}

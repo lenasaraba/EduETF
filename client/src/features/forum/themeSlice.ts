@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, isAction, PayloadAction } from "@reduxjs/toolkit";
 import { CreateTheme, Theme, ThemesParams } from "../../app/models/theme";
 import agent from "../../app/api/agent";
 import { RootState } from "../../app/store/configureStore";
@@ -59,7 +59,7 @@ export const fetchThemesAsync = createAsyncThunk<
   const params = getAxiosParams(thunkAPI.getState().theme.themesParams);
   try {
     const themes = await agent.Theme.getAll(params);
-    thunkAPI.dispatch(setThemes(themes));
+    // thunkAPI.dispatch(setThemes(themes));
     return themes;
   } catch (error: any) {
     console.log(error.data);
@@ -75,6 +75,7 @@ export const fetchThemeByIdAsync = createAsyncThunk<Theme, number>(
       console.log(theme);
       return theme;
     } catch (error: any) {
+      console.log(error);
       console.log(error.data);
       return thunkAPI.rejectWithValue({ error: error.data });
     }
@@ -191,9 +192,10 @@ export const themeSlice = createSlice({
       //state.loading = false;
       state.status = "idle";
     });
-    builder.addCase(fetchThemesAsync.fulfilled, (state) => {
+    builder.addCase(fetchThemesAsync.fulfilled, (state, action) => {
       state.status = "idle";
       state.themesLoaded = true;
+      state.themes=action.payload;
     });
     builder.addCase(updateThemeStatus.pending, (state) => {
       state.status = "pendingUpdateTheme";
@@ -214,14 +216,21 @@ export const themeSlice = createSlice({
         state.themes[index] = { ...state.themes[index], ...action.payload };
       }
     });
+    builder.addCase(deleteThemeAsync.pending, (state) => {
+      state.status = "pendingDeleteTheme";
+    });
     builder.addCase(deleteThemeAsync.fulfilled, (state, action) => {
       state.status = "idle";
       state.themes = state.themes.filter(
         (theme) => theme.id !== action.payload
       );
     });
+    builder.addCase(deleteThemeAsync.rejected, (state) => {
+      state.status = "rejectedDelete";
+    });
     builder.addCase(fetchThemeByIdAsync.pending, (state) => {
       state.status = "pendingFetchThemeByIdAsync";
+      state.currentTheme=null;
       state.currentThemeLoaded = false;
     });
     builder.addCase(fetchThemeByIdAsync.fulfilled, (state, action) => {
@@ -229,9 +238,18 @@ export const themeSlice = createSlice({
       state.currentTheme = action.payload;
       state.currentThemeLoaded = true;
     });
-    builder.addCase(fetchThemeByIdAsync.rejected, (state) => {
-      state.status = "idle";
-      state.currentThemeLoaded = true;
+    builder.addCase(fetchThemeByIdAsync.rejected, (state, action) => {
+
+      console.log(action.payload);
+
+      if (action.payload.error.status == 401)
+        state.status = "rejectedUnauthorized";
+      else if (action.payload.error.status == 404)
+        state.status = "rejectedNotFound";
+      
+      state.currentTheme = null;
+
+      state.currentThemeLoaded = false;
     });
   },
 });

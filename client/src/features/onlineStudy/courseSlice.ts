@@ -162,19 +162,24 @@ export const fetchCourseAsync = createAsyncThunk<Course, number>(
   }
 );
 
+interface ProfCourseResponse
+{
+  profId: number,
+  courses: Course[],
+}
 export const fetchProfessorCoursesAsync = createAsyncThunk<
-  Record<number, Course[]>,
+  ProfCourseResponse,
   number
 >("course/fetchProfessorCoursesAsync", async (id, thunkAPI) => {
   try {
     const professorCourses = await agent.Course.getProfessorCourses(id);
-    thunkAPI.dispatch(
-      setProfessorCourses({
-        professorId: id,
-        courses: professorCourses,
-      })
-    );
-    return { id, professorCourses };
+    // thunkAPI.dispatch(
+    //   setProfessorCourses({
+    //     professorId: id,
+    //     courses: professorCourses,
+    //   })
+    // );
+    return professorCourses;
   } catch (error: any) {
     console.log(error.data);
     return thunkAPI.rejectWithValue({ error: error.data });
@@ -353,8 +358,9 @@ export const courseSlice = createSlice({
   initialState,
   reducers: {
     setProfessorCourses: (state, action) => {
-      state.professorCourses![action.payload.professorId] =
-        action.payload.courses;
+      
+
+      
     },
     setCoursesParams: (state, action) => {
       state.pagecoursesLoaded = false;
@@ -376,6 +382,19 @@ export const courseSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder.addCase(fetchProfessorCoursesAsync.pending, (state)=>{
+      state.status="pendingFetchProfessorCourses";
+    });
+    builder.addCase(fetchProfessorCoursesAsync.fulfilled, (state, action)=>{
+      state.status="idle";
+      console.log(action.payload);
+      state.professorCourses![action.payload.profId] =
+        action.payload.courses;
+    });
+    builder.addCase(fetchProfessorCoursesAsync.rejected, (state)=>{
+      state.status="rejectedFetchProfessorCourses";
+
+    });
     builder.addCase(createCourseAsync.fulfilled, (state, action) => {
       state.status = "idle";
       console.log(action.payload);
@@ -394,6 +413,7 @@ export const courseSlice = createSlice({
       state.status = "idle";
     });
     builder.addCase(fetchCourseAsync.pending, (state) => {
+      state.currentCourse=null;
       state.status = "pendingFetchCourse";
       state.currentCourseLoaded = false;
     });
@@ -411,7 +431,7 @@ export const courseSlice = createSlice({
         state.status = "rejectedNotFound";
       state.currentCourse = null;
 
-      state.currentCourseLoaded = true;
+      state.currentCourseLoaded = false;
     });
     builder.addCase(enrollOnCourse.pending, (state) => {
       state.status = "loadingEnrollOnCourse";
@@ -477,11 +497,36 @@ export const courseSlice = createSlice({
       state.status = "idle";
       state.pagecoursesLoaded = true;
     });
+    builder.addCase(deleteCourseAsync.pending, (state) => {
+      state.status = "pendingDeleteCourse";
+      
+    });
     builder.addCase(deleteCourseAsync.fulfilled, (state, action) => {
       state.status = "idle";
       state.allCourses = state.allCourses!.filter(
         (course) => course.id !== action.payload
       );
+    });
+    builder.addCase(deleteCourseAsync.rejected, (state) => {
+      state.status = "rejectedDeleteCourse";
+    });
+    builder.addCase(deletePaginatedCourseAsync.pending, (state) => {
+      state.status = "pendingDeletePaginatedCourse";
+      
+    });
+    builder.addCase(deletePaginatedCourseAsync.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.courses = state.courses!.filter(
+        (course) => course.id !== action.payload
+      );
+    });
+    builder.addCase(deletePaginatedCourseAsync.rejected, (state) => {
+      state.status = "rejectedDeletePaginatedCourse";
+    });
+
+
+    builder.addCase(deleteMaterialAsync.pending, (state) => {
+      state.status = "pendingDeleteMaterial";
     });
     builder.addCase(deleteMaterialAsync.fulfilled, (state, action) => {
       state.status = "idle";
@@ -496,7 +541,9 @@ export const courseSlice = createSlice({
         (material) => material.id !== action.payload
       );
     });
-
+    builder.addCase(deleteMaterialAsync.rejected, (state) => {
+      state.status = "rejectedDeleteMaterial";
+    });
     builder.addCase(uploadFile.pending, (state) => {
       state.status = "pendingUploadMaterial";
       state.materialsLoaded = false;
@@ -523,7 +570,7 @@ export const courseSlice = createSlice({
     builder.addCase(
       fetchCurrentCourseMaterialAsync.fulfilled,
       (state, action) => {
-        if (state.status != "rejected") state.status = "idle";
+        if (!state.status.includes("rejected")) state.status = "idle";
         state.currentCourseMaterials = action.payload; // Ažuriranje liste materijala
         state.materialsLoaded = true;
 

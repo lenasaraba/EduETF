@@ -92,8 +92,14 @@ export default function AppDropzone<T extends FieldValues>({
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    // accept: "image/*, .pdf, .docx",
-  });
+    accept: {
+      "application/pdf": [".pdf"],  
+      "application/msword": [".doc"],  
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],  
+      "image/*": [], // Sve slike  
+      "video/mp4": [".mp4"],  
+    },
+    multiple: true, });
 
   // Funkcija za dobijanje odgovarajuće ikonice
   const getFileIcon = (file: File) => {

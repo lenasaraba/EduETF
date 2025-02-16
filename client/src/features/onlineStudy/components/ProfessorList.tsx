@@ -1,4 +1,11 @@
-import { Box, Avatar, Divider, Typography, Chip } from "@mui/material";
+import {
+  Box,
+  Avatar,
+  Divider,
+  Typography,
+  Chip,
+  CircularProgress,
+} from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import {
   useAppDispatch,
@@ -25,9 +32,14 @@ export default function ProfessorList() {
     (state) => state.course.professorCourses
   );
 
+  const statusProf = useAppSelector((state) => state.professor.status);
+  const profCoursestatus = useAppSelector((state) => state.course.status);
+  const loadedProf = useAppSelector(
+    (state) => state.professor.professorsLoaded
+  );
+
   return (
     <>
-      {/* <CssBaseline /> */}
       <Box
         sx={{
           display: "flex",
@@ -58,113 +70,131 @@ export default function ProfessorList() {
             to="/professors"
             sx={{
               backgroundColor: "primary.dark",
-              color: "#fff", // Tekst u beloj boji
-              borderRadius: "16px", // Primer prilagođenog oblika
+              color: "#fff",
+              borderRadius: "16px",
               ".MuiChip-icon": {
                 color: "#fff",
               },
               cursor: "pointer",
               marginTop: 4,
               fontFamily: "Raleway, sans-serif",
-              marginBottom: 2, // GutterBottom ekvivalent
-              textDecoration: "none", // Uklanja podvlačenje
+              marginBottom: 2,
+              textDecoration: "none",
               "&:hover": {
-                backgroundColor: "primary.main", // Boja pri hover-u
+                backgroundColor: "primary.main",
               },
               padding: 2,
             }}
             label="Svi profesori"
           />
         </Grid>
-        <Grid container spacing={6} columns={12} sx={{}}>
-          {professors!.slice(0, 4).map((teacher, index) => (
-            <Grid
-              key={index}
-              size={{ xs: 12, md: 6 }}
-              sx={{
-                border: "1px solid",
-                padding: 2,
-                borderRadius: "20px",
-                borderColor: "text.primary",
-                transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                "&:hover": {
-                  transform: "scale(1.05)",
-                  boxShadow: (theme) =>
-                    `0px 4px 20px ${theme.palette.text.primary}`,
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  direction: "row",
-                  alignItems: "center",
-                }}
-              >
-                <Avatar
+        {profCoursestatus == "pendingFetchProfessorCourses" ? (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "20vh",
+              width: "100%",
+              margin: 0,
+              padding: 1,
+            }}
+          >
+            <Typography variant="body1" sx={{mb:2}}>Učitavanje profesora</Typography>
+            <CircularProgress size={120} sx={{ color: "text.secondary" }} />
+          </Box>
+        ) : (
+          <>
+            <Grid container spacing={6} columns={12} sx={{}}>
+              {professors!.slice(0, 4).map((teacher, index) => (
+                <Grid
                   key={index}
-                  alt={teacher.firstName}
+                  size={{ xs: 12, md: 6 }}
                   sx={{
-                    width: 41,
-                    height: 41,
-                    backgroundColor: "text.primary",
+                    border: "1px solid",
+                    padding: 2,
+                    borderRadius: "20px",
+                    borderColor: "text.primary",
+                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                      boxShadow: (theme) =>
+                        `0px 4px 20px ${theme.palette.text.primary}`,
+                    },
                   }}
                 >
-                  {teacher.firstName.charAt(0).toUpperCase()}
-                </Avatar>
-                <div>
-                  <Typography
-                    variant="h5"
-                    fontFamily="Raleway, sans-serif"
-                    component={Link}
-                    to={`/professorInfo/${teacher.id}`}
+                  <Box
                     sx={{
-                      textDecoration: "none",
-                      color: "text.primary",
-                      "&:visited": {
-                        color: "text.primary", // Zadrži istu boju za visited linkove
-                      },
-                      "&:hover": {
-                        color: "primary.main",
-                      },
-                      // "&:active": {
-                      //   color: "text.primary", // Zadrži istu boju pri aktivnom linku
-                      // },
+                      display: "flex",
+                      gap: 2,
+                      direction: "row",
+                      alignItems: "center",
                     }}
                   >
-                    {teacher.firstName}&nbsp;{teacher.lastName}
-                  </Typography>
-                </div>
-              </Box>
-              <Divider component="div" sx={{ my: 2 }} />
+                    <Avatar
+                      key={index}
+                      alt={teacher.firstName}
+                      sx={{
+                        width: 41,
+                        height: 41,
+                        backgroundColor: "text.primary",
+                      }}
+                    >
+                      {teacher.firstName.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <div>
+                      <Typography
+                        variant="h5"
+                        fontFamily="Raleway, sans-serif"
+                        component={Link}
+                        to={`/professorInfo/${teacher.id}`}
+                        sx={{
+                          textDecoration: "none",
+                          color: "text.primary",
+                          "&:visited": {
+                            color: "text.primary",
+                          },
+                          "&:hover": {
+                            color: "primary.main",
+                          },
+                        }}
+                      >
+                        {teacher.firstName}&nbsp;{teacher.lastName}
+                      </Typography>
+                    </div>
+                  </Box>
+                  <Divider component="div" sx={{ my: 2 }} />
 
-              {professorCourses && professorCourses[teacher.id] != undefined ? (
-                <SlideCard courses={professorCourses[teacher.id]} />
-              ) : (
-                <Typography>Nema kurseva</Typography> // ili neki drugi indikator
-              )}
+                  {professorCourses &&
+                  professorCourses[teacher.id] != undefined ? (
+                    <SlideCard courses={professorCourses[teacher.id]} />
+                  ) : (
+                    <Typography>Nema kurseva</Typography>
+                  )}
 
-              <Divider component="div" sx={{ my: 2 }} />
+                  <Divider component="div" sx={{ my: 2 }} />
 
-              {professorCourses && professorCourses[teacher.id] ? (
-                <SlideDots
-                  programs={[
-                    ...new Set(
-                      professorCourses[teacher.id]?.map((course) => {
-                        return course.studyProgram.name;
-                      })
-                    ),
-                  ]}
-                />
-              ) : (
-                <Typography fontFamily="Raleway, sans-serif">
-                  Nema smjerova
-                </Typography>
-              )}
+                  {professorCourses && professorCourses[teacher.id] ? (
+                    <SlideDots
+                      programs={[
+                        ...new Set(
+                          professorCourses[teacher.id]?.map((course) => {
+                            return course.studyProgram.name;
+                          })
+                        ),
+                      ]}
+                    />
+                  ) : (
+                    <Typography fontFamily="Raleway, sans-serif">
+                      Nema smjerova
+                    </Typography>
+                  )}
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
+          </>
+        )}
       </Box>
     </>
   );

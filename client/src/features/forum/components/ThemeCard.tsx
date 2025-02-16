@@ -2,7 +2,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Avatar,
   Box,
   styled,
   Chip,
@@ -13,12 +12,15 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import PersonPinRoundedIcon from "@mui/icons-material/PersonPinRounded";
 import CourseCardMedia from "../../onlineStudy/components/CourseCardMedia";
 import PersonOffIcon from "@mui/icons-material/PersonOff";
+import { useAppSelector } from "../../../app/store/configureStore";
 
 interface ThemeCardProps {
   theme: Theme;
 }
 
 export default function ThemeCard({ theme }: ThemeCardProps) {
+  const user = useAppSelector((state) => state.account.user);
+
   const StyledCard = styled(Card)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
@@ -42,12 +44,7 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
     <Box sx={{ display: "flex", flexWrap: "wrap", width: "100%", padding: 0 }}>
       <StyledCard
         variant="outlined"
-        // onFocus={() => handleFocus(index)}
-        // onBlur={handleBlur}
-        // tabIndex={index}
-        // className={focusedCardIndex === index ? "Mui-focused" : ""}
         sx={{
-          // backgroundColor:"secondary.main",
           justifyContent: "space-evenly",
           height: "100%",
           border: "none",
@@ -81,43 +78,30 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
             sx={{
               height: { sm: "auto", md: "50%" },
               aspectRatio: { sm: "16 / 9", md: "" },
-              filter: "brightness(0.6)", // Tamniji filter da bi tekst bio čitljiv
+              filter: "brightness(0.6)", 
             }}
           />
-          {/* <Avatar
-            sx={{
-              textAlign: "center",
-              bgcolor: "primary.main",
-              height: 70,
-              width: 70,
-              margin: 0,
-              mb: 2,
-            }}
-          >
-            <Box sx={{ textAlign: "center", fontSize: "25pt", margin: 0 }}>
-              {theme.title.charAt(0).toUpperCase()}
-            </Box>
-          </Avatar> */}
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               width: "100%",
               alignItems: "center",
-              padding: 1,
+              paddingY: 1,
+              paddingX:2,
             }}
           >
             <Typography
               component={Link}
-              to={`/forum/${theme.id}`}
+              to={user ? `/forum/${theme.id}` :`/login`}
               sx={{
-                textAlign: "center",
+                textAlign: "left",
                 fontWeight: "bold",
                 fontSize: "clamp(12pt, 16pt, 18pt)",
                 fontFamily: "Raleway, sans-serif",
-                textDecoration: "none", // Uklanja podvlačenje linka
+                textDecoration: "none", 
 
-                overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
+                overflow: "hidden", 
                 display: "-webkit-box", // Neophodno za multi-line truncation
                 WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
                 WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)

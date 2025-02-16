@@ -6,31 +6,42 @@ import { RootState } from "../../app/store/configureStore";
 export interface MessageState {
   messages: Record<number, Message[]> | null;
   status: string;
-  //loaded ?
+  messagesLoaded: boolean;
 }
 
 const initialState: MessageState = {
   messages: {},
   status: "idle",
+  messagesLoaded:false,
 };
 
-export const fetchMessagesAsync = createAsyncThunk<Message[], number>(
+interface MessagesResponse{
+  messages: Message[],
+  themeId: number,
+}
+export const fetchMessagesAsync = createAsyncThunk<MessagesResponse, number>(
   "message/fetchMessagesAsync",
   async (id, thunkAPI) => {
     const messages = await agent.Message.getAll(id);
     console.log(messages);
-    thunkAPI.dispatch(setMessages({ themeId: id, messagesTheme: messages }));
-    return messages;
+    // thunkAPI.dispatch(setMessages({ themeId: id, messagesTheme: messages }));
+    return {messages:messages,themeId:id};
   }
 );
 
-export const createMessage = createAsyncThunk<Message[], Message>(
+// interface MessageResponse{
+//   message: Message
+//   themeId: number;
+// }
+
+export const createMessage = createAsyncThunk<Message, Message>(
   "messages/createMessage",
   async (newMessage, { rejectWithValue }) => {
     try {
       console.log(newMessage);
       const response = await agent.Message.createMessage(newMessage);
-      return response.data; // Ovo vraća listu poruka sa servera
+      console.log(response);
+      return response.data; 
     } catch (error: unknown) {
       return rejectWithValue(error);
     }
@@ -60,6 +71,45 @@ export const messageSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder.addCase(fetchMessagesAsync.pending, (state)=>{
+      state.status="pendingFetchMessages";
+      state.messagesLoaded=false;
+    });
+    builder.addCase(fetchMessagesAsync.fulfilled, (state, action)=>{
+      state.status="idle";
+      state.messages![action.payload.themeId] = action.payload.messages;
+      state.messagesLoaded=true;
+    });
+    builder.addCase(fetchMessagesAsync.rejected, (state)=>{
+      state.status="rejected";
+      state.messagesLoaded=true;
+
+    });
+    builder.addCase(createMessage.pending, (state)=>{
+      state.status="pendingCreateMessage";
+    });
+    builder.addCase(createMessage.fulfilled, (state, action) => {
+      state.status = "idle";
+      console.log(action.payload);
+    
+      if (!state.messages) {
+        state.messages = {}; // Inicijalizuj ako ne postoji
+      }
+    
+      if (!state.messages[action.payload.themeId]) {
+        state.messages[action.payload.themeId] = []; // Inicijalizuj niz ako ne postoji
+      }
+    
+      state.messages[action.payload.themeId].push(action.payload);
+    });
+    builder.addCase(createMessage.rejected, (state)=>{
+      state.status="rejectedCreate";
+      // state.messagesLoaded=true;
+
+    });
+    builder.addCase(deleteMessageAsync.pending, (state)=>{
+      state.status="pendingDeleteMessage";
+    })
     builder.addCase(deleteMessageAsync.fulfilled, (state, action) => {
       state.status = "idle";
       state.messages = state.messages
@@ -71,6 +121,9 @@ export const messageSlice = createSlice({
           )
         : null;
     });
+    builder.addCase(deleteMessageAsync.rejected, (state)=>{
+      state.status="rejected";
+    })
   },
 });
 export const { setMessages } = messageSlice.actions;

@@ -245,13 +245,14 @@ export const professorSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(fetchProfessorsAsync.pending, (state) => {
       state.status = "pendingFetchProfessors";
+      state.professorsLoaded=false;
     });
     builder.addCase(fetchProfessorsAsync.fulfilled, (state) => {
       state.status = "idle";
       state.professorsLoaded = true;
     });
     builder.addCase(fetchProfessorsAsync.rejected, (state) => {
-      state.status = "idle";
+      state.status = "rejectedFetchProfessors";
     });
     builder.addCase(fetchFilters.fulfilled, (state, action) => {
       state.years = action.payload.years;
@@ -282,6 +283,10 @@ export const professorSlice = createSlice({
       // state.coursesLoaded = true;
       state.status = "idle";
     });
+    builder.addCase(deleteProfessorsThemeAsync.pending, (state) => {
+      state.status = "pendingDeleteTheme";
+
+    });
     builder.addCase(deleteProfessorsThemeAsync.fulfilled, (state, action) => {
       state.status = "idle";
       state.professorThemes![action.payload.idProfessor] =
@@ -289,6 +294,14 @@ export const professorSlice = createSlice({
           (theme) => theme.id !== action.payload.id
         );
     });
+    builder.addCase(deleteProfessorsThemeAsync.rejected, (state) => {
+      state.status = "rejectedDeleteProfTheme";
+      
+    });
+    builder.addCase(deleteProfessorsCourseAsync.pending, (state) => {
+      state.status = "pendingDeleteCourse";
+    });
+
     builder.addCase(deleteProfessorsCourseAsync.fulfilled, (state, action) => {
       state.status = "idle";
       state.professorCourses![action.payload.idProfessor] =
@@ -300,6 +313,9 @@ export const professorSlice = createSlice({
         state.professorThemes![action.payload.idProfessor].filter(
           (theme) => theme.course?.id !== action.payload.id
         );
+    });
+    builder.addCase(deleteProfessorsCourseAsync.rejected, (state) => {
+      state.status = "rejectedDeleteProfCourse";
     });
   },
 });

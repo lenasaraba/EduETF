@@ -6,6 +6,9 @@ import {
   Typography,
 } from "@mui/material";
 
+import lightLogo from "../../../public/light.png";
+import darkLogo from "../../../public/dark.png";
+
 interface Props {
   message?: string;
 }
@@ -57,7 +60,7 @@ export default function LoadingComponent({ message = "Loading..." }: Props) {
           },
         },
       },
-
+  
       dark: {
         palette: {
           text: {
@@ -67,13 +70,23 @@ export default function LoadingComponent({ message = "Loading..." }: Props) {
             primaryChannel: "#3A7D44", // Smanjena zelena za kanale
             secondaryChannel: "#D04B47", // Crvena, zadržana
           },
+  
           action: {
             active: "#A2B7B0", // Neutralnija nijansa za aktivne elemente
-            hover: "#1B2422", // Duboki kontrast za hover efekat
-            disabled: "#6c859d", // Osvetljeniji za onemogućene elemente
-            disabledBackground: "#B5BCC5", // Pozadina za onemogućene
-            focus: "#5E6E43", // Fokus sa toplijom nijansom
+  
+            hover: "#5A524699", // 60% providnosti (99 u heksadecimalnom formatu)
+            disabled: "#4A525880", // 50% providnosti (80)
+            disabledBackground: "#2E333666", // 40% providnosti (66)
+            focus: "#75655499",
           },
+  
+          // action: {
+          //   active: "#A2B7B0", // Neutralnija nijansa za aktivne elemente
+          //   hover: "#1B2422", // Duboki kontrast za hover efekat
+          //   disabled: "#6c859d", // Osvetljeniji za onemogućene elemente
+          //   disabledBackground: "#B5BCC5", // Pozadina za onemogućene
+          //   focus: "#5E6E43", // Fokus sa toplijom nijansom
+          // },
           background: {
             default: "#0f100f", // Zadržana tvoja tamna pozadina
             paper: "#2C3639", // Zadržana tvoja boja za `paper`
@@ -97,32 +110,32 @@ export default function LoadingComponent({ message = "Loading..." }: Props) {
       },
     },
     colorSchemeSelector: "class",
-    defaultColorScheme: localStorage.getItem("toolpad-mode")
-      ? localStorage.getItem("toolpad-mode")?.toString() == "light"
+    defaultColorScheme: localStorage.getItem("toolpad-mode")?.toString() == "light"
         ? "light"
         : "dark"
-      : "dark",
   });
   return (
     <Backdrop
       open={true}
       invisible={true}
       sx={{
-        backgroundColor: theme.palette.background.default,
+        backgroundColor: theme.palette.background.paper,
         color: theme.palette.primary.main,
       }}
     >
       <Box
         display="flex"
         justifyContent="center"
+        flexDirection="column"
         alignItems="center"
         height="100vh"
       >
         <CircularProgress
           size={100}
-          sx={{ color: theme.palette.text.secondary }}
-        ></CircularProgress>
-        <Typography
+          sx={{ color: theme.palette.primary.main }}
+        />
+        <img src={theme.palette.mode=="dark" ? darkLogo:lightLogo} style={{height:"30vh"}}></img>
+        {/* <Typography
           variant="h4"
           sx={{
             justifyContent: "center",
@@ -132,7 +145,7 @@ export default function LoadingComponent({ message = "Loading..." }: Props) {
           }}
         >
           {message}
-        </Typography>
+        </Typography> */}
       </Box>
     </Backdrop>
   );

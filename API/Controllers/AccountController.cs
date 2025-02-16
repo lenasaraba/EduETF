@@ -9,6 +9,7 @@ using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+// using Microsoft.Graph.Models;
 
 namespace API.Controllers
 {
@@ -28,11 +29,18 @@ namespace API.Controllers
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            if (user == null)
+            {
+                return BadRequest(new { title = "Nalog sa unesenim e-mailom ne postoji." });
+            }
+
+            if (!await _userManager.CheckPasswordAsync(user, loginDto.Password))
+            {
+                return Unauthorized(new { title = "Pogrešna lozinka!" });
+            }
+
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault();
-            if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
-                return Unauthorized();
-
             return new UserDto
             {
                 Email = user.Email,
@@ -76,7 +84,7 @@ namespace API.Controllers
             //ovim cemo dobiti name claim iz tokena
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault();
-            
+
             return new UserDto
             {
                 Email = user.Email,
@@ -139,5 +147,5 @@ namespace API.Controllers
 
             return Ok(new { message = "User deleted successfully" });
         }
-            }
+    }
 }

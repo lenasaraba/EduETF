@@ -76,14 +76,8 @@ export default function CreateCourse() {
     };
     console.log(newCourse);
 
-    // try {
     const resultAction = await dispatch(createCourseAsync(newCourse));
-    // } catch (error: any) {
-    //   console.log(error);
-    // } finally {
-    //   console.log(currentCourse);
-    //   navigate(`/courses/${currentCourse.id}`);
-    // }
+    
 
     if (createCourseAsync.fulfilled.match(resultAction)) {
       navigate(`/courses/${resultAction.payload.id}`);
@@ -181,7 +175,7 @@ export default function CreateCourse() {
             />
           </Grid>
 
-          <Grid container sx={{ padding: 0, display: "flex" }}>
+          <Grid container sx={{ padding: 0, display: "flex", justifyContent:"space-between" }}>
             <Box component={Grid} sx={{ width: "48%", margin: 0, padding: 0 }}>
               <FormControl
                 fullWidth

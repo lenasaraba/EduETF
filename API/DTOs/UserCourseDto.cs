@@ -11,6 +11,6 @@ namespace API.DTOs
         public UserDto User { get; set; } 
         public int CourseId { get; set; } 
         public DateTime EnrollDate { get; set; }
-        public DateTime WithdrawDate { get; set; }
+        public DateTime? WithdrawDate { get; set; }
     }
 }

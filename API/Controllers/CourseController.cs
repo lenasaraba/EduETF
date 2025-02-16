@@ -52,7 +52,6 @@ namespace API.Controllers
             return courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
         }
 
-        [Authorize]
         [HttpGet("getAllCourses")]
         public async Task<IActionResult> GetCourses([FromQuery] CourseParams coursesParams)
         {
@@ -60,27 +59,28 @@ namespace API.Controllers
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
-            .Include(c => c.UsersCourse)
+            .Include(c => c.UsersCourse).ThenInclude(uc => uc.User)
             .Include(t => t.Themes)
             .AsQueryable();
 
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
 
             //trenutno prikazuje samo kurseve koje je neko napravio, a ne na koje je upisan
             if (coursesParams.Type == "my")
             {
+                var user = await _userManager.FindByNameAsync(User.Identity.Name);
 
                 query = _context.Courses.Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == user!.Id))
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
             .Include(c => c.UsersCourse).ThenInclude(uc => uc.User)
-            .Include(c => c.UsersCourse)
             .Include(t => t.Themes)
             .AsQueryable();
             }
             if (coursesParams.Type == "myLearning")
             {
+                var user = await _userManager.FindByNameAsync(User.Identity.Name);
+
                 query = _context.Courses.Where(c => c.UsersCourse!.Any(uc => uc.UserId == user!.Id))
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
@@ -116,93 +116,80 @@ namespace API.Controllers
 
             // Vraćanje mapiranih podataka bez dodatne paginacije
             return Ok(new { coursesDto, pagedCourses.MetaData });  // Samo mapirani podaci
-
-
         }
 
-
-
-        // [HttpGet("getMyCourses/{email}")]
-        // public async Task<ActionResult<List<CourseDto>>> GetMyCourses(string email)
-        // {
-        //     //moze se raditi i bez prosljedjivanja parametra ali eto mozda zatreba
-        //     // var user=await _userManager.FindByNameAsync(User.Identity.Name);
-
-        //     // var courses = await _context.Courses
-        //     // .Where(c => c.UsersCourse!.Any(pc => pc.UserId == user!.Id))
-        //     // .Include(y => y.Year).Include(s => s.StudyProgram).ToListAsync();
-
-        //     var user = await _userManager.FindByEmailAsync(email);
-
-        //     var courses = await _context.Courses
-        //     .Where(c => c.UsersCourse!.Any(pc => pc.UserId == user!.Id))
-        //     .Include(y => y.Year).Include(s => s.StudyProgram).Include(t => t.Themes).ToListAsync();
-        //     return courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
-
-        // }
-
         [HttpGet("getProfessorsCourses/{id}")]
-        public async Task<ActionResult<List<CourseDto>>> getProfessorsCourses(int id)
+        public async Task<IActionResult> getProfessorsCourses(int id)
         {
             var courses = await _context.Courses
             .Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == id))
             .Include(y => y.Year).Include(s => s.StudyProgram).Include(pc => pc.ProfessorsCourse).ThenInclude(u => u.User).Include(uc => uc.UsersCourse).ThenInclude(u => u.User).ToListAsync();
 
-            return courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
+
+
+            var coursesDto=courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
+            return Ok(new {
+                profId=id,
+                courses=coursesDto,
+            });
         }
 
         [HttpGet("getCourseById/{id}")]
-public async Task<ActionResult<CourseDto>> GetCourse(int id)
-{
-    var user = await _userManager.FindByNameAsync(User.Identity.Name);
-    if (user == null)
-    {
-        return Unauthorized();
-    }
-
-    // Dobijanje role korisnika
-    var roles = await _userManager.GetRolesAsync(user);
-    var role = roles.FirstOrDefault();
-
-    // Učitavanje kursa sa svim potrebnim podacima
-    var course = await _context.Courses
-        .Include(y => y.Year)
-        .Include(s => s.StudyProgram)
-        .Include(t => t.Themes).ThenInclude(m => m.Messages)
-        .Include(pc => pc.ProfessorsCourse).ThenInclude(u => u.User)
-        .Include(uc => uc.UsersCourse).ThenInclude(u => u.User)
-        .FirstOrDefaultAsync(c => c.Id == id);
-
-    if (course == null)
-    {
-        return NotFound();
-    }
-
-    // Provera da li korisnik ima pravo pristupa kursu
-    if (role == "Profesor")
-    {
-        if(course.ProfessorsCourse!=null)
-       { bool isProfessorOfCourse = course.ProfessorsCourse.Any(pc => pc.User.Id == user.Id);
-        if (!isProfessorOfCourse)
+        public async Task<ActionResult<CourseDto>> GetCourse(int id)
         {
-            return Unauthorized(new {title="Nemate pristup ovom kursu.", status=401}); // Profesor nije predavač na ovom kursu
-        }}
-    }
-    else if (role == "Student")
-    {
-        if(course.UsersCourse!=null){
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            // if (user == null)
+            // {
+            //     return Unauthorized();
+            // }
 
-        bool isStudentEnrolled = course.UsersCourse.Any(uc => uc.User.Id == user.Id);
-        if (!isStudentEnrolled)
-        {
-            return Unauthorized(new{title="Niste upisani na ovaj kurs.", status=401}); // Student nije upisan na kurs
-        }}
-          else  return Unauthorized(); // Student nije upisan na kurs
-         
-    }
+            // Dobijanje role korisnika
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault();
 
-    return Ok(_mapper.Map<CourseDto>(course));
-}
+            // Učitavanje kursa sa svim potrebnim podacima
+            var course = await _context.Courses
+                .Include(y => y.Year)
+                .Include(s => s.StudyProgram)
+                .Include(t => t.Themes).ThenInclude(m => m.Messages)
+                .Include(pc => pc.ProfessorsCourse).ThenInclude(u => u.User)
+                .Include(uc => uc.UsersCourse).ThenInclude(u => u.User)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (course == null)
+            {
+                return NotFound();
+            }
+
+            // Provera da li korisnik ima pravo pristupa kursu
+            if (role == "Profesor")
+            {
+                if (course.ProfessorsCourse != null)
+                {
+                    bool isProfessorOfCourse = course.ProfessorsCourse.Any(pc => pc.User.Id == user.Id);
+                    if (!isProfessorOfCourse)
+                    {
+                        return Unauthorized(new { title = "Nemate pristup ovom kursu.", status = 401 }); // Profesor nije predavač na ovom kursu
+                    }
+                }
+            }
+            else if (role == "Student")
+            {
+                if (course.UsersCourse != null)
+                {
+
+                    bool isStudentEnrolled = course.UsersCourse.Any(uc => uc.User.Id == user.Id);
+                    if (!isStudentEnrolled)
+                    {
+                        return Unauthorized(new { title = "Niste upisani na ovaj kurs.", status = 401 }); // Student nije upisan na kurs
+                    }
+                }
+                else return Unauthorized(); // Student nije upisan na kurs
+
+            }
+
+            return Ok(_mapper.Map<CourseDto>(course));
+        }
 
 
         [HttpGet("filters")]

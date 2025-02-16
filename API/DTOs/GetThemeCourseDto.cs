@@ -15,5 +15,7 @@ namespace API.DTOs
         public StudyProgram StudyProgram { get; set; }
         public DateTime CourseCreationDate { get; set; }
         public List<ProfessorCourseDto>? ProfessorsCourse { get; set; }
+        public List<UserCourseDto>? UsersCourse { get; set; }
+
     }
 }

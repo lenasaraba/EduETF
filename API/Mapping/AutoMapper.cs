@@ -23,13 +23,14 @@ namespace API.Mapping
             CreateMap<UserDto, User>();
 
             CreateMap<UserCourse, UserCourseDto>();
+            CreateMap<UserCourseDto, UserCourse>();
+
             CreateMap<ProfessorCourse, ProfessorCourseDto>();
             CreateMap<ProfessorCourseDto, ProfessorCourse>();
 
             CreateMap<CreateMessageDto, Message>();
             CreateMap<Message, GetMessageDto>();
             CreateMap<GetMessageDto, Message>();
-
 
             CreateMap<Course, CreateCourseDto>();
             CreateMap<CreateCourseDto, Course>();

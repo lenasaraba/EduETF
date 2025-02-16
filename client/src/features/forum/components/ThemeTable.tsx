@@ -24,6 +24,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import BlockIcon from "@mui/icons-material/Block";
+import LockIcon from "@mui/icons-material/Lock";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 import {
   useAppDispatch,
   useAppSelector,
@@ -56,6 +58,7 @@ import { Theme as ThemeModel } from "../../../app/models/theme";
 import { Modal, Button as ButtonJ } from "@mui/joy";
 import { User } from "../../../app/models/user";
 import PersonOffIcon from "@mui/icons-material/PersonOff";
+import { LoadingButton } from "@mui/lab";
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -197,8 +200,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
     };
   }, [debouncedSearch]);
 
-  if (!filtersLoaded)
-    return <LoadingComponentJoy message="Učitavanje tema..." />;
+  // if (!filtersLoaded)
+  //   return <LoadingComponentJoy message="Učitavanje tema..." />;
 
   const handleDeleteClick = (
     event: React.MouseEvent<HTMLElement>,
@@ -544,44 +547,64 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
     <>
       <MuiThemeProvider theme={themeM}>
         <JoyCssVarsProvider theme={pageTheme}>
-          <Box
-            className="SearchAndFilters-tabletUp"
-            sx={{
-              borderRadius: "sm",
-              py: 0,
-              display: { xs: "none", sm: "flex" },
-              flexWrap: "wrap",
-              gap: 1.5,
-              "& > *": {
-                minWidth: { xs: "120px", md: "160px" },
-              },
-            }}
-          >
-            <FormControl sx={{ flex: 1 }} size="sm">
-              <FormLabel sx={{ color: themeM.palette.primary.main }}>
-                Pretraži prema ključnoj riječi
-              </FormLabel>
-              <Input
-                size="sm"
-                placeholder="Pretraga.."
-                startDecorator={<SearchIcon />}
-                onChange={(event: any) => {
-                  setSearchTerm(event.target.value);
-                  debouncedSearch(event);
-                }}
+          {!filtersLoaded ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "10vh",
+                width: "100%",
+                margin: 0,
+                padding: 1,
+              }}
+            >
+              <MuiTypo variant="body1" sx={{mb:2, color: themeM.palette.primary.main }}>Učitavanje filtera</MuiTypo>
+              <CircularProgress size={40} sx={{ color: themeM.palette.primary.main }} />
+            </Box>
+          ) : (
+            <>
+              <Box
+                className="SearchAndFilters-tabletUp"
                 sx={{
-                  backgroundColor: themeM.palette.background.paper,
-                  borderColor: themeM.palette.background.default,
-                  color: themeM.palette.primary.main,
-                  "&:hover": {
-                    backgroundColor: themeM.palette.action.hover, // Hover effect on the select button
-                    color: themeM.palette.primary.main,
+                  borderRadius: "sm",
+                  py: 0,
+                  display: { xs: "none", sm: "flex" },
+                  flexWrap: "wrap",
+                  gap: 1.5,
+                  "& > *": {
+                    minWidth: { xs: "120px", md: "160px" },
                   },
                 }}
-              />
-            </FormControl>
-            {renderFilters()}
-          </Box>
+              >
+                <FormControl sx={{ flex: 1 }} size="sm">
+                  <FormLabel sx={{ color: themeM.palette.primary.main }}>
+                    Pretraži prema ključnoj riječi
+                  </FormLabel>
+                  <Input
+                    size="sm"
+                    placeholder="Pretraga.."
+                    startDecorator={<SearchIcon />}
+                    onChange={(event: any) => {
+                      setSearchTerm(event.target.value);
+                      debouncedSearch(event);
+                    }}
+                    sx={{
+                      backgroundColor: themeM.palette.background.paper,
+                      borderColor: themeM.palette.background.default,
+                      color: themeM.palette.primary.main,
+                      "&:hover": {
+                        backgroundColor: themeM.palette.action.hover, // Hover effect on the select button
+                        color: themeM.palette.primary.main,
+                      },
+                    }}
+                  />
+                </FormControl>
+                {renderFilters()}
+              </Box>
+            </>
+          )}
           <Sheet
             className="ThemesContainer"
             variant="outlined"
@@ -719,9 +742,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                       display: "flex",
                       justifyContent: "center",
                     }}
-                  >
-                    Meni
-                  </th>
+                  ></th>
                 </tr>
               </thead>
               <TableBody
@@ -781,7 +802,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                           <div>
                             <MuiTypo
                               component={Link}
-                              to={`../forum/${theme1.id}`}
+                              to={user ? `../forum/${theme1.id}` : `/login`}
                               sx={{
                                 textDecoration: "none",
                                 color: themeM.palette.action.active,
@@ -1049,9 +1070,26 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             justifyContent: "center",
                           }}
                         >
-                          {user && user.username == theme1.user?.username
-                            ? RowMenu(theme1)
-                            : " "}
+                          {user ? (
+                            user.username == theme1.user?.username ? (
+                              RowMenu(theme1)
+                            ) : user && theme1.course ? (
+                              theme1.course.usersCourse.some(
+                                (uc) => uc.user.username === user.username
+                              ) ||
+                              theme1.course.professorsCourse.some(
+                                (pc) => pc.user.username === user.username
+                              ) ? (
+                                <LockOpenIcon sx={{ fontSize: "13pt" }} />
+                              ) : (
+                                <LockIcon sx={{ fontSize: "13pt" }} />
+                              )
+                            ) : (
+                              <LockOpenIcon sx={{ fontSize: "13pt" }} />
+                            )
+                          ) : (
+                            <LockIcon sx={{ fontSize: "13pt" }} />
+                          )}
                         </td>
                       </tr>
                     ))
@@ -1150,10 +1188,15 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                 >
                   Odustani
                 </ButtonJ>
+
                 <ButtonJ
+                  loading={status == "pendingDeleteTheme"}
                   onClick={handleConfirmDelete}
-                  // color="danger"
+                  color="danger"
                   variant="solid"
+                  loadingIndicator={
+                    <CircularProgress size={18} sx={{ color: "red" }} /> // Ovdje mijenjaš boju
+                  }
                   sx={{
                     boxShadow: "var(--mui-shadows-2)",
                     fontSize: "0.875rem",

@@ -2,14 +2,9 @@ import {
   Avatar,
   Box,
   Breadcrumbs,
-  Button,
   CardContent,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Divider,
   Grid,
   IconButton,
@@ -56,7 +51,7 @@ export default function ProfessorInfo() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { id } = useParams<{ id: string }>(); // Osigurava da je `id` uvek string
+  const { id } = useParams<{ id: string }>();
   const user = useAppSelector((state) => state.account.user);
 
   useEffect(() => {
@@ -64,7 +59,7 @@ export default function ProfessorInfo() {
   }, [dispatch]);
 
   const professor = useAppSelector((state) => {
-    if (!id) return undefined; // Ako je `id` undefined, vrati `undefined`
+    if (!id) return undefined; 
     return state.professor.professors.find((p) => p.id === parseInt(id));
   });
 
@@ -84,6 +79,8 @@ export default function ProfessorInfo() {
     (state) => state.professor.coursesLoaded
   );
   const allProfessors = useAppSelector((state) => state.professor.professors);
+
+  const statusProf=useAppSelector((state)=>state.professor.status);
 
   useEffect(() => {
     allProfessors.forEach((professor) => {
@@ -131,28 +128,12 @@ export default function ProfessorInfo() {
     });
   }, [dispatch, allProfessors]);
 
-  // useEffect(() => {
-  //   if (themeSelected) {
-  //     setThemeSelected(
-  //       professorThemes![professor!.id].find((t) => t.id === themeSelected.id)
-  //     );
-  //   }
-  // }, [professorThemes]);
-
-  // useEffect(() => {
-  //   // Ovaj useEffect će se pokrenuti svaki put kada se tema promeni
-  //   // console.log('Teme su ažurirane:', professorThemes);
-  // }, [professorThemes]);
 
   const updateStatus = async (event: React.MouseEvent<HTMLElement>, theme: Theme) => {
-    event.preventDefault();
-  
-    // console.log("Pre update:", theme); 
-  
+    event.preventDefault();  
     setAnchorEl(null);
-    
     setLoadingStatus((prev) => ({ ...prev, [theme.id]: true }));
-  
+
     const updateData = {
       id: theme.id,
       active: !theme.active,
@@ -160,7 +141,6 @@ export default function ProfessorInfo() {
   
     try {
       await dispatch(updateThemeStatus(updateData)).unwrap();
-      // console.log("Posle update:", updatedTheme); 
     } catch (error) {
       console.error("Greška prilikom ažuriranja statusa:", error);
     } finally {
@@ -174,7 +154,11 @@ export default function ProfessorInfo() {
     if (itemType == "course") {
       console.log("Brisanje stavke kurs:", item);
       try {
+        console.log(statusProf)
         await dispatch(deleteProfessorsCourseAsync({id:item!.id, idProfessor: parseInt(id!)}));
+        console.log(statusProf)
+
+
       } catch (error) {
         console.error("Greška prilikom brisanja teme:", error);
       } finally {
@@ -195,13 +179,13 @@ export default function ProfessorInfo() {
   const handleClick = (event: React.MouseEvent<HTMLElement>, theme: Theme) => {
     console.log(theme);
     setThemeSelected(theme);
-    setAnchorEl(event.currentTarget); // Dijalog se otvara nakon što se tema postavi
+    setAnchorEl(event.currentTarget); 
   };
 
   const handleClose = () => {
     setAnchorEl(null);
     setTimeout(() => {
-      setThemeSelected(undefined); // Dijalog se otvara nakon što se tema postavi
+      setThemeSelected(undefined); 
     }, 0);
   };
 
@@ -252,7 +236,6 @@ export default function ProfessorInfo() {
         >
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Breadcrumbs
-              //size="small"
               aria-label="breadcrumbs"
               separator={<ChevronRightRoundedIcon fontSize="small" />}
               sx={{ pl: 0 }}
@@ -261,23 +244,20 @@ export default function ProfessorInfo() {
                 component={Link}
                 to="/onlineStudy"
                 sx={{ display: "flex", alignItems: "center" }}
-                // onClick={() => dispatch(resetCoursesParams())}
                 onClick={() => navigate(-1)}
               >
                 <SchoolIcon
                   sx={{
                     color: "text.primary",
-                    // fontWeight: "bold",
                     transition: "transform 0.3s ease",
                     "&:hover": {
                       transform: "scale(1.2)",
-                      color: "primary.dark", // Promijeni boju na hover
+                      color: "primary.dark", 
                     },
                   }}
                 />
               </Box>
 
-              {/* </Link> */}
               <Typography
                 component={Typography}
                 color="neutral"
@@ -285,13 +265,12 @@ export default function ProfessorInfo() {
                   fontSize: 12,
                   fontWeight: 500,
                   "&:hover": {
-                    color: "primary.dark", // Promijeni boju na hover
+                    color: "primary.dark", 
                   },
                   fontFamily: "Raleway, sans-serif",
                 }}
               >
                 Profil profesora
-                {/* {courseType === "my" ? "Moji kursevi" : "Svi kursevi"} */}
               </Typography>
             </Breadcrumbs>
           </Box>
@@ -307,10 +286,9 @@ export default function ProfessorInfo() {
                   alignItems: "center",
                   padding: 3,
                   backgroundColor: "background.paper",
-                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", // Blaga senka za elegantan izgled
+                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", 
                 }}
               >
-                {/* Avatar */}
                 <Avatar
                   alt={`${professor?.firstName} ${professor?.lastName}`}
                   sx={{
@@ -326,9 +304,7 @@ export default function ProfessorInfo() {
                   {professor?.lastName.charAt(0).toUpperCase()}
                 </Avatar>
 
-                {/* Informacije o profesoru */}
                 <Box sx={{ flex: 1 }}>
-                  {/* Ime i titula zajedno */}
                   <Typography
                     variant="h6"
                     fontWeight="bold"
@@ -351,7 +327,6 @@ export default function ProfessorInfo() {
                       Profesor
                     </Typography>
                   </Typography>
-                  {/* Email ispod */}
                   <Typography
                     variant="body2"
                     color="text.primary"
@@ -373,7 +348,7 @@ export default function ProfessorInfo() {
                   height: "100%",
                   padding: 3,
                   backgroundColor: "background.paper",
-                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", // Blaga senka za elegantan izgled
+                  boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", 
                 }}
               >
                 <Box>
@@ -478,13 +453,8 @@ export default function ProfessorInfo() {
                       }}
                     >
                       <Chip
-                        // variant="soft"
                         size="small"
                         icon={
-                          // {
-                          //   true: <CheckRoundedIcon />,
-                          //   false: <BlockIcon />,
-                          // }[theme.active]
                           loadingStatus[theme.id] ? (
                             <CircularProgress
                               size={16}
@@ -499,17 +469,16 @@ export default function ProfessorInfo() {
                         sx={{
                           marginX: 1,
                           backgroundColor: loadingStatus[theme.id]
-                            ? "grey" // Boja dok traje učitavanje
+                            ? "grey" 
                             : theme.active
                               ? "text.primaryChannel"
-                              : "text.secondaryChannel", // Prilagođene boje
-                          color: "#fff", // Tekst u beloj boji
-                          borderRadius: "16px", // Primer prilagođenog oblika
+                              : "text.secondaryChannel",
+                          color: "#fff",
+                          borderRadius: "16px", 
                           ".MuiChip-icon": {
                             color: "#fff",
                           },
                         }}
-                        // label={theme.active ? "Aktivno" : "Zatvoreno"}
                         label={
                           loadingStatus[theme!.id]
                             ? "Ažuriranje..."
@@ -522,7 +491,7 @@ export default function ProfessorInfo() {
                         edge="end"
                         aria-label="open"
                         component={Link}
-                        to={`/forum/${theme.id}`}
+                        to={user ? `/forum/${theme.id}`: `/login`}
                         sx={{
                           marginX: 2,
 
@@ -539,7 +508,6 @@ export default function ProfessorInfo() {
                           <div>
                             <Box
                               aria-describedby={idMenu}
-                              // variant="contained"
                               onClick={(event) => handleClick(event, theme)}
                               sx={{
                                 display: "flex",
@@ -573,8 +541,7 @@ export default function ProfessorInfo() {
                                   },
                                 },
                               }}
-                            >
-                              
+                            >                              
                                 <>
                                   <Typography
                                     onClick={(event) => updateStatus(event, themeSelected!)}
@@ -668,8 +635,8 @@ export default function ProfessorInfo() {
               ) : (
                 <Grid
                   container
-                  spacing={0} // Uklanjamo automatski razmak između elemenata
-                  justifyContent="flex-start" // Elementi idu redom, bez centriranja ili raspodele
+                  spacing={0} 
+                  justifyContent="flex-start" 
                   columns={12}
                   sx={{
                     width: "100%",
@@ -681,9 +648,9 @@ export default function ProfessorInfo() {
                   {coursesToDisplay!.map((course) => (
                     <Grid
                       item
-                      xs={12} // Na najmanjim ekranima zauzima celu širinu
-                      sm={5.8} // Na manjim ekranima dve kartice u redu
-                      md={3.8} // Na srednjim ekranima tri kartice u redu sa prostorom između njih
+                      xs={12} 
+                      sm={5.8} 
+                      md={3.8} 
                       key={course.id}
                     >
                       <FlipCard course={course} handleDeleteClick={handleDeleteClick}/>
@@ -736,9 +703,6 @@ export default function ProfessorInfo() {
             </Typography> */}
             </Box>
           )}
-
-          {/* LISTA KURSEVA PROFESORA */}
-          {/* <FlipCard  cour/> */}
         </Grid>
       </Grid>
 
@@ -749,50 +713,6 @@ export default function ProfessorInfo() {
         itemType={itemType}
         itemData={itemToDelete}
       />
-
-      {/* <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        sx={{
-          "& .MuiDialog-paper": {
-            borderRadius: "12pt",
-            padding: 3,
-            minWidth: 300,
-            textAlign: "center",
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            fontFamily: "Raleway, sans-serif",
-            fontSize: "1.2rem",
-          }}
-        >
-          Potvrda brisanja
-        </DialogTitle>
-        <DialogContent>
-          <Typography
-            sx={{
-              fontFamily: "Raleway, sans-serif",
-              color: "text.secondary",
-            }}
-          >
-            Da li ste sigurni da želite da obrišete ovu temu?
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
-          <Button onClick={handleCloseDialog} sx={{ color: "text.primary" }}>
-            Odustani
-          </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            color="error"
-            variant="contained"
-          >
-            Obriši
-          </Button>
-        </DialogActions>
-      </Dialog> */}
     </>
   );
 }

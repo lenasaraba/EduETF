@@ -20,13 +20,13 @@ export const signInUser = createAsyncThunk<User, FieldValues>(
     try {
       const userDto = await agent.Account.login(data);
       const { ...user } = userDto;
-      // if (basket) thunkAPI.dispatch(setBasket(basket));
       localStorage.setItem("user", JSON.stringify(user));
-      console.log("USER:    " + user);
+      // console.log("USER:    " + user);
 
       return user;
     } catch (error: any) {
       console.log("-----------------------------------greska");
+      console.log(error);
       return thunkAPI.rejectWithValue({ error: error.data });
     }
   }

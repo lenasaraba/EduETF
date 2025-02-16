@@ -16,7 +16,7 @@ export function Author({ authors }: AuthorProps) {
         alignItems: "center",
       }}
     >
-      <AvatarGroup max={3}>
+      <AvatarGroup max={5}>
         {authors.map((author, index) => (
           <Avatar
             key={index}

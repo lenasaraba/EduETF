@@ -11,16 +11,13 @@ import ForumIcon from "@mui/icons-material/Forum";
 import type { Navigation } from "@toolpad/core";
 import { useAppDispatch } from "../store/configureStore";
 import { useCallback, useEffect, useState } from "react";
-import {
-  fetchCoursesAsync,
-  fetchCoursesListAsync,
-} from "../../features/onlineStudy/courseSlice";
 import LoadingComponent from "./LoadingComponent";
 import { fetchCurrentUser } from "../../features/account/accountSlice";
-import { fetchProfessorsAsync } from "../../features/onlineStudy/professorSlice";
-import { fetchThemesAsync } from "../../features/forum/themeSlice";
-import { fetchMessagesAsync } from "../../features/forum/messageSlice";
+import lightLogo from "../../../public/light.png";
+import darkLogo from "../../../public/dark.png";
+
 import "./app.css"; //
+import { BrandingContext } from "./BrandingContext";
 const NAVIGATION: Navigation = [
   {
     kind: "header",
@@ -60,9 +57,14 @@ const NAVIGATION: Navigation = [
   },
 ];
 
-const BRANDING = {
-  title: "StudentApp",
-  logo: <SchoolIcon sx={{ fontSize: "2rem" }} />,
+const BRANDINGL = {
+  title: "",
+  logo: <img src={lightLogo} />,
+};
+
+const BRANDINGD = {
+  title: "",
+  logo: <img src={darkLogo} />,
 };
 
 const demoTheme = extendTheme({
@@ -121,13 +123,23 @@ const demoTheme = extendTheme({
           primaryChannel: "#3A7D44", // Smanjena zelena za kanale
           secondaryChannel: "#D04B47", // Crvena, zadržana
         },
+
         action: {
           active: "#A2B7B0", // Neutralnija nijansa za aktivne elemente
-          hover: "#1B2422", // Duboki kontrast za hover efekat
-          disabled: "#6c859d", // Osvetljeniji za onemogućene elemente
-          disabledBackground: "#B5BCC5", // Pozadina za onemogućene
-          focus: "#5E6E43", // Fokus sa toplijom nijansom
+
+          hover: "#5A524699", // 60% providnosti (99 u heksadecimalnom formatu)
+          disabled: "#4A525880", // 50% providnosti (80)
+          disabledBackground: "#2E333666", // 40% providnosti (66)
+          focus: "#75655499",
         },
+
+        // action: {
+        //   active: "#A2B7B0", // Neutralnija nijansa za aktivne elemente
+        //   hover: "#1B2422", // Duboki kontrast za hover efekat
+        //   disabled: "#6c859d", // Osvetljeniji za onemogućene elemente
+        //   disabledBackground: "#B5BCC5", // Pozadina za onemogućene
+        //   focus: "#5E6E43", // Fokus sa toplijom nijansom
+        // },
         background: {
           default: "#0f100f", // Zadržana tvoja tamna pozadina
           paper: "#2C3639", // Zadržana tvoja boja za `paper`
@@ -151,17 +163,20 @@ const demoTheme = extendTheme({
     },
   },
   colorSchemeSelector: "class",
-  defaultColorScheme: localStorage.getItem("toolpad-mode")
-    ? localStorage.getItem("toolpad-mode")?.toString() == "light"
+  defaultColorScheme: localStorage.getItem("toolpad-mode")?.toString() == "light"
       ? "light"
       : "dark"
-    : "dark",
 });
 
 export default function App() {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
 
+  const [branding, setBranding] = useState(
+    localStorage.getItem("toolpad-mode")?.toString() == "light" ? BRANDINGL : BRANDINGD
+  );
+
+  console.log(localStorage.getItem("toolpad-mode"));
   const initApp = useCallback(async () => {
     try {
       await dispatch(fetchCurrentUser()); //da pribavimo korisnika ako je prethodno bio prijavljen, a aplikacija ugašena
@@ -183,7 +198,7 @@ export default function App() {
   window.scrollTo(0, 0); // Pomeri na vrh prilikom prve učitavanja stranice
 
   if (loading)
-    return <LoadingComponent message="Učitavanje..."></LoadingComponent>;
+    return <LoadingComponent message="EduETF"></LoadingComponent>;
 
   // const dispatch = useAppDispatch();
   // const [loading, setLoading] = useState(true);
@@ -209,15 +224,15 @@ export default function App() {
     <>
       {/* <ThemeProvider theme={demoTheme}> */}
 
-      <AppProvider
-        theme={demoTheme}
-        navigation={NAVIGATION}
-        branding={BRANDING}
-      >
-        <Outlet />
-        {/* <ScrollRestoration/> */}
-      </AppProvider>
-      {/* </ThemeProvider> */}
+      <BrandingContext.Provider value={{ branding, setBranding }}>
+        <AppProvider
+          theme={demoTheme}
+          navigation={NAVIGATION}
+          branding={branding}
+        >
+          <Outlet />
+        </AppProvider>
+      </BrandingContext.Provider>
     </>
   );
 }

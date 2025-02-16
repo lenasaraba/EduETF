@@ -14,10 +14,7 @@ export default function AppAppBar() {
   };
   return (
     <Box
-      //enableColorOnDark
       sx={{
-        // width:"50%",
-        // top: 30,
         boxShadow: 0,
         bgcolor: "background.paper",
         borderRadius: "22px",

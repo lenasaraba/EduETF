@@ -14,6 +14,7 @@ import CourseCardMedia from "./CourseCardMedia";
 import { Author } from "./Author";
 import {
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -27,6 +28,8 @@ import { useState } from "react";
 import { deleteCourseAsync } from "../courseSlice";
 import { Course } from "../../../app/models/course";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import LoadingComponent from "../../../app/layout/LoadingComponent";
+import { LoadingButton } from "@mui/lab";
 
 const DateCard = ({ date }: { date: string }) => {
   const dateFormatted = new Date(date); // Pretvori string u Date objekat
@@ -100,7 +103,6 @@ export default function MainContent() {
     } finally {
       setOpenDialog(false);
       setAnchorEl(null);
-      // console.log(courseSelected?.name);
     }
   };
 
@@ -111,7 +113,7 @@ export default function MainContent() {
     } catch (error) {
       console.error("Greška prilikom brisanja kursa:", error);
     } finally {
-      setAnchorEl(null); // Zatvara meni
+      setAnchorEl(null);
       setOpenDialog(false);
       setCourseSelected(undefined);
     }
@@ -121,8 +123,7 @@ export default function MainContent() {
     event: React.MouseEvent<HTMLElement>,
     course: Course
   ) => {
-    // console.log(course);
-    setAnchorEl(event.currentTarget); // Postavlja element na koji je kliknuto
+    setAnchorEl(event.currentTarget);
     setCourseSelected(course);
   };
 
@@ -143,16 +144,20 @@ export default function MainContent() {
   };
 
   const courses = useAppSelector((state) => state.course.allCourses);
-  const allcoursesloaded=useAppSelector((state)=>state.course.allcoursesLoaded);
+  const allcoursesloaded = useAppSelector(
+    (state) => state.course.allcoursesLoaded
+  );
+  const statusCourse = useAppSelector((state) => state.course.status);
 
   const newArray = [...(courses || [])];
   const topCourses = newArray
     ?.sort((a, b) => b.usersCourse.length - a.usersCourse.length)
     .slice(0, 5);
-  const firstTwoCourses = topCourses.slice(0, 2); // Prvih 4 elementa
+  const firstTwoCourses = topCourses.slice(0, 2);
   const lastThreeCourses = topCourses.slice(-3);
 
-  if(!allcoursesloaded) return (<Typography>ISPIS..</Typography>)
+  // if(!allcoursesloaded) return (<LoadingComponent message="Učitavanje kurseva.."/>)
+
   return (
     <>
       <Box
@@ -167,7 +172,6 @@ export default function MainContent() {
         <div>
           <Typography
             variant="h2"
-            // gutterBottom
             sx={{
               fontFamily: "Raleway, sans-serif",
               marginY: 4,
@@ -189,17 +193,15 @@ export default function MainContent() {
             <Typography sx={{ fontFamily: "Raleway, sans-serif" }}>
               Pronađite kurs koji vam odgovara.
             </Typography>
-            {user && user.role=="Profesor" && (
+            {user && user.role == "Profesor" && (
               <Button
                 component={Link}
                 to="/createCourse"
-                //onClick={handleOpen}
                 sx={{
                   backgroundColor: "primary.dark",
                   color: "white",
                   padding: "10px 20px",
                   borderRadius: "20px",
-                  // fontSize: "30px",
                   "&:hover": {
                     backgroundColor: "primary.light",
                   },
@@ -215,394 +217,410 @@ export default function MainContent() {
         </div>
         <Divider />
 
-        <Grid container spacing={2} columns={12}>
-          {firstTwoCourses.map((course, index) => (
-            <Grid key={index} size={{ xs: 12, md: 6 }}>
-              <SyledCard
-                variant="outlined"
-                onFocus={() => handleFocus(index)}
-                onBlur={handleBlur}
-                tabIndex={index}
-                className={focusedCardIndex === index ? "Mui-focused" : ""}
-                sx={{
-                  // backgroundColor:"secondary.main",
-
-                  border: "none",
-                  borderRadius: "16px",
-                  boxShadow: (theme) =>
-                    `0px 4px 12px ${theme.palette.mode === "light" ? "#ddd" : "#333"}`,
-                  overflow: "hidden",
-                  position: "relative",
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-5px)",
-                    boxShadow: (theme) =>
-                      `0px 8px 24px ${theme.palette.mode === "light" ? "#bbb" : "#111"}`,
-                  },
-                }}
-              >
-                {/* Sekcija slike sa "overlay" efektom */}
-                <Box
-                  sx={{
-                    position: "relative",
-                    width: "100%",
-                    height: "200px", // Fiksna visina slike
-                    overflow: "hidden",
-                  }}
-                >
-                  <CourseCardMedia
-                    year={course.year}
-                    studyProgram={course.studyProgram}
+        {!allcoursesloaded ? (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "20vh",
+              width: "100%",
+              margin: 0,
+              padding: 1,
+            }}
+          ><Typography variant="body1">Učitavanje kurseva</Typography>
+            <CircularProgress size={120} sx={{ color: "text.secondary" }} />
+          </Box>
+        ) : (
+          <>
+            <Grid container spacing={2} columns={12}>
+              {firstTwoCourses.map((course, index) => (
+                <Grid key={index} size={{ xs: 12, md: 6 }}>
+                  <SyledCard
+                    variant="outlined"
+                    onFocus={() => handleFocus(index)}
+                    onBlur={handleBlur}
+                    tabIndex={index}
+                    className={focusedCardIndex === index ? "Mui-focused" : ""}
                     sx={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      filter: "brightness(0.75)", // Tamniji filter da bi tekst bio čitljiv
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      bottom: "16px",
-                      left: "16px",
-                      color: "white",
-                      zIndex: 2,
-                      display: "flex",
-                      flexDirection: "column",
+                      border: "none",
+                      borderRadius: "16px",
+                      boxShadow: (theme) =>
+                        `0px 4px 12px ${theme.palette.mode === "light" ? "#ddd" : "#333"}`,
+                      overflow: "hidden",
+                      position: "relative",
+                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-5px)",
+                        boxShadow: (theme) =>
+                          `0px 8px 24px ${theme.palette.mode === "light" ? "#bbb" : "#111"}`,
+                      },
                     }}
                   >
-                    <Typography
-                      variant="caption"
-                      fontFamily="Raleway, sans-serif"
-                      sx={{ opacity: 0.8, paddingX: 1.5 }}
-                    >
-                      {course.studyProgram.name}
-                    </Typography>
-                    <Typography
-                      variant="h5"
-                      fontFamily="Raleway, sans-serif"
-                      sx={{
-                        fontWeight: 700,
-                        textDecoration: "none", // Uklanja podrazumevanu dekoraciju za Link
-                        color: "#c4e1f6", // Podešava boju na primarnu boju teksta
-                        "&:hover": {
-                          color: "primary.main", // Opcionalno, boja pri hoveru
-                        },
-                        backdropFilter: "blur(30px)",
-                        borderRadius: "20pt",
-                        paddingX: 1.5,
-                        backgroundColor: "#0c101780",
-                      }}
-                      component={Link}
-                      to={`/courses/${course.id}`}
-                    >
-                      {course.name}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {/* Glavni sadržaj kursa */}
-                <Box
-                  sx={{
-                    padding: "16px",
-                    backgroundColor: "inherit",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 1,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      margin: 0,
-                      padding: 0,
-                      display: "flex",
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <StyledTypography
-                      variant="body2"
-                      color="text.secondary"
-                      fontFamily="Raleway, sans-serif"
-                    >
-                      {course.description}
-                    </StyledTypography>
-                    {user &&
-                    course.professorsCourse.some(
-                      (pc) => pc.user.username === user.username
-                    ) ? (
-                      <>
-                        <div>
-                          <Box
-                            aria-describedby={idMenu}
-                            // variant="contained"
-                            onClick={(event) => handleClick(event, course)}
-                            sx={{
-                              display: "flex",
-                              width: "fit-content",
-                              borderRadius: "20pt",
-                              padding: 0,
-                              "&:hover": {
-                                cursor: "pointer",
-                                color: "text.primary",
-                                backgroundColor: "primary.main",
-                              },
-                            }}
-                          >
-                            <MoreVertIcon />
-                          </Box>
-                          <Popover
-                            id={idMenu}
-                            open={open}
-                            anchorEl={anchorEl}
-                            onClose={handleClose}
-                            anchorOrigin={{
-                              vertical: "bottom",
-                              horizontal: "center",
-                            }}
-                            slotProps={{
-                              paper: {
-                                sx: {
-                                  borderRadius: "10pt",
-                                  "&:hover": {
-                                    cursor: "pointer",
-                                  },
-                                },
-                              },
-                            }}
-                          >
-                            <Typography
-                              onClick={handleDeleteClick}
-                              variant="body2"
-                              sx={{
-                                paddingX: 2,
-                                paddingY: 1,
-                                "&:hover": {
-                                  cursor: "pointer",
-                                  color: "primary.light",
-                                },
-                                fontFamily: "Raleway, sans-serif",
-                                color: "text.secondaryChannel",
-                                backgroundColor: "background.paper",
-                              }}
-                            >
-                              Obriši kurs
-                            </Typography>
-                          </Popover>
-                        </div>
-                      </>
-                    ) : (
-                      ""
-                    )}
-                  </Box>
-                  <Divider sx={{ my: 1 }} />
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    {/* Autori kursa */}
-                    <Author authors={course.professorsCourse} />
-
-                    {/* Datum kreiranja */}
-                    <Typography
-                      variant="caption"
-                      fontFamily="Raleway, sans-serif"
-                      color="text.secondary"
-                    >
-                      <DateCard
-                        date={course.courseCreationDate.split("T")[0]}
-                      />
-                    </Typography>
-                  </Box>
-                </Box>
-              </SyledCard>
-            </Grid>
-          ))}
-        </Grid>
-        <Grid container spacing={2} columns={12}>
-          {lastThreeCourses.map((course, index) => (
-            <Grid key={index} size={{ xs: 12, md: 4 }}>
-              <SyledCard
-                variant="outlined"
-                onFocus={() => handleFocus(index)}
-                onBlur={handleBlur}
-                tabIndex={index}
-                className={focusedCardIndex === index ? "Mui-focused" : ""}
-                sx={{
-                  // backgroundColor:"secondary.main",
-                  justifyContent: "space-evenly",
-                  height: "100%",
-                  border: "none",
-                  borderRadius: "16px",
-                  boxShadow: (theme) =>
-                    `0px 4px 12px ${theme.palette.mode === "light" ? "#ddd" : "#333"}`,
-                  overflow: "hidden",
-                  position: "relative",
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-5px)",
-                    boxShadow: (theme) =>
-                      `0px 8px 24px ${theme.palette.mode === "light" ? "#bbb" : "#111"}`,
-                  },
-                }}
-              >
-                <CourseCardMedia
-                  year={course.year}
-                  studyProgram={course.studyProgram}
-                  sx={{
-                    height: { sm: "auto", md: "50%" },
-                    aspectRatio: { sm: "16 / 9", md: "" },
-                    filter: "brightness(0.75)", // Tamniji filter da bi tekst bio čitljiv
-                  }}
-                />
-                <Box
-                  sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
-                >
-                  <SyledCardContent sx={{ pb: 0, gap: 0.5 }}>
-                    <Typography
-                      // gutterBottom
-                      variant="caption"
-                      component="div"
-                      fontFamily="Raleway, sans-serif"
-                      fontSize="clamp(10px, 12px, 14px)"
-                    >
-                      {course.studyProgram.name}
-                    </Typography>
                     <Box
                       sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
+                        position: "relative",
+                        width: "100%",
+                        height: "200px",
+                        overflow: "hidden",
                       }}
                     >
-                      <Typography
-                        // gutterBottom
-                        variant="h6"
-                        // component="div"
-                        fontFamily="Raleway, sans-serif"
-                        fontSize="clamp(12px, 14px, 16px)"
-                        fontWeight="bolder"
-                        component={Link}
-                        to={`/courses/${course.id}`}
+                      <CourseCardMedia
+                        year={course.year}
+                        studyProgram={course.studyProgram}
                         sx={{
-                          textDecoration: "none",
-                          color: "text.primary",
-                          overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                          display: "-webkit-box", // Neophodno za multi-line truncation
-                          WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                          WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                          lineHeight: "1.2", // Podešava razmak između linija
-                          height: "1.2em", // Fiksna visina: broj linija * lineHeight
-                          textOverflow: "ellipsis", // Dodaje tri tačke
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          filter: "brightness(0.75)", // Tamniji filter da bi tekst bio čitljiv
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          bottom: "16px",
+                          left: "16px",
+                          color: "white",
+                          zIndex: 2,
+                          display: "flex",
+                          flexDirection: "column",
                         }}
                       >
-                        {course.name}
-                      </Typography>
-                      {user &&
-                      course.professorsCourse.some(
-                        (pc) => pc.user.username === user.username
-                      ) ? (
-                        <>
-                          <div>
-                            <Box
-                              aria-describedby={idMenu}
-                              // variant="contained"
-                              onClick={(event) => handleClick(event, course)}
-                              sx={{
-                                display: "flex",
-                                width: "fit-content",
-                                borderRadius: "20pt",
-                                padding: 0,
-                                "&:hover": {
-                                  cursor: "pointer",
-                                  color: "text.primary",
-                                  backgroundColor: "primary.main",
-                                },
-                              }}
-                            >
-                              <MoreVertIcon />
-                            </Box>
-                            <Popover
-                              id={idMenu}
-                              open={open}
-                              anchorEl={anchorEl}
-                              onClose={handleClose}
-                              anchorOrigin={{
-                                vertical: "bottom",
-                                horizontal: "center",
-                              }}
-                              slotProps={{
-                                paper: {
-                                  sx: {
-                                    borderRadius: "10pt",
-                                    "&:hover": {
-                                      cursor: "pointer",
-                                    },
-                                  },
-                                },
-                              }}
-                            >
-                              <Typography
-                                onClick={handleDeleteClick}
-                                variant="body2"
+                        <Typography
+                          variant="caption"
+                          fontFamily="Raleway, sans-serif"
+                          sx={{ opacity: 0.8, paddingX: 1.5 }}
+                        >
+                          {course.studyProgram.name}
+                        </Typography>
+                        <Typography
+                          variant="h5"
+                          fontFamily="Raleway, sans-serif"
+                          sx={{
+                            fontWeight: 700,
+                            textDecoration: "none", // Uklanja podrazumevanu dekoraciju za Link
+                            color: "#c4e1f6", // Podešava boju na primarnu boju teksta
+                            "&:hover": {
+                              color: "primary.main", // Opcionalno, boja pri hoveru
+                            },
+                            backdropFilter: "blur(30px)",
+                            borderRadius: "20pt",
+                            paddingX: 1.5,
+                            backgroundColor: "#0c101780",
+                          }}
+                          component={Link}
+                          to={user ? `/courses/${course.id}` : `/login`}
+                        >
+                          {course.name}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        padding: "16px",
+                        backgroundColor: "none",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          margin: 0,
+                          padding: 0,
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <StyledTypography
+                          variant="body2"
+                          color="text.secondary"
+                          fontFamily="Raleway, sans-serif"
+                        >
+                          {course.description}
+                        </StyledTypography>
+                        {user &&
+                        course.professorsCourse.some(
+                          (pc) => pc.user.username === user.username
+                        ) ? (
+                          <>
+                            <div>
+                              <Box
+                                aria-describedby={idMenu}
+                                onClick={(event) => handleClick(event, course)}
                                 sx={{
-                                  paddingX: 2,
-                                  paddingY: 1,
+                                  display: "flex",
+                                  width: "fit-content",
+                                  borderRadius: "20pt",
+                                  padding: 0,
                                   "&:hover": {
                                     cursor: "pointer",
-                                    color: "primary.light",
+                                    color: "text.primary",
+                                    backgroundColor: "primary.main",
                                   },
-                                  fontFamily: "Raleway, sans-serif",
-                                  color: "text.secondaryChannel",
-                                  backgroundColor: "background.paper",
                                 }}
                               >
-                                Obriši kurs
-                              </Typography>
-                            </Popover>
-                          </div>
-                        </>
-                      ) : (
-                        ""
-                      )}
+                                <MoreVertIcon />
+                              </Box>
+                              <Popover
+                                id={idMenu}
+                                open={open}
+                                anchorEl={anchorEl}
+                                onClose={handleClose}
+                                anchorOrigin={{
+                                  vertical: "bottom",
+                                  horizontal: "center",
+                                }}
+                                slotProps={{
+                                  paper: {
+                                    sx: {
+                                      borderRadius: "10pt",
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                      },
+                                    },
+                                  },
+                                }}
+                              >
+                                <Typography
+                                  onClick={handleDeleteClick}
+                                  variant="body2"
+                                  sx={{
+                                    paddingX: 2,
+                                    paddingY: 1,
+                                    "&:hover": {
+                                      cursor: "pointer",
+                                      color: "primary.light",
+                                    },
+                                    fontFamily: "Raleway, sans-serif",
+                                    color: "text.secondaryChannel",
+                                    backgroundColor: "background.paper",
+                                  }}
+                                >
+                                  Obriši kurs
+                                </Typography>
+                              </Popover>
+                            </div>
+                          </>
+                        ) : (
+                          ""
+                        )}
+                      </Box>
+                      <Divider sx={{ my: 1 }} />
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Author authors={course.professorsCourse} />
+
+                        <Typography
+                          variant="caption"
+                          fontFamily="Raleway, sans-serif"
+                          color="text.secondary"
+                        >
+                          <DateCard
+                            date={course.courseCreationDate.split("T")[0]}
+                          />
+                        </Typography>
+                      </Box>
                     </Box>
-                    <StyledTypography
-                      variant="body2"
-                      color="text.secondary"
-                      // gutterBottom
-                      fontFamily="Raleway, sans-serif"
-                      fontSize="clamp(10px, 12px, 14px)"
-                    >
-                      {course.description}
-                    </StyledTypography>
-                  </SyledCardContent>
-                  <Box
+                  </SyledCard>
+                </Grid>
+              ))}
+            </Grid>
+            <Grid container spacing={2} columns={12}>
+              {lastThreeCourses.map((course, index) => (
+                <Grid key={index} size={{ xs: 12, md: 4 }}>
+                  <SyledCard
+                    variant="outlined"
+                    onFocus={() => handleFocus(index)}
+                    onBlur={handleBlur}
+                    tabIndex={index}
+                    className={focusedCardIndex === index ? "Mui-focused" : ""}
                     sx={{
-                      display: "flex",
-                      flexDirection: "row",
-                      gap: 2,
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: 2,
+                      justifyContent: "space-evenly",
+                      height: "100%",
+                      border: "none",
+                      borderRadius: "16px",
+                      boxShadow: (theme) =>
+                        `0px 4px 12px ${theme.palette.mode === "light" ? "#ddd" : "#333"}`,
+                      overflow: "hidden",
+                      position: "relative",
+                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                      "&:hover": {
+                        transform: "translateY(-5px)",
+                        boxShadow: (theme) =>
+                          `0px 8px 24px ${theme.palette.mode === "light" ? "#bbb" : "#111"}`,
+                      },
                     }}
                   >
-                    <Author authors={course.professorsCourse} />
-                    <Typography variant="caption">
-                      <DateCard
-                        date={course.courseCreationDate.split("T")[0]}
-                      />
-                    </Typography>
-                  </Box>
-                </Box>
-              </SyledCard>
+                    <CourseCardMedia
+                      year={course.year}
+                      studyProgram={course.studyProgram}
+                      sx={{
+                        height: { sm: "auto", md: "50%" },
+                        aspectRatio: { sm: "16 / 9", md: "" },
+                        filter: "brightness(0.75)", // Tamniji filter da bi tekst bio čitljiv
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        flexGrow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <SyledCardContent sx={{ pb: 0, gap: 0.5 }}>
+                        <Typography
+                          variant="caption"
+                          component="div"
+                          fontFamily="Raleway, sans-serif"
+                          fontSize="clamp(10px, 12px, 14px)"
+                        >
+                          {course.studyProgram.name}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Typography
+                            variant="h6"
+                            fontFamily="Raleway, sans-serif"
+                            fontSize="clamp(12px, 14px, 16px)"
+                            fontWeight="bolder"
+                            component={Link}
+                            to={user ? `/courses/${course.id}` : `/login`}
+                            sx={{
+                              textDecoration: "none",
+                              color: "text.primary",
+                              overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
+                              display: "-webkit-box", // Neophodno za multi-line truncation
+                              WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
+                              WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
+                              lineHeight: "1.2", // Podešava razmak između linija
+                              height: "1.2em", // Fiksna visina: broj linija * lineHeight
+                              textOverflow: "ellipsis", // Dodaje tri tačke
+                              "&:hover": {
+                                color: "primary.main", // Opcionalno, boja pri hoveru
+                              },
+                            }}
+                          >
+                            {course.name}
+                          </Typography>
+                          {user &&
+                          course.professorsCourse.some(
+                            (pc) => pc.user.username === user.username
+                          ) ? (
+                            <>
+                              <div>
+                                <Box
+                                  aria-describedby={idMenu}
+                                  onClick={(event) =>
+                                    handleClick(event, course)
+                                  }
+                                  sx={{
+                                    display: "flex",
+                                    width: "fit-content",
+                                    borderRadius: "20pt",
+                                    padding: 0,
+                                    "&:hover": {
+                                      cursor: "pointer",
+                                      color: "text.primary",
+                                      backgroundColor: "primary.main",
+                                    },
+                                  }}
+                                >
+                                  <MoreVertIcon />
+                                </Box>
+                                <Popover
+                                  id={idMenu}
+                                  open={open}
+                                  anchorEl={anchorEl}
+                                  onClose={handleClose}
+                                  anchorOrigin={{
+                                    vertical: "bottom",
+                                    horizontal: "center",
+                                  }}
+                                  slotProps={{
+                                    paper: {
+                                      sx: {
+                                        borderRadius: "10pt",
+                                        "&:hover": {
+                                          cursor: "pointer",
+                                        },
+                                      },
+                                    },
+                                  }}
+                                >
+                                  <Typography
+                                    onClick={handleDeleteClick}
+                                    variant="body2"
+                                    sx={{
+                                      paddingX: 2,
+                                      paddingY: 1,
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        color: "primary.light",
+                                      },
+                                      fontFamily: "Raleway, sans-serif",
+                                      color: "text.secondaryChannel",
+                                      backgroundColor: "background.paper",
+                                    }}
+                                  >
+                                    Obriši kurs
+                                  </Typography>
+                                </Popover>
+                              </div>
+                            </>
+                          ) : (
+                            ""
+                          )}
+                        </Box>
+                        <StyledTypography
+                          variant="body2"
+                          color="text.secondary"
+                          // gutterBottom
+                          fontFamily="Raleway, sans-serif"
+                          fontSize="clamp(10px, 12px, 14px)"
+                        >
+                          {course.description}
+                        </StyledTypography>
+                      </SyledCardContent>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "row",
+                          gap: 2,
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: 2,
+                        }}
+                      >
+                        <Author authors={course.professorsCourse} />
+                        <Typography variant="caption">
+                          <DateCard
+                            date={course.courseCreationDate.split("T")[0]}
+                          />
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </SyledCard>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
+          </>
+        )}
       </Box>
       <Dialog
         open={openDialog}
@@ -646,13 +664,17 @@ export default function MainContent() {
           <Button onClick={handleCloseDialog} sx={{ color: "text.primary" }}>
             Odustani
           </Button>
-          <Button
+          <LoadingButton
+            loading={statusCourse == "pendingDeleteCourse"}
+            loadingIndicator={
+              <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+            }
             onClick={handleConfirmDelete}
             color="error"
             variant="contained"
           >
             Obriši
-          </Button>
+          </LoadingButton>
         </DialogActions>
       </Dialog>
     </>

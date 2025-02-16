@@ -1,231 +1,145 @@
-// /* eslint-disable jsx-a11y/anchor-is-valid */
-import * as React from "react";
-import {
-  Avatar,
-  Box,
-  Chip,
-  Divider,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Typography,
-  Link,
-  useTheme,
-  Grid,
-} from "@mui/material";
-import { User, UsersCourse } from "../../../app/models/course";
+import React from "react";
+import { Avatar, Box, Grid, Typography, useTheme, Divider } from "@mui/material";
+import { UsersCourse } from "../../../app/models/course";
 
-const listItems = [
-  {
-    id: "INV-1234",
-    date: "Feb 3, 2023",
-    status: "Refunded",
-    customer: {
-      initial: "O",
-      name: "Olivia Ryhe",
-      email: "olivia@email.com",
-    },
-  },
-  {
-    id: "INV-1233",
-    date: "Feb 3, 2023",
-    status: "Paid",
-    customer: {
-      initial: "S",
-      name: "Steve Hampton",
-      email: "steve.hamp@email.com",
-    },
-  },
-  {
-    id: "INV-1232",
-    date: "Feb 3, 2023",
-    status: "Refunded",
-    customer: {
-      initial: "C",
-      name: "Ciaran Murray",
-      email: "ciaran.murray@email.com",
-    },
-  },
-  {
-    id: "INV-1231",
-    date: "Feb 3, 2023",
-    status: "Refunded",
-    customer: {
-      initial: "M",
-      name: "Maria Macdonald",
-      email: "maria.mc@email.com",
-    },
-  },
-  {
-    id: "INV-1230",
-    date: "Feb 3, 2023",
-    status: "Cancelled",
-    customer: {
-      initial: "C",
-      name: "Charles Fulton",
-      email: "fulton@email.com",
-    },
-  },
-  {
-    id: "INV-1229",
-    date: "Feb 3, 2023",
-    status: "Cancelled",
-    customer: {
-      initial: "J",
-      name: "Jay Hooper",
-      email: "hooper@email.com",
-    },
-  },
-];
-
-// function RowMenu() {
-//   return (
-//     <Dropdown>
-//       <MenuButton
-//         slots={{ root: IconButton }}
-//         slotProps={{ root: { variant: 'plain', color: 'neutral', size: 'sm' } }}
-//       >
-//         <MoreHorizRoundedIcon />
-//       </MenuButton>
-//       <Menu size="sm" sx={{ minWidth: 140 }}>
-//         <MenuItem>Edit</MenuItem>
-//         <MenuItem>Rename</MenuItem>
-//         <MenuItem>Move</MenuItem>
-//         <Divider />
-//         <MenuItem color="danger">Delete</MenuItem>
-//       </Menu>
-//     </Dropdown>
-//   );
-// }
-
-// const listItems = [
-//   {
-//     id: "123",
-//     customer: { initial: "A", name: "Ana Petrović", email: "ana@example.com" },
-//     date: "15.01.2025",
-//     status: "Paid",
-//   },
-//   {
-//     id: "456",
-//     customer: { initial: "M", name: "Marko Jovanović", email: "marko@example.com" },
-//     date: "10.01.2025",
-//     status: "Refunded",
-//   },
-//   {
-//     id: "789",
-//     customer: { initial: "J", name: "Jovana Nikolić", email: "jovana@example.com" },
-//     date: "05.01.2025",
-//     status: "Cancelled",
-//   },
-// ];
 interface StudentProps {
   students: UsersCourse[] | null;
 }
-export default function StudentsOnCourse({ students }: StudentProps) {
+
+const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
+  const theme = useTheme();
+
   return (
-    <>
-      <Box
-        sx={{
-          width: "100%",
-          maxHeight: "100%",
-          overflowY: "auto",
-          // bgcolor: "secondary.main",
-          borderRadius: 3,
-          padding: 0, // Padding koji osigurava da sadržaj ne bude previše blizu ivica
-          // border: "2px solid",
-          borderColor: (theme) => theme.palette.divider,
-          // boxShadow: "inset 0px 0px 8px rgba(22, 167, 121, 0.1)",
-          background: (theme) =>
-            `linear-gradient(0deg, ${theme.palette.background.paper}, ${theme.palette.primary.main})`,
-          boxSizing: "border-box", // Sprečava da sadržaj pređe padding
-        }}
-      >
-        {students && students.length > 0 ? (
-          <List sx={{ width: "100%", padding: 0 }}>
-            {students.map((student, index) => (
-              <Box key={student.id} sx={{ width: "100%" }}>
-                <ListItem
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 1,
-                    width: "100%",
-                    px: 1, // Padding levo i desno za još veću distancu unutar Box-a
-                  }}
-                >
-                  <ListItemAvatar>
+    <Box
+      sx={{
+        // height: "50vh", // Ograničena visina od 50vh
+        width: "100%", // Širina se prilagođava roditeljskoj komponenti (xs={4})
+        overflow: "hidden", // Sprečava prekomerno skrolovanje
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {students && students.length > 0 ? (
+        <Box
+          sx={{
+            // overflowY: "auto", // Omogućava vertikalno skrolovanje unutar okvira ako je potrebno
+            padding: 2,
+            paddingY:{xs:2, md:0},
+            // paddingRight:0,
+            // overflowX:"visible",
+            height: "100%", // Koristi celu visinu dostupnu unutar 50vh okvira
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+          }}
+        >
+          {students.map((student, index) => {
+            const { id, enrollDate, withdrawDate, user } = student;
+            const formattedEnrollDate = new Date(enrollDate).toLocaleDateString("sr-RS");
+            const formattedWithdrawDate =
+              (withdrawDate !== "0001-01-01T00:00:00" && withdrawDate!=null)
+                ? new Date(withdrawDate).toLocaleDateString("sr-RS")
+                : "danas";
+console.log(withdrawDate);
+                return (
+                  <Box
+                    key={id}
+                    sx={{
+                      backgroundColor: theme.palette.background.paper,
+                      boxShadow: theme.shadows[6],
+                      borderRadius: 3,
+                      padding: { xs: 1, sm: 2 },
+                      flexGrow: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: { xs: 0.5, sm: 1 },
+                      flexDirection: { xs: "column", sm: "column", md:"row" },
+                      justifyContent: { xs: "center", sm: "center", md:"space-between" },
+                      height: "auto",
+                      transition: "all 0.3s ease-in-out",
+                      "&:hover": {
+                        transform: "scale(1.03)",
+                      },
+                    }}
+                  >
+                    {/* Avatar - Smanjen na malim ekranima */}
                     <Avatar
                       sx={{
-                        color: "background.paper",
-                        backgroundColor: "primary.dark",
+                        width: { xs: 30, sm: 45 },
+                        height: { xs: 30, sm: 45 },
+                        fontSize: { xs: "0.9rem", sm: "1.2rem" },
+                        backgroundColor: theme.palette.primary.main,
+                        color: theme.palette.common.white,
                       }}
                     >
-                      {student.user.firstName.charAt(0).toUpperCase()}
+                      {user.firstName.charAt(0).toUpperCase()}
                     </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      student.user.firstName + " " + student.user.lastName
-                    }
-                    secondary={
-                      <>
-                        <Typography variant="body2" color="text.secondary">
-                          {student.user.email}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(student.enrollDate).toLocaleDateString(
-                            "sr-RS"
-                          )}{" "}
-                          -{" "}
-                          {student.withdrawDate != "0001-01-01T00:00:00"
-                            ? new Date(student.withdrawDate).toLocaleDateString(
-                                "sr-RS"
-                              )
-                            : "danas"}
-                        </Typography>
-                      </>
-                    }
-                  />
-                  {/* <Chip variant="outlined" label={listItem.status} /> */}
-                </ListItem>
-                {index < listItems.length - 1 && <Divider />}
-              </Box>
-            ))}
-          </List>
-        ) : (
-          <Typography sx={{ color: "text.primary", height:"18vh", lineHeight:"18vh", textAlign:"center" }}>Nema upisanih studenata</Typography>
-        )}
-      </Box>
-    </>
+                
+                    {/* Glavni podaci o studentu */}
+                    <Box
+                      sx={{
+                        flex: 1,
+                        textAlign: { xs: "center", sm: "left", md:"left" },
+                      }}
+                    >
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: theme.palette.text.primary,
+                          fontSize: { xs: "0.8rem", sm: "1rem", md:"1rem" },
+                        }}
+                      >
+                        {user.firstName} {user.lastName}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: { xs: "0.7rem", sm: "0.875rem", md:"0.95rem" },
+                        }}
+                      >
+                        {user.email}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          fontSize: { xs: "0.6rem", sm: "0.75rem", md:"0.8rem" },
+                        }}
+                      >
+                        {formattedEnrollDate} - {formattedWithdrawDate}
+                      </Typography>
+                    </Box>
+                
+                    {/* Status - Premešten ispod na malim ekranima */}
+                    <Typography
+                      variant="body2"
+                      color="primary"
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: { xs: "0.7rem", sm: "0.875rem", md:"0.9rem" },
+                        textAlign: "center",
+                        mt: { xs: 0.5, sm: 0 }, // Dodat mali razmak na XS ekranu
+                      }}
+                    >
+                      {(withdrawDate !==  "0001-01-01T00:00:00" && withdrawDate!==null)? "Ispisan" : "Upisan"}
+                    </Typography>
+                  </Box>
+                );
+                
+                
+          })}
+        </Box>
+      ) : (
+        <Box sx={{ py: 8, textAlign: "center", width: "100%" }}>
+          <Typography variant="h4" sx={{ color: theme.palette.text.secondary }}>
+            Nema upisanih studenata
+          </Typography>
+        </Box>
+      )}
+    </Box>
   );
-}
+};
 
-{
-  /* <Box
-        className="Pagination-mobile"
-        sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', py: 2 }}
-      >
-        <IconButton
-          aria-label="previous page"
-          variant="outlined"
-          color="neutral"
-        //   size="sm"
-        >
-          <KeyboardArrowLeftIcon />
-        </IconButton>
-        <Typography level="body-sm" sx={{ mx: 'auto' }}>
-          Page 1 of 10
-        </Typography>
-        <IconButton
-          aria-label="next page"
-          variant="outlined"
-          color="neutral"
-        //   size="sm"
-        >
-          <KeyboardArrowRightIcon />
-        </IconButton>
-      </Box> */
-}
-// </Box>
+export default StudentsOnCourse;

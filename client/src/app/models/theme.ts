@@ -1,3 +1,5 @@
+import { UsersCourse } from "./course";
+
 export interface Theme {
   id: number;
   title: string;
@@ -13,7 +15,6 @@ export interface CreateTheme {
   title: string;
   description: string;
   date: string;
-
   courseId?: number;
 }
 
@@ -33,6 +34,7 @@ export interface Course {
   studyProgram: Year;
   courseCreationDate: string;
   professorsCourse: ProfessorsCourse[];
+  usersCourse: UsersCourse[];
 }
 
 export interface ProfessorsCourse {

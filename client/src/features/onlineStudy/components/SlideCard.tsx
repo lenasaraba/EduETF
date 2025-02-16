@@ -9,12 +9,15 @@ import { Course } from "../../../app/models/course";
 import { Grid } from "@mui/material";
 import CourseCardMedia from "./CourseCardMedia";
 import { Link } from "react-router-dom";
+import { useAppSelector } from "../../../app/store/configureStore";
 
 interface SlideCardProps {
-  courses: Course[]; // Lista studijskih programa
+  courses: Course[]; 
 }
 
 export default function SlideCard({ courses }: SlideCardProps) {
+  const user = useAppSelector((state) => state.account.user);
+
   const theme = useTheme();
   const [activeStep, setActiveStep] = React.useState(0);
 
@@ -31,10 +34,10 @@ export default function SlideCard({ courses }: SlideCardProps) {
       <div style={{ margin: "0", padding: 0 }}>
         <Grid
           sx={{
-            gridTemplateColumns: "1fr 2fr", // Leva kolona (slika) će zauzeti 1fr, a desna (tekst) 2fr
+            gridTemplateColumns: "1fr 2fr", 
             display: "grid",
-            gap: 2, // Razmak između kolona
-            width: "100%", // Osigurava da grid zauzima celu širinu roditeljskog kontejnera
+            gap: 2, 
+            width: "100%", 
             mb: 3,
           }}
         >
@@ -56,7 +59,7 @@ export default function SlideCard({ courses }: SlideCardProps) {
           >
             <Typography
               component={Link}
-              to={`/courses/${courses[activeStep].id}`}
+              to={user ? `/courses/${courses[activeStep].id}`: `/login`}
               sx={{
                 width: "fit-content",
                 // whiteSpace: "nowrap", // Sprečava prelamanje linije
@@ -111,15 +114,6 @@ export default function SlideCard({ courses }: SlideCardProps) {
             </Typography>
           </Grid>
         </Grid>
-
-        {/* <Typography 
-        variant="h6" 
-        align="center" 
-        gutterBottom
-      >
-        {courses[activeStep].name}
-      </Typography> */}
-
         <MobileStepper
           variant="text"
           steps={courses.length}

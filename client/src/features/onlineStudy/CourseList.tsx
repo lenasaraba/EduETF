@@ -45,6 +45,7 @@ export default function CourseList() {
     programsFilter,
     coursesParams,
     metaData,
+    status
   } = useAppSelector((state) => state.course);
   const [searchTerm, setSearchTerm] = useState(coursesParams.searchTerm);
 
@@ -95,13 +96,6 @@ export default function CourseList() {
     }
   }, [user, courseType, navigate]);
 
-  //kad se mijenja stranica da se pribave kursevi sa nove
-  // useEffect(() => {
-  //   // if (!filtersLoaded) {
-  //   console.log("????????????????????????????????????????????????????'");
-  //   dispatch(fetchFilters());
-  //   // }
-  // }, [dispatch]);
   useEffect(() => {
     if (!pagecoursesLoaded) {
       dispatch(fetchCoursesAsync());
@@ -117,8 +111,8 @@ export default function CourseList() {
     };
   }, [debouncedSearch]);
 
-  if (!filtersLoaded)
-    return <LoadingComponent message="Učitavanje kurseva..." />;
+  // if (!filtersLoaded)
+  //   return <LoadingComponent message="Učitavanje kurseva..." />;
 
   return (
     <Grid
@@ -143,7 +137,6 @@ export default function CourseList() {
       >
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Breadcrumbs
-            //size="small"
             aria-label="breadcrumbs"
             separator={<ChevronRightRoundedIcon fontSize="small" />}
             sx={{ pl: 0 }}
@@ -152,22 +145,19 @@ export default function CourseList() {
               component={Link}
               to="/onlineStudy"
               sx={{ display: "flex", alignItems: "center" }}
-              // onClick={() => dispatch(resetCoursesParams())}
             >
               <AutoStoriesIcon
                 sx={{
                   color: "text.primary",
-                  // fontWeight: "bold",
                   transition: "transform 0.3s ease",
                   "&:hover": {
                     transform: "scale(1.2)",
-                    color: "primary.dark", // Promijeni boju na hover
+                    color: "primary.dark", 
                   },
                 }}
               />
             </Box>
 
-            {/* </Link> */}
             <Typography
               component={Typography}
               color="neutral"

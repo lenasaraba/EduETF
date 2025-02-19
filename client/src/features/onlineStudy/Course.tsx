@@ -25,10 +25,6 @@ import {
   DialogTitle,
   Popover,
   CircularProgress,
-  FormControl,
-  FormHelperText,
-  TextField,
-  Chip,
   ListItemButton,
 } from "@mui/material";
 import { EditNote, ExpandLess, ExpandMore } from "@mui/icons-material";
@@ -41,11 +37,9 @@ import {
   addProfessorToCourse,
   deleteCourseAsync,
   deleteMaterialAsync,
-  enrollOnCourse,
   fetchCourseAsync,
   fetchCurrentCourseMaterialAsync,
   uploadFile,
-  uploadMaterials,
 } from "./courseSlice";
 import LoadingComponent from "../../app/layout/LoadingComponent";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
@@ -57,9 +51,7 @@ import { useForm } from "react-hook-form";
 import { AddMaterial, Material } from "../../app/models/course";
 import CustomTimeline from "./components/CustomTimeline";
 import { LoadingButton } from "@mui/lab";
-import { toast } from "react-toastify";
 import Unauthorized from "../../app/errors/Unauthorized";
-import { User } from "../../app/models/user";
 import { fetchProfessorsAsync } from "./professorSlice";
 import { Professor } from "../../app/models/professor";
 
@@ -260,12 +252,15 @@ export default function Course() {
   };
 
   const { id } = useParams<{ id: string }>();
-
+  // const prevProfessors = useRef(0);
   const dispatch = useAppDispatch();
-  useEffect(() => {
-    dispatch(fetchCourseAsync(parseInt(id!)));
 
+  const course = useAppSelector((state) => state.course.currentCourse);
+  useEffect(() => {
+    const response = dispatch(fetchCourseAsync(parseInt(id!)));
+    console.log(response);
     dispatch(fetchCurrentCourseMaterialAsync(parseInt(id!)));
+    // prevProfessors.current = course?.professorsCourse.length || 0;
   }, []);
 
   const topOfPageRef = useRef<HTMLDivElement>(null);
@@ -278,7 +273,6 @@ export default function Course() {
     }
   }, [id]);
 
-  const course = useAppSelector((state) => state.course.currentCourse);
   // const user = useAppSelector((state) => state.account.user);
 
   const courseMaterials = useAppSelector(
@@ -312,11 +306,19 @@ export default function Course() {
   // }, [newWeek]);
 
   // Čekaj da se kurs učita, zatim postavi state
+
+  // const prevProfessorsNumber = useRef(course?.professorsCourse.length);
   useEffect(() => {
     if (course) {
-      setOpenWeeks(Array(course.weekCount).fill(false));
-      setNewWeek(course.weekCount);
-      dispatch(fetchCurrentCourseMaterialAsync(course.id));
+      if (status != "fulfilledProfessorOnCourse") {
+        //   // console.log(course.professorsCourse.length);
+        // console.log(prevProfessors);
+        // if (prevProfessors.current == course.professorsCourse.length) {
+        setOpenWeeks(Array(course.weekCount).fill(false));
+        setNewWeek(course.weekCount);
+        dispatch(fetchCurrentCourseMaterialAsync(course.id));
+        console.log("aaaa");
+      }
     }
   }, [course]);
 
@@ -356,7 +358,6 @@ export default function Course() {
     setNewWeek(course!.weekCount + 1);
     setAddingWeek(true);
   };
-
 
   const activeThemes = course?.themes.filter((theme) => theme.active);
   const inactiveThemes = course?.themes.filter((theme) => !theme.active);
@@ -414,7 +415,6 @@ export default function Course() {
 
   const handleConfirmDelete = async () => {
     try {
-      
       // console.log(course);
       await dispatch(deleteCourseAsync(course!.id));
       navigate("/courses?type=all");
@@ -450,6 +450,7 @@ export default function Course() {
   const handleSelectProfessor = (professor: Professor) => {
     console.log("Izabrani profesor:", professor);
     // cons data={courseId:id, professorId:professor.Id}
+
     if (course && professor)
       dispatch(
         addProfessorToCourse({
@@ -457,43 +458,45 @@ export default function Course() {
           professorId: professor.id,
         })
       );
+
     setOpenProf(false); // Zatvori modal nakon izbora
   };
 
-
   if (id === undefined) {
-  return <NotFound />;
-}
-
-// Ako je status "rejectedUnauthorized", odmah vraćamo Unauthorized i tu se završava render
-if (status === "rejectedUnauthorized") {
-  return <Unauthorized />;
-}
-
-// Ako kurs ne postoji, proveravamo status
-if (!course) {
-  if (status === "rejectedNotFound") {
     return <NotFound />;
   }
 
-  // Pazimo da ne prikažemo LoadingComponent ako je status već bio unauthorized
-  return <LoadingComponent message="Učitavanje kursa..." />;
-}
+  // Ako je status "rejectedUnauthorized", odmah vraćamo Unauthorized i tu se završava render
+  if (status === "rejectedUnauthorized") {
+    return <Unauthorized />;
+  }
 
+  // Ako kurs ne postoji, proveravamo status
+  if (!course) {
+    if (status === "rejectedNotFound") {
+      return <NotFound />;
+    }
 
+    // Pazimo da ne prikažemo LoadingComponent ako je status već bio unauthorized
+    return <LoadingComponent message="Učitavanje kursa..." />;
+  }
+  const availableProfessor = professors.filter(
+    (prof) => !course?.professorsCourse.some((p) => p.user.id === prof.id)
+  );
+  // console.log(availableProfessor);
   return (
     <>
-       {id === undefined ? (
-      <NotFound />
-    ) : status === "rejectedUnauthorized" ? (
-      <Unauthorized />
-    ) : !course ? (
-      status === "rejectedNotFound" ? (
+      {id === undefined ? (
         <NotFound />
+      ) : status === "rejectedUnauthorized" ? (
+        <Unauthorized />
+      ) : !course ? (
+        status === "rejectedNotFound" ? (
+          <NotFound />
+        ) : (
+          <LoadingComponent message="Učitavanje kursa..." />
+        )
       ) : (
-        <LoadingComponent message="Učitavanje kursa..." />
-      )
-    ) : (
         <Grid
           container
           sx={{
@@ -522,7 +525,15 @@ if (!course) {
             }}
           >
             <div ref={topOfPageRef}></div>
-            <Grid item xs={12} sx={{ marginBottom: 2,display:"flex", justifyContent:"space-between" }}>
+            <Grid
+              item
+              xs={12}
+              sx={{
+                marginBottom: 2,
+                display: "flex",
+                justifyContent: "space-between",
+              }}
+            >
               {" "}
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Breadcrumbs
@@ -707,14 +718,18 @@ if (!course) {
                   Odustani
                 </Button>
                 <LoadingButton
-                  loading={openDialog? status=="pendingDeleteCourse" : status=="pendingDeleteMaterial"}
+                  loading={
+                    openDialog
+                      ? status == "pendingDeleteCourse"
+                      : status == "pendingDeleteMaterial"
+                  }
                   onClick={
                     openDialog ? handleConfirmDelete : handleDeleteMaterial
                   }
                   color="error"
                   variant="contained"
                   loadingIndicator={
-                    <CircularProgress size={18} sx={{ color: "white" }} /> 
+                    <CircularProgress size={18} sx={{ color: "white" }} />
                   }
                 >
                   Obriši
@@ -727,7 +742,7 @@ if (!course) {
               sx={{
                 height: { xs: "auto", md: "50vh" },
                 padding: 3,
-                paddingRight: {xs:3, md:1},
+                paddingRight: { xs: 3, md: 1 },
                 justifyContent: "space-between",
                 borderRadius: 3,
                 backgroundColor: "primary.dark",
@@ -936,41 +951,65 @@ if (!course) {
                       </Button>
                     </Box>
                   )}
-                  <Dialog open={openProf} onClose={handleCloseProf}>
-                    <DialogTitle>Izaberite profesora</DialogTitle>
-                    <DialogContent>
-                      <List>
-                        {professors
-                          .filter(
-                            (prof) =>
-                              !course?.professorsCourse.some(
-                                (p) => p.user.id === prof.id
-                              )
-                          )
-
-                          .map((prof) => (
-                            <ListItem key={prof.id} disablePadding>
-                              <ListItemButton
-                                onClick={() => handleSelectProfessor(prof)}
-                              >
-                                <ListItemText
-                                  primary={
-                                    prof.firstName +
-                                    " " +
-                                    prof.lastName +
-                                    " (" +
-                                    prof.username +
-                                    ")"
-                                  }
-                                />
-                              </ListItemButton>
-                            </ListItem>
-                          ))}
-                      </List>
-                    </DialogContent>
+                  <Dialog
+                    open={openProf}
+                    onClose={handleCloseProf}
+                    sx={{
+                      "& .MuiDialog-paper": {
+                        borderRadius: "12pt",
+                        padding: 3,
+                        minWidth: 300,
+                        textAlign: "center",
+                        backgroundColor: "primary.main",
+                        color: "background.paper",
+                      },
+                    }}
+                  >
+                    {availableProfessor && availableProfessor.length > 0 ? (
+                      <>
+                        <DialogTitle>Izaberite profesora</DialogTitle>
+                        <DialogContent
+                          sx={{
+                            padding: 2,
+                          }}
+                        >
+                          <List>
+                            {availableProfessor.map((prof) => (
+                              <ListItem key={prof.id} disablePadding>
+                                <ListItemButton
+                                  onClick={() => handleSelectProfessor(prof)}
+                                >
+                                  <ListItemText
+                                    primary={
+                                      prof.firstName +
+                                      " " +
+                                      prof.lastName +
+                                      " (" +
+                                      prof.username +
+                                      ") - " +
+                                      prof.email
+                                    }
+                                  />
+                                </ListItemButton>
+                              </ListItem>
+                            ))}
+                          </List>
+                        </DialogContent>{" "}
+                      </>
+                    ) : (
+                      <Typography>Nema dostupnih profesora.</Typography>
+                    )}
                   </Dialog>
                 </Box>
-                {course && <Author authors={course.professorsCourse} />}
+                {course &&
+                  (status != "loadingProfessorOnCourse" ? (
+                    <Author authors={course.professorsCourse} />
+                  ) : (
+                    <CircularProgress
+                      size={60}
+                      sx={{ color: "text.secondary" }}
+                    />
+                  ))}
               </Box>
             </Grid>
 
@@ -1358,14 +1397,13 @@ if (!course) {
                   // overflow: "hidden",
                   // boxShadow: 5,
                   alignItems: "center",
-
                 }}
               >
                 <Typography variant="overline" sx={{ mb: 2 }}>
                   Zatvorene teme za ovaj kurs
                 </Typography>
                 {course && inactiveThemes && inactiveThemes?.length > 0 ? (
-                  <SlideCardThemes course={course} themes={inactiveThemes} />
+                  <SlideCardThemes themes={inactiveThemes} />
                 ) : (
                   <SpeakerNotesOffIcon
                     sx={{ fontSize: 50, color: "gray", mt: 2 }}

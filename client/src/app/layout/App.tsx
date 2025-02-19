@@ -13,8 +13,8 @@ import { useAppDispatch } from "../store/configureStore";
 import { useCallback, useEffect, useState } from "react";
 import LoadingComponent from "./LoadingComponent";
 import { fetchCurrentUser } from "../../features/account/accountSlice";
-import lightLogo from "../../../public/light.png";
-import darkLogo from "../../../public/dark.png";
+import lightLogo from "../../assets/lightLogo.png";
+import darkLogo from "../../assets/darkLogo.png";
 
 import "./app.css"; //
 import { BrandingContext } from "./BrandingContext";
@@ -163,9 +163,10 @@ const demoTheme = extendTheme({
     },
   },
   colorSchemeSelector: "class",
-  defaultColorScheme: localStorage.getItem("toolpad-mode")?.toString() == "light"
+  defaultColorScheme:
+    localStorage.getItem("toolpad-mode")?.toString() == "light"
       ? "light"
-      : "dark"
+      : "dark",
 });
 
 export default function App() {
@@ -173,7 +174,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   const [branding, setBranding] = useState(
-    localStorage.getItem("toolpad-mode")?.toString() == "light" ? BRANDINGL : BRANDINGD
+    localStorage.getItem("toolpad-mode")?.toString() == "light"
+      ? BRANDINGL
+      : BRANDINGD
   );
 
   console.log(localStorage.getItem("toolpad-mode"));
@@ -197,8 +200,7 @@ export default function App() {
 
   window.scrollTo(0, 0); // Pomeri na vrh prilikom prve učitavanja stranice
 
-  if (loading)
-    return <LoadingComponent message="EduETF"></LoadingComponent>;
+  if (loading) return <LoadingComponent message="EduETF"></LoadingComponent>;
 
   // const dispatch = useAppDispatch();
   // const [loading, setLoading] = useState(true);

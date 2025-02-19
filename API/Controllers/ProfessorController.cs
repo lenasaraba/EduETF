@@ -93,6 +93,19 @@ namespace API.Controllers
             return professors.Select(p => _mapper.Map<UserDto>(p)).ToList();
         }
 
+        [HttpGet("GetUserById/{id}")]
+        public async Task<ActionResult<UserDto>> GetUserById(int id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(m => m.Id == id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(_mapper.Map<UserDto>(user));
+
+
+        }
 
         [HttpGet("getProfessorYearsPrograms/{id}")]
         public async Task<ActionResult> GetProfessorYearsPrograms(int id)
@@ -136,7 +149,7 @@ namespace API.Controllers
             int courseId = request.CourseId;
             int professorId=request.ProfessorId;
 
-            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId);
+            var course = await _context.Courses.Include(c=>c.Year).Include(c=>c.StudyProgram).FirstOrDefaultAsync(c => c.Id == courseId);
 
             var professor = await _userManager.FindByIdAsync(professorId.ToString());
 

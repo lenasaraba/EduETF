@@ -9,7 +9,7 @@ import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import Table from "@mui/joy/Table";
 import Sheet from "@mui/joy/Sheet";
-import { debounce, TableBody, Theme } from "@mui/material";
+import { CircularProgress, debounce, TableBody, Theme } from "@mui/material";
 import { Typography as MuiTypo } from "@mui/material";
 
 import { Avatar } from "@mui/joy";
@@ -125,8 +125,8 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
     };
   }, [debouncedSearch]);
 
-  if (!filtersLoaded)
-    return <LoadingComponentJoy message="Učitavanje profesora..." />;
+  // if (!filtersLoaded)
+  //   return <LoadingComponentJoy message="Učitavanje profesora..." />;
 
   const pageTheme = extendTheme({
     colorSchemes: {
@@ -363,44 +363,71 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
     <>
       <MuiThemeProvider theme={themeM}>
         <JoyCssVarsProvider theme={pageTheme}>
-          <Box
-            className="SearchAndFilters-tabletUp"
-            sx={{
-              borderRadius: "sm",
-              py: 0,
-              display: { xs: "none", sm: "flex" },
-              flexWrap: "wrap",
-              gap: 1.5,
-              "& > *": {
-                minWidth: { xs: "120px", md: "160px" },
-              },
-            }}
-          >
-            <FormControl sx={{ flex: 1 }} size="sm">
-              <FormLabel sx={{ color: themeM.palette.primary.main }}>
-                Pretraži prema imenu i/ili prezimenu:
-              </FormLabel>
-              <Input
-                size="sm"
-                placeholder="Pretraga.."
-                startDecorator={<SearchIcon />}
-                onChange={(event: any) => {
-                  setSearchTerm(event.target.value);
-                  debouncedSearch(event);
-                }}
-                sx={{
-                  backgroundColor: themeM.palette.background.paper,
-                  borderColor: themeM.palette.background.default,
-                  color: themeM.palette.primary.main,
-                  "&:hover": {
-                    backgroundColor: themeM.palette.action.hover, // Hover effect on the select button
+          {filtersLoaded ? (
+            <Box
+              className="SearchAndFilters-tabletUp"
+              sx={{
+                borderRadius: "sm",
+                py: 0,
+                display: { xs: "none", sm: "flex" },
+                flexWrap: "wrap",
+                gap: 1.5,
+                "& > *": {
+                  minWidth: { xs: "120px", md: "160px" },
+                },
+              }}
+            >
+              <FormControl sx={{ flex: 1 }} size="sm">
+                <FormLabel sx={{ color: themeM.palette.primary.main }}>
+                  Pretraži prema imenu i/ili prezimenu:
+                </FormLabel>
+                <Input
+                  size="sm"
+                  placeholder="Pretraga.."
+                  startDecorator={<SearchIcon />}
+                  onChange={(event: any) => {
+                    setSearchTerm(event.target.value);
+                    debouncedSearch(event);
+                  }}
+                  sx={{
+                    backgroundColor: themeM.palette.background.paper,
+                    borderColor: themeM.palette.background.default,
                     color: themeM.palette.primary.main,
-                  },
-                }}
+                    "&:hover": {
+                      backgroundColor: themeM.palette.action.hover, // Hover effect on the select button
+                      color: themeM.palette.primary.main,
+                    },
+                  }}
+                />
+              </FormControl>
+
+              {renderFilters()}
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "10vh",
+                width: "100%",
+                margin: 0,
+                padding: 1,
+              }}
+            >
+              <MuiTypo
+                variant="body1"
+                sx={{ mb: 2, color: themeM.palette.primary.main }}
+              >
+                Učitavanje filtera
+              </MuiTypo>
+              <CircularProgress
+                size={40}
+                sx={{ color: themeM.palette.primary.main }}
               />
-            </FormControl>
-            {renderFilters()}
-          </Box>
+            </Box>
+          )}
 
           <Sheet
             className="ThemesContainer"

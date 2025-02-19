@@ -148,6 +148,7 @@ const Professor = {
   fetchFilters: () => requests.get("professor/filters"),
   addProfessorToCourse: (courseId: number, professorId: number) =>
     requests.post("professor/addProfessorToCourse", { courseId, professorId }),
+  getProfessorById: (id: number) => requests.get(`professor/GetUserById/${id}`),
 };
 
 const Theme = {

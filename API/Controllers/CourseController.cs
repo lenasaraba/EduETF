@@ -151,7 +151,8 @@ namespace API.Controllers
             var course = await _context.Courses
                 .Include(y => y.Year)
                 .Include(s => s.StudyProgram)
-                .Include(t => t.Themes).ThenInclude(m => m.Messages)
+                .Include(t => t.Themes)
+                // .ThenInclude(m => m.Messages)
                 .Include(pc => pc.ProfessorsCourse).ThenInclude(u => u.User)
                 .Include(uc => uc.UsersCourse).ThenInclude(u => u.User)
                 .FirstOrDefaultAsync(c => c.Id == id);

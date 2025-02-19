@@ -1,8 +1,9 @@
 import React from "react";
 import { CssVarsProvider } from "@mui/joy/styles";
 import { Box, Typography } from "@mui/joy";
-import { CircularProgress, extendTheme } from "@mui/material";
-
+import { CircularProgress, extendTheme, keyframes } from "@mui/material";
+import lightLogo from "../../assets/lightLogo.png";
+import darkLogo from "../../assets/darkLogo.png";
 interface Props {
   message?: string;
 }
@@ -100,6 +101,12 @@ export default function LoadingComponentJoy({ message = "Loading..." }: Props) {
         : "dark"
       : "dark",
   });
+
+  const pulseAnimation = keyframes`
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(0.8); opacity: 0.5; }
+      100% { transform: scale(1); opacity: 1; }
+    `;
   return (
     // <CssVarsProvider theme={theme}>
     <Box
@@ -114,11 +121,32 @@ export default function LoadingComponentJoy({ message = "Loading..." }: Props) {
         flexDirection: "column",
       }}
     >
-      <CircularProgress
+      <Box
+        display="flex"
+        justifyContent="center"
+        flexDirection="column"
+        alignItems="center"
+        height="100vh"
+      >
+        {/* Animirani logo */}
+        <Box
+          component="img"
+          src={theme.palette.mode == "dark" ? darkLogo : lightLogo} // Možeš dodati uslov za tamni mod ako treba
+          sx={{
+            height: "20vh",
+            animation: `${pulseAnimation} 1.5s infinite ease-in-out`,
+          }}
+        />
+      </Box>
+      {/* <CircularProgress
         size={100}
         sx={{ color: theme.palette.text.secondary }}
       ></CircularProgress>
-      <Typography
+      <img
+        src={theme.palette.mode == "dark" ? darkLogo : lightLogo}
+        style={{ height: "30vh" }}
+      ></img> */}
+      {/* <Typography
         level="h2"
         sx={{
           //   position: "fixed",
@@ -130,7 +158,7 @@ export default function LoadingComponentJoy({ message = "Loading..." }: Props) {
         }}
       >
         {message}
-      </Typography>
+      </Typography> */}
     </Box>
     // </CssVarsProvider>
   );

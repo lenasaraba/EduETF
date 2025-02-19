@@ -1,4 +1,12 @@
-import { Box, Button, Divider, Grid, Paper, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  Grid,
+  Paper,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import logo from "../../assets/etf.png";
 import SchoolIcon from "@mui/icons-material/School";
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
@@ -6,9 +14,12 @@ import ForumTwoToneIcon from "@mui/icons-material/ForumTwoTone";
 import LoginIcon from "@mui/icons-material/Login";
 import { Link } from "react-router-dom";
 import { useAppSelector } from "../../app/store/configureStore";
+import lightLogo from "../../assets/lightLogo.png";
+import darkLogo from "../../assets/darkLogo.png";
 
 export default function HomePage() {
   const { user } = useAppSelector((state) => state.account);
+  const theme = useTheme();
   return (
     <>
       <Grid
@@ -50,6 +61,9 @@ export default function HomePage() {
             sx={{
               borderRadius: "8px",
               backgroundColor: "secondary.main",
+              transition: "none",
+              boxShadow: (theme) =>
+                `0px 0px 20px 14px ${theme.palette.background.paper}`,
             }}
           >
             <Grid
@@ -90,18 +104,22 @@ export default function HomePage() {
                 Istočno Sarajevo
               </Typography>
               <br />
-              <Typography
-                variant="h1"
+              <Box
+                // variant="h1"
                 sx={{
                   fontFamily: "Raleway, sans-serif",
-                  textAlign: "left",
-                  width: "100%",
-                  fontWeight: 700,
-                  textShadow: "2px 2px 4px rgba(0, 0, 0, 0.3)",
+                  textAlign: "center",
+                  margin: 0,
+                  // width: "100%",
+                  // fontWeight: 700,
+                  // textShadow: "2px 2px 4px rgba(0, 0, 0, 0.3)",
                 }}
               >
-                Student App
-              </Typography>
+                <img
+                  style={{ height: "20vh" }}
+                  src={theme.palette.mode == "dark" ? darkLogo : lightLogo}
+                />
+              </Box>
               <br />
               <Box sx={{ width: "100%", maxWidth: 700 }}>
                 <Typography

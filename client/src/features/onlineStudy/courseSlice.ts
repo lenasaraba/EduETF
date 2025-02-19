@@ -162,10 +162,9 @@ export const fetchCourseAsync = createAsyncThunk<Course, number>(
   }
 );
 
-interface ProfCourseResponse
-{
-  profId: number,
-  courses: Course[],
+interface ProfCourseResponse {
+  profId: number;
+  courses: Course[];
 }
 export const fetchProfessorCoursesAsync = createAsyncThunk<
   ProfCourseResponse,
@@ -357,11 +356,7 @@ export const courseSlice = createSlice({
   name: "course",
   initialState,
   reducers: {
-    setProfessorCourses: (state, action) => {
-      
-
-      
-    },
+    setProfessorCourses: (state, action) => {},
     setCoursesParams: (state, action) => {
       state.pagecoursesLoaded = false;
       state.coursesParams = {
@@ -382,18 +377,16 @@ export const courseSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(fetchProfessorCoursesAsync.pending, (state)=>{
-      state.status="pendingFetchProfessorCourses";
+    builder.addCase(fetchProfessorCoursesAsync.pending, (state) => {
+      state.status = "pendingFetchProfessorCourses";
     });
-    builder.addCase(fetchProfessorCoursesAsync.fulfilled, (state, action)=>{
-      state.status="idle";
+    builder.addCase(fetchProfessorCoursesAsync.fulfilled, (state, action) => {
+      state.status = "idle";
       console.log(action.payload);
-      state.professorCourses![action.payload.profId] =
-        action.payload.courses;
+      state.professorCourses![action.payload.profId] = action.payload.courses;
     });
-    builder.addCase(fetchProfessorCoursesAsync.rejected, (state)=>{
-      state.status="rejectedFetchProfessorCourses";
-
+    builder.addCase(fetchProfessorCoursesAsync.rejected, (state) => {
+      state.status = "rejectedFetchProfessorCourses";
     });
     builder.addCase(createCourseAsync.fulfilled, (state, action) => {
       state.status = "idle";
@@ -413,7 +406,7 @@ export const courseSlice = createSlice({
       state.status = "idle";
     });
     builder.addCase(fetchCourseAsync.pending, (state) => {
-      state.currentCourse=null;
+      state.currentCourse = null;
       state.status = "pendingFetchCourse";
       state.currentCourseLoaded = false;
     });
@@ -499,7 +492,6 @@ export const courseSlice = createSlice({
     });
     builder.addCase(deleteCourseAsync.pending, (state) => {
       state.status = "pendingDeleteCourse";
-      
     });
     builder.addCase(deleteCourseAsync.fulfilled, (state, action) => {
       state.status = "idle";
@@ -512,7 +504,6 @@ export const courseSlice = createSlice({
     });
     builder.addCase(deletePaginatedCourseAsync.pending, (state) => {
       state.status = "pendingDeletePaginatedCourse";
-      
     });
     builder.addCase(deletePaginatedCourseAsync.fulfilled, (state, action) => {
       state.status = "idle";
@@ -523,7 +514,6 @@ export const courseSlice = createSlice({
     builder.addCase(deletePaginatedCourseAsync.rejected, (state) => {
       state.status = "rejectedDeletePaginatedCourse";
     });
-
 
     builder.addCase(deleteMaterialAsync.pending, (state) => {
       state.status = "pendingDeleteMaterial";
@@ -551,7 +541,7 @@ export const courseSlice = createSlice({
     builder.addCase(uploadFile.fulfilled, (state, action) => {
       state.status = "idle";
       state.currentCourseMaterials?.push(action.payload); // Ažuriranje liste materijala
-      state.currentCourse?.materials?.concat(action.payload);
+      // state.currentCourse?.materials?.concat(action.payload);
       console.log(action.payload);
       if (action.payload.week > state.currentCourse!.weekCount)
         state.currentCourse!.weekCount = action.payload.week;
@@ -586,7 +576,7 @@ export const courseSlice = createSlice({
     builder.addCase(
       addProfessorToCourse.fulfilled,
       (state, action: PayloadAction<EnrollResponseProf>) => {
-        state.status = "idle";
+        // state.status = "idle";
         console.log(action.payload);
         // Pretpostavljamo da je tip stanja 'userCourses' tipa Record<number, Course[]>
         state.professorCourses![action.payload.professor.id] =
@@ -601,6 +591,8 @@ export const courseSlice = createSlice({
           enrollDate: action.payload.enrollDate,
         });
         console.log(state.currentCourse);
+        state.status = "fulfilledProfessorOnCourse";
+
         //OVO PROMIJENITI
         //state.currentCourse?.usersCourse=state.currentCourse?.usersCourse.concat(action.payload);
       }

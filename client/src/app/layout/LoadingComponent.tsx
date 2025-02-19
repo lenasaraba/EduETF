@@ -3,11 +3,12 @@ import {
   Box,
   CircularProgress,
   extendTheme,
+  keyframes,
   Typography,
 } from "@mui/material";
 
-import lightLogo from "../../../public/light.png";
-import darkLogo from "../../../public/dark.png";
+import lightLogo from "../../assets/lightLogo.png";
+import darkLogo from "../../assets/darkLogo.png";
 
 interface Props {
   message?: string;
@@ -60,7 +61,7 @@ export default function LoadingComponent({ message = "Loading..." }: Props) {
           },
         },
       },
-  
+
       dark: {
         palette: {
           text: {
@@ -70,16 +71,16 @@ export default function LoadingComponent({ message = "Loading..." }: Props) {
             primaryChannel: "#3A7D44", // Smanjena zelena za kanale
             secondaryChannel: "#D04B47", // Crvena, zadržana
           },
-  
+
           action: {
             active: "#A2B7B0", // Neutralnija nijansa za aktivne elemente
-  
+
             hover: "#5A524699", // 60% providnosti (99 u heksadecimalnom formatu)
             disabled: "#4A525880", // 50% providnosti (80)
             disabledBackground: "#2E333666", // 40% providnosti (66)
             focus: "#75655499",
           },
-  
+
           // action: {
           //   active: "#A2B7B0", // Neutralnija nijansa za aktivne elemente
           //   hover: "#1B2422", // Duboki kontrast za hover efekat
@@ -110,17 +111,26 @@ export default function LoadingComponent({ message = "Loading..." }: Props) {
       },
     },
     colorSchemeSelector: "class",
-    defaultColorScheme: localStorage.getItem("toolpad-mode")?.toString() == "light"
+    defaultColorScheme:
+      localStorage.getItem("toolpad-mode")?.toString() == "light"
         ? "light"
-        : "dark"
+        : "dark",
   });
+
+  // Definiši keyframes animaciju za pulsiranje
+  const pulseAnimation = keyframes`
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+  `;
+
   return (
     <Backdrop
       open={true}
       invisible={true}
       sx={{
-        backgroundColor: theme.palette.background.paper,
-        color: theme.palette.primary.main,
+        backgroundColor: theme.palette.background.default,
+        // color: "#A59D84",
       }}
     >
       <Box
@@ -130,22 +140,15 @@ export default function LoadingComponent({ message = "Loading..." }: Props) {
         alignItems="center"
         height="100vh"
       >
-        <CircularProgress
-          size={100}
-          sx={{ color: theme.palette.primary.main }}
-        />
-        <img src={theme.palette.mode=="dark" ? darkLogo:lightLogo} style={{height:"30vh"}}></img>
-        {/* <Typography
-          variant="h4"
+        {/* Animirani logo */}
+        <Box
+          component="img"
+          src={theme.palette.mode == "dark" ? darkLogo : lightLogo} // Možeš dodati uslov za tamni mod ako treba
           sx={{
-            justifyContent: "center",
-            position: "fixed",
-            top: "60%",
-            fontFamily: "Raleway, sans-serif",
+            height: "20vh",
+            animation: `${pulseAnimation} 1.5s infinite ease-in-out`,
           }}
-        >
-          {message}
-        </Typography> */}
+        />
       </Box>
     </Backdrop>
   );

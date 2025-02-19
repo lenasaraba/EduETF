@@ -20,6 +20,12 @@ export interface ProfessorState {
   years: string[];
   profYears: Record<number, Year[]> | null;
   profPrograms: Record<number, StudyProgram[]> | null;
+
+  currentProfessor: Professor | null;
+  currentProfessorLoaded: boolean;
+  currentProfessorYears: Year[] | null;
+  currentProfessorPrograms: StudyProgram[] | null;
+  currentProfessorCourses: Course[] | null;
 }
 
 const initialState: ProfessorState = {
@@ -36,6 +42,12 @@ const initialState: ProfessorState = {
   years: [],
   profYears: {},
   profPrograms: {},
+
+  currentProfessor: null,
+  currentProfessorLoaded: false,
+  currentProfessorYears: [],
+  currentProfessorPrograms: [],
+  currentProfessorCourses: [],
 };
 
 function initParams() {
@@ -145,7 +157,7 @@ export const fetchProfessorsAsync = createAsyncThunk<
   const params = getAxiosParams(thunkAPI.getState().professor.professorsParams);
   try {
     const professors = await agent.Professor.GetAllProfessors(params);
-    thunkAPI.dispatch(setProfessors(professors));
+    // thunkAPI.dispatch(setProfessors(professors));
     return professors;
   } catch (error: any) {
     return thunkAPI.rejectWithValue({ error: error.data });
@@ -193,14 +205,40 @@ export const updateThemeStatus = createAsyncThunk<void, UpdateThemeDto>(
   }
 );
 
+interface ProfessorResponse {
+  professor: Professor;
+  years: Year[] | null;
+  programs: StudyProgram[] | null;
+  courses: Course[] | null;
+}
+export const fetchProfessorByIdAsync = createAsyncThunk<
+  ProfessorResponse,
+  number
+>("professor/fetchProfessorByIdAsync", async (id, thunkAPI) => {
+  try {
+    const professor = await agent.Professor.getProfessorById(id);
+    const { years, programs } =
+      await agent.Professor.getProfessorYearsPrograms(id);
+    const professorCourses = await agent.Course.getProfessorCourses(id);
+    return {
+      professor: professor,
+      years: years,
+      programs: programs,
+      courses: professorCourses.courses,
+    };
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue({ error: error.data });
+  }
+});
+
 export const professorSlice = createSlice({
   name: "professor",
   initialState,
   reducers: {
-    setProfessors: (state, action) => {
-      state.professors = action.payload;
-      state.professorsLoaded = true;
-    },
+    // setProfessors: (state, action) => {
+    //   state.professors = action.payload;
+    //   state.professorsLoaded = true;
+    // },
     setProfessorsParams: (state, action) => {
       state.professorsLoaded = false;
       state.professorsParams = {
@@ -245,10 +283,11 @@ export const professorSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(fetchProfessorsAsync.pending, (state) => {
       state.status = "pendingFetchProfessors";
-      state.professorsLoaded=false;
+      state.professorsLoaded = false;
     });
-    builder.addCase(fetchProfessorsAsync.fulfilled, (state) => {
+    builder.addCase(fetchProfessorsAsync.fulfilled, (state, action) => {
       state.status = "idle";
+      state.professors = action.payload;
       state.professorsLoaded = true;
     });
     builder.addCase(fetchProfessorsAsync.rejected, (state) => {
@@ -285,7 +324,6 @@ export const professorSlice = createSlice({
     });
     builder.addCase(deleteProfessorsThemeAsync.pending, (state) => {
       state.status = "pendingDeleteTheme";
-
     });
     builder.addCase(deleteProfessorsThemeAsync.fulfilled, (state, action) => {
       state.status = "idle";
@@ -296,7 +334,6 @@ export const professorSlice = createSlice({
     });
     builder.addCase(deleteProfessorsThemeAsync.rejected, (state) => {
       state.status = "rejectedDeleteProfTheme";
-      
     });
     builder.addCase(deleteProfessorsCourseAsync.pending, (state) => {
       state.status = "pendingDeleteCourse";
@@ -316,6 +353,25 @@ export const professorSlice = createSlice({
     });
     builder.addCase(deleteProfessorsCourseAsync.rejected, (state) => {
       state.status = "rejectedDeleteProfCourse";
+    });
+
+    builder.addCase(fetchProfessorByIdAsync.pending, (state) => {
+      state.status = "pendingFetchProfessorByIdAsync";
+      // state.coursesLoaded = false;
+    });
+    builder.addCase(fetchProfessorByIdAsync.rejected, (state) => {
+      //state.loading = false;
+      state.status = "idle";
+    });
+    builder.addCase(fetchProfessorByIdAsync.fulfilled, (state, action) => {
+      //state.loading = false; // Postavi loading na true
+      // state.coursesLoaded = true;
+      console.log(action.payload);
+      state.currentProfessor = action.payload.professor;
+      state.currentProfessorCourses = action.payload.courses;
+      state.currentProfessorYears = action.payload.years;
+      state.currentProfessorPrograms = action.payload.programs;
+      state.status = "fulfilledFetchProfessorByIdAsync";
     });
   },
 });

@@ -90,7 +90,8 @@ export default function Theme() {
   // const themes = useAppSelector((state) => state.theme.themes);
   const { user } = useAppSelector((state) => state.account);
   const messages = useAppSelector(
-    (state) => state.message.messages![parseInt(id!)]
+    // (state) => state.message.messages![parseInt(id!)]
+    (state) => state.message.messages
   );
 
   const messagesLoaded = useAppSelector(
@@ -496,12 +497,15 @@ export default function Theme() {
                                     Odustani
                                   </Button>
                                   <LoadingButton
-                                  loading={status=="pendingDeleteTheme"}
+                                    loading={status == "pendingDeleteTheme"}
                                     onClick={handleConfirmDelete}
                                     color="error"
                                     variant="contained"
                                     loadingIndicator={
-                                      <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+                                      <CircularProgress
+                                        size={18}
+                                        sx={{ color: "white" }}
+                                      /> // Ovdje mijenjaš boju
                                     }
                                   >
                                     Obriši
@@ -1152,7 +1156,7 @@ export default function Theme() {
                 Odustani
               </Button>
               <LoadingButton
-              loading={statusMessage=="pendingDeleteMessage"}
+                loading={statusMessage == "pendingDeleteMessage"}
                 onClick={handleConfirmDeleteMessage}
                 color="error"
                 variant="contained"

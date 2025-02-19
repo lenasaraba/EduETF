@@ -26,7 +26,8 @@ export default function ProfessorList() {
     professors!.forEach((professor) => {
       dispatch(fetchProfessorCoursesAsync(professor.id));
     });
-  }, [dispatch, professors]);
+    console.log("aaa");
+  }, [professors]);
 
   const professorCourses = useAppSelector(
     (state) => state.course.professorCourses
@@ -88,7 +89,8 @@ export default function ProfessorList() {
             label="Svi profesori"
           />
         </Grid>
-        {profCoursestatus == "pendingFetchProfessorCourses" ? (
+        {profCoursestatus == "pendingFetchProfessorCourses" ||
+        statusProf == "pendingFetchProfessors" ? (
           <Box
             sx={{
               display: "flex",
@@ -101,7 +103,9 @@ export default function ProfessorList() {
               padding: 1,
             }}
           >
-            <Typography variant="body1" sx={{mb:2}}>Učitavanje profesora</Typography>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Učitavanje profesora
+            </Typography>
             <CircularProgress size={120} sx={{ color: "text.secondary" }} />
           </Box>
         ) : (

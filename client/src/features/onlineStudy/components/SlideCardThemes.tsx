@@ -13,11 +13,11 @@ import { Theme } from "../../../app/models/course";
 import { width } from "@mui/system";
 
 interface SlideCardProps {
-  course: Course;
+  // course: Course;
   themes: Theme[]; // Lista studijskih programa
 }
 
-export default function SlideCardThemes({ course, themes }: SlideCardProps) {
+export default function SlideCardThemes({ themes }: SlideCardProps) {
   const designTheme = useTheme();
   const [activeStep, setActiveStep] = React.useState(0);
 
@@ -135,7 +135,7 @@ export default function SlideCardThemes({ course, themes }: SlideCardProps) {
                   fontSize: "clamp(8pt, 10pt, 12pt)",
                 }}
               >
-                Broj poruka: {themes[activeStep].messages.length}
+                {/* Broj poruka: {themes[activeStep].messages.length} */}
               </Typography>
             </Box>
           </Grid>

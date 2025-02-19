@@ -98,6 +98,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
   const [userSelected, setUserSelected] = useState<User | undefined>(undefined);
   // Ref za pristup svim Option elementima
   const optionRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const prevStatusValue = useRef(statusValue);
+  const prevCatValue = useRef(catValue);
 
   const handleHover = (index: number) => {
     if (optionRefs.current[index]) {
@@ -108,6 +110,18 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
       setCurrentColor(backgroundColor); // Postavljamo boju u stanje
     }
   };
+
+  useEffect(() => {
+    if (prevStatusValue.current !== statusValue) {
+      prevStatusValue.current = statusValue;
+    }
+  }, [statusValue]);
+
+  useEffect(() => {
+    if (prevCatValue.current !== catValue) {
+      prevCatValue.current = catValue;
+    }
+  }, [catValue]);
 
   const handleMouseLeave = (index: number) => {
     setCurrentColor("");
@@ -136,6 +150,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
         setSearchTerm(event.target.value);
         dispatch(setThemesParams({ searchTerm: event.target.value }));
         dispatch(fetchThemesAsync());
+        console.log("debounced");
       }, 1000),
     [dispatch] // Zavisi samo od dispatch-ap
   );
@@ -147,6 +162,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
     dispatch(resetThemesParams());
     dispatch(setThemesParams({ type: themesType }));
     dispatch(fetchThemesAsync());
+    console.log("themestype");
   }, [themesType, dispatch]);
 
   const user = useAppSelector((state) => state.account.user);
@@ -173,11 +189,16 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
 
     try {
       await dispatch(updateThemeStatus(updateData));
+      console.log("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
     } catch (error) {
       console.error("Greška prilikom ažuriranja statusa:", error);
     } finally {
       setLoadingStatus((prev) => ({ ...prev, [theme.id]: false })); // Isključi loading nakon završetka
     }
+    console.log("prije");
+
+    dispatch(fetchFilters());
+    console.log("poslije");
   };
 
   useEffect(() => {
@@ -186,13 +207,17 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
     }
   }, [user, themesType, navigate]);
 
-  useEffect(() => {
-    if (!themesLoaded) dispatch(fetchThemesAsync());
-  }, [themesLoaded, dispatch]);
+  // useEffect(() => {
+  //   if (!themesLoaded) dispatch(fetchThemesAsync());
+  // }, [themesLoaded, dispatch]);
 
   useEffect(() => {
-    if (!filtersLoaded) dispatch(fetchFilters());
-  }, [dispatch, filtersLoaded]);
+    // if (!filtersLoaded)
+    dispatch(fetchFilters());
+  }, [
+    dispatch,
+    // , filtersLoaded
+  ]);
 
   useEffect(() => {
     return () => {
@@ -228,6 +253,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
     } finally {
       setOpenDialog(false);
     }
+    dispatch(fetchFilters());
   };
 
   const handleCloseDialogInfo = () => {
@@ -418,10 +444,22 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
             },
           }}
           value={statusValue}
+          // onChange={(event, value) => {
+          //   console.log("OVJDEEEEE");
+          //   setStatusValue(value || "");
+          //   dispatch(setThemesParams({ themeStatus: value }));
+
+          //   dispatch(fetchThemesAsync());
+          // }}
+
           onChange={(event, value) => {
-            setStatusValue(value || "");
-            dispatch(setThemesParams({ themeStatus: value }));
-            dispatch(fetchThemesAsync());
+            if (value !== prevStatusValue.current) {
+              console.log("Promenjena selektovana vrednost!");
+              setStatusValue(value || "");
+              dispatch(setThemesParams({ themeStatus: value }));
+              dispatch(fetchThemesAsync());
+            }
+            prevStatusValue.current = value!;
           }}
           // MenuProps={{
           //   PaperProps: {
@@ -485,9 +523,13 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
           size="sm"
           placeholder="Kategorija"
           onChange={(event, value) => {
-            setCatValue(value || "");
-            dispatch(setThemesParams({ category: value }));
-            dispatch(fetchThemesAsync());
+            if (value !== prevCatValue.current) {
+              console.log("Promenjena selektovana kategorija!");
+              setCatValue(value || "");
+              dispatch(setThemesParams({ category: value }));
+              dispatch(fetchThemesAsync());
+            }
+            prevCatValue.current = value!;
           }}
           value={catValue}
           sx={{
@@ -560,8 +602,16 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                 padding: 1,
               }}
             >
-              <MuiTypo variant="body1" sx={{mb:2, color: themeM.palette.primary.main }}>Učitavanje filtera</MuiTypo>
-              <CircularProgress size={40} sx={{ color: themeM.palette.primary.main }} />
+              <MuiTypo
+                variant="body1"
+                sx={{ mb: 2, color: themeM.palette.primary.main }}
+              >
+                Učitavanje filtera
+              </MuiTypo>
+              <CircularProgress
+                size={40}
+                sx={{ color: themeM.palette.primary.main }}
+              />
             </Box>
           ) : (
             <>

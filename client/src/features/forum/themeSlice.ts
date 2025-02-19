@@ -1,4 +1,9 @@
-import { createAsyncThunk, createSlice, isAction, PayloadAction } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  isAction,
+  PayloadAction,
+} from "@reduxjs/toolkit";
 import { CreateTheme, Theme, ThemesParams } from "../../app/models/theme";
 import agent from "../../app/api/agent";
 import { RootState } from "../../app/store/configureStore";
@@ -195,7 +200,7 @@ export const themeSlice = createSlice({
     builder.addCase(fetchThemesAsync.fulfilled, (state, action) => {
       state.status = "idle";
       state.themesLoaded = true;
-      state.themes=action.payload;
+      state.themes = action.payload;
     });
     builder.addCase(updateThemeStatus.pending, (state) => {
       state.status = "pendingUpdateTheme";
@@ -230,7 +235,7 @@ export const themeSlice = createSlice({
     });
     builder.addCase(fetchThemeByIdAsync.pending, (state) => {
       state.status = "pendingFetchThemeByIdAsync";
-      state.currentTheme=null;
+      state.currentTheme = null;
       state.currentThemeLoaded = false;
     });
     builder.addCase(fetchThemeByIdAsync.fulfilled, (state, action) => {
@@ -239,14 +244,13 @@ export const themeSlice = createSlice({
       state.currentThemeLoaded = true;
     });
     builder.addCase(fetchThemeByIdAsync.rejected, (state, action) => {
-
       console.log(action.payload);
 
-      if (action.payload.error.status == 401)
+      if (action.payload.error?.status == 401)
         state.status = "rejectedUnauthorized";
-      else if (action.payload.error.status == 404)
+      else if (action.payload.error?.status == 404)
         state.status = "rejectedNotFound";
-      
+
       state.currentTheme = null;
 
       state.currentThemeLoaded = false;

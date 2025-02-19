@@ -9,8 +9,8 @@ import NightsStayTwoToneIcon from "@mui/icons-material/NightsStayTwoTone";
 import LightModeTwoToneIcon from "@mui/icons-material/LightModeTwoTone";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useBranding } from "./BrandingContext";
-import lightLogo from "../../../public/light.png";
-import darkLogo from "../../../public/dark.png";
+import lightLogo from "../../assets/lightLogo.png";
+import darkLogo from "../../assets/darkLogo.png";
 
 function CustomThemeToggle(): JSX.Element {
   const { branding, setBranding } = useBranding();
@@ -20,20 +20,16 @@ function CustomThemeToggle(): JSX.Element {
     title: "",
     logo: <img src={lightLogo} />,
   };
-  
+
   const BRANDINGD = {
     title: "",
     logo: <img src={darkLogo} />,
   };
-  
 
   const toggleTheme = React.useCallback(() => {
     if (setMode) {
-      setBranding(mode==="light"?BRANDINGD:BRANDINGL
-      );
+      setBranding(mode === "light" ? BRANDINGD : BRANDINGL);
       setMode(mode === "light" ? "dark" : "light");
-      
-
     }
   }, [mode, setMode]);
 
@@ -71,8 +67,6 @@ export default function Layout() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.account);
 
-
-  
   function sideMenu() {
     return (
       <>

@@ -1,4 +1,11 @@
-import { Box, Button, CircularProgress, Divider, Grid, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Grid,
+  Typography,
+} from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { fetchThemesAsync, resetThemesParams } from "./themeSlice";
 import { Fragment, useEffect } from "react";
@@ -43,7 +50,7 @@ export default function ForumPage() {
           display: "flex",
           direction: "column",
           position: "relative",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "center",
         }}
       >
@@ -128,8 +135,13 @@ export default function ForumPage() {
                   padding: 1,
                 }}
               >
-                <Typography variant="body1" sx={{mb:2, color:"primary.main"}}>Učitavanje tema</Typography>
-                <CircularProgress size={50} sx={{ color: "primary.main" }} />
+                <Typography
+                  variant="body1"
+                  sx={{ mb: 2, color: "primary.main" }}
+                >
+                  Učitavanje tema
+                </Typography>
+                <CircularProgress size={120} sx={{ color: "primary.main" }} />
               </Box>
             ) : (
               <>

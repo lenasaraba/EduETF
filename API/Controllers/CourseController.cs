@@ -19,18 +19,27 @@ namespace API.Controllers
     {
         private readonly StoreContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<Role> _roleManager;
+
 
         private readonly IMapper _mapper;
-        public CourseController(StoreContext context, IMapper mapper, UserManager<User> userManager)
+        public CourseController(StoreContext context, IMapper mapper, UserManager<User> userManager, RoleManager<Role> roleManager)
         {
             _context = context;
             _userManager = userManager;
             _mapper = mapper;
+            _roleManager = roleManager; 
         }
 
         public class EnrollRequest
         {
             public int CourseId { get; set; }
+        }
+
+         public class RemoveRequest
+        {
+            public int CourseId { get; set; }
+
         }
 
 
@@ -41,7 +50,7 @@ namespace API.Controllers
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
-            .Include(c => c.UsersCourse)
+            .Include(c => c.UsersCourse).ThenInclude(pu => pu.User)
             .Include(t => t.Themes)
 
             .AsQueryable();
@@ -190,6 +199,59 @@ namespace API.Controllers
             }
 
             return Ok(_mapper.Map<CourseDto>(course));
+        }
+
+         [HttpGet("getStudents")]
+        public async Task<ActionResult<List<UserDto>>> GetStudents([FromQuery] StudentsParams studentsParams)
+        {
+            int roleId = 2;
+            var role = await _roleManager.FindByIdAsync(roleId.ToString());
+            if (role == null)
+            {
+                return NotFound("Role not found");
+            }
+
+            // Kreiranje upita za sve profesore sa specifičnom ulogom
+            var query = _context.Users
+                .Where(u => _context.UserRoles
+                    .Where(ur => ur.RoleId == role.Id)
+                    .Any(ur => ur.UserId == u.Id))
+                // .Include(u => u.ProfessorCourses) // Veza sa kursevima profesora
+                //     .ThenInclude(pc => pc.Course)
+                //     .ThenInclude(c => c.StudyProgram) // Veza sa programima
+                // .Include(u => u.ProfessorCourses)
+                //     .ThenInclude(pc => pc.Course)
+                //     .ThenInclude(c => c.Year) // Veza sa godinama
+                .AsQueryable();
+
+            // // Filtriranje prema imenu i prezimenu
+            if (!string.IsNullOrEmpty(studentsParams.SearchTerm))
+            {
+                query = query.Where(s =>
+                    s.FirstName.Contains(studentsParams.SearchTerm) ||
+                    s.LastName.Contains(studentsParams.SearchTerm));
+            }
+
+            // // Filtriranje prema godinama
+            // if (!string.IsNullOrEmpty(professorsParams.Year))
+            // {
+            //     if (professorsParams.Year != "Sve")
+            //         query = query.Where(p =>
+            //             p.ProfessorCourses.Any(pc => pc.Course.Year.Name == professorsParams.Year));
+            // }
+
+            // // Filtriranje prema programima
+            // if (!string.IsNullOrEmpty(professorsParams.Program))
+            // {
+            //     if (professorsParams.Program != "Sve")
+            //         query = query.Where(p =>
+            //             p.ProfessorCourses.Any(pc => pc.Course.StudyProgram.Name == professorsParams.Program));
+            // }
+            // Izvršavanje upita
+            var students = await query.ToListAsync();
+
+            // Mapiranje rezultata na DTO
+            return students.Select(p => _mapper.Map<UserDto>(p)).ToList();
         }
 
 
@@ -469,6 +531,45 @@ namespace API.Controllers
                 Message = "Uspješan upis na kurs",
                 student = studentDto,
                 course = courseDto,
+            });
+        }
+
+
+        [Authorize(Roles = "Student")]
+        [HttpPost("removeStudentFromCourse")]
+        public async Task<IActionResult> RemoveStudentFromCourse([FromBody] RemoveRequest request)
+        {
+            int courseId = request.CourseId;
+
+            // Provera identiteta profesora
+            var student = await _userManager.FindByNameAsync(User.Identity.Name);
+            // int professorId=professor.Id;
+            if (student == null)
+                return NotFound("Student nije pronađen");
+
+            // Provera da li kurs postoji
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId);
+            if (course == null)
+                return NotFound("Kurs nije pronađen");
+
+            // Provera da li je profesor upisan na kurs
+            var enrollment = await _context.UserCourses
+                .FirstOrDefaultAsync(uc => uc.UserId == student.Id && uc.CourseId == courseId);
+
+            if (enrollment == null)
+                return BadRequest("Student nije upisan na kurs.");
+
+            enrollment.WithdrawDate=DateTime.UtcNow;
+
+            // Brisanje zapisa o upisu studenta na kurs
+            // _context.UserCourses.Remove(enrollment);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {   Method="RemoveStudentFromCourse",
+                Message = "Uspješno ste ispisani sa kursa.",
+                studentId = student.Id,
+                courseId = course.Id
             });
         }
 

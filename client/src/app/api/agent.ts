@@ -39,6 +39,11 @@ axios.interceptors.response.use(
         toast.success(response.data.message);
       if (response.data.method == "DeleteMaterial")
         toast.success(response.data.message);
+      if(response.data.method=="RemoveProfessorFromCourse")
+        toast.success(response.data.message);
+      if(response.data.method=="RemoveStudentFromCourse")
+        toast.success(response.data.message);
+
     }
 
     // const pagination = response.headers["pagination"];
@@ -138,6 +143,9 @@ const Course = {
     requests.get(`course/getCourseMaterialsByCourseId/${id}`),
   enrollOnCourse: (courseId: number) =>
     requests.post("course/enroll", { courseId }),
+  AllStudents: (params: URLSearchParams)=>requests.get("course/getStudents", params),
+  removeStudentFromCourse: (courseId: number) =>
+    requests.post("course/removeStudentFromCourse", { courseId }),
 };
 
 const Professor = {
@@ -148,6 +156,8 @@ const Professor = {
   fetchFilters: () => requests.get("professor/filters"),
   addProfessorToCourse: (courseId: number, professorId: number) =>
     requests.post("professor/addProfessorToCourse", { courseId, professorId }),
+  removeProfessorFromCourse: (courseId: number) =>
+    requests.post("professor/removeProfessorFromCourse", { courseId }),
   getProfessorById: (id: number) => requests.get(`professor/GetUserById/${id}`),
 };
 

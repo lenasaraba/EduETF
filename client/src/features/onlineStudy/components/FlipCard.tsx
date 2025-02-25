@@ -81,9 +81,17 @@ interface Props {
     type: "course" | "theme",
     item: any
   ) => void;
+  handleRemoveProfClick: (
+    event: React.MouseEvent<HTMLElement>,
+    item: Course
+  ) => void;
 }
 
-export default function FlipCard({ course, handleDeleteClick }: Props) {
+export default function FlipCard({
+  course,
+  handleDeleteClick,
+  handleRemoveProfClick,
+}: Props) {
   const user = useAppSelector((state) => state.account.user);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -144,9 +152,8 @@ export default function FlipCard({ course, handleDeleteClick }: Props) {
     }
   };
 
-  console.log(statusProf);
+  // console.log(statusProf);
   return (
-
     <>
       <FlipCardContainer>
         <FlipCardInner>
@@ -240,8 +247,9 @@ export default function FlipCard({ course, handleDeleteClick }: Props) {
                 width: "100%",
               }}
             >
+              {/* Dugme za upis ako je korisnik student i nije već upisan */}
               {user &&
-                user.role == "Student" &&
+                user.role === "Student" &&
                 !course.usersCourse.some(
                   (uc) => uc.user?.username === user.username
                 ) && (
@@ -263,27 +271,55 @@ export default function FlipCard({ course, handleDeleteClick }: Props) {
                     Upiši se
                   </Button>
                 )}
+
+              {/* Dugme za otvaranje ako je korisnik profesor ili student upisan na kurs */}
               {user &&
-              (course.professorsCourse.some(
-                (pc) => pc.user.username === user.username
-              ) ||
-                course.usersCourse.some(
-                  (uc) => uc.user?.username === user.username
-                )) ? (
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  component={Link}
-                  to={user ? `/courses/${course.id}` : `/login`}
-                  sx={{
-                    fontSize: "clamp(8pt, 10pt, 12pt)",
-                    color: "common.onBackground",
-                    borderRadius: "15pt",
-                  }}
-                >
-                  Otvori
-                </Button>
-              ) : user?.role == "Profesor" ? (
+                (course.professorsCourse.some(
+                  (pc) => pc.user.username === user.username
+                ) ||
+                  course.usersCourse.some(
+                    (uc) => uc.user?.username === user.username
+                  )) && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    component={Link}
+                    to={`/courses/${course.id}`}
+                    sx={{
+                      fontSize: "clamp(8pt, 10pt, 12pt)",
+                      color: "common.onBackground",
+                      borderRadius: "15pt",
+                    }}
+                  >
+                    Otvori
+                  </Button>
+                )}
+
+              {/* Dugme za napuštanje kursa ako je korisnik profesor upisan na kurs */}
+              {user &&
+                course.professorsCourse.some(
+                  (pc) => pc.user?.username === user.username
+                ) && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    
+                    sx={{
+                      fontSize: "clamp(8pt, 10pt, 12pt)",
+                      color: "common.onBackground",
+                      borderRadius: "15pt",
+                    }}
+                    onClick={(event) => {
+                      // console.log(statusProf);
+                      handleRemoveProfClick(event, course);
+                    }}
+                  >
+                    Napusti kurs
+                  </Button>
+                )}
+
+              {/* Dugme za prikaz profesora ako je korisnik profesor */}
+              {user?.role === "Profesor" && (
                 <Button
                   onClick={handleClickProfessor("right-start")}
                   size="small"
@@ -294,7 +330,6 @@ export default function FlipCard({ course, handleDeleteClick }: Props) {
                     p: 0,
                     paddingX: 1,
                     borderRadius: "20pt",
-
                     "&:hover": {
                       backgroundColor: "primary.main",
                       color: "background.paper",
@@ -303,31 +338,28 @@ export default function FlipCard({ course, handleDeleteClick }: Props) {
                 >
                   Prikaži profesore
                 </Button>
-              ) : (
-                <></>
               )}
 
+              {/* Dugme za brisanje kursa ako je korisnik profesor na kursu */}
               {user &&
-              course.professorsCourse.some(
-                (pc) => pc.user.username === user.username
-              ) ? (
-                <LoadingButton
-                  variant="contained"
-                  color="error"
-                  sx={{
-                    fontSize: "clamp(8pt, 10pt, 12pt)",
-                    borderRadius: "15pt",
-                  }}
-                  onClick={(event) =>{
-                    console.log(statusProf)
-                    handleDeleteClick(event, "course", course)
-                  }}
-                >
-                  Obriši kurs
-                </LoadingButton>
-              ) : (
-                ""
-              )}
+                course.professorsCourse.some(
+                  (pc) => pc.user.username === user.username
+                ) && (
+                  <LoadingButton
+                    variant="contained"
+                    color="error"
+                    sx={{
+                      fontSize: "clamp(8pt, 10pt, 12pt)",
+                      borderRadius: "15pt",
+                    }}
+                    onClick={(event) => {
+                      console.log(statusProf);
+                      handleDeleteClick(event, "course", course);
+                    }}
+                  >
+                    Obriši kurs
+                  </LoadingButton>
+                )}
             </Box>
           </FlipCardBack>
         </FlipCardInner>

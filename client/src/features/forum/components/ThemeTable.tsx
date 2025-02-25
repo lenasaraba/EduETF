@@ -191,7 +191,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
       await dispatch(updateThemeStatus(updateData));
       console.log("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
     } catch (error) {
-      console.error("Greška prilikom ažuriranja statusa:", error);
+      console.error("Greška prilikom ažuriranja statusa u theme slice:", error);
     } finally {
       setLoadingStatus((prev) => ({ ...prev, [theme.id]: false })); // Isključi loading nakon završetka
     }

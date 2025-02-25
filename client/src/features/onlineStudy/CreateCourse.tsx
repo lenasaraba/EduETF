@@ -14,7 +14,7 @@ import {
   IconButton,
   Box,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Controller, FieldValues, useForm } from "react-hook-form";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { createCourseAsync, fetchAllYearsPrograms } from "./courseSlice";
@@ -35,25 +35,39 @@ export default function CreateCourse() {
   const statusC = useAppSelector((state) => state.course.status);
 
   const [showPassword, setShowPassword] = useState(false);
+  const [availableYears, setAvailableYears] = useState(years);
+  const [availableStudyPrograms, setAvailableStudyPrograms] =
+    useState(studyPrograms);
+  const [selectedStudyProgram, setSelectedStudyProgram] = useState(0);
+  const [selectedYear, setSelectedYear] = useState(0);
+  useEffect(() => {
+    if (years) setAvailableYears(years);
+
+    if (studyPrograms) setAvailableStudyPrograms(studyPrograms);
+
+    console.log(availableYears);
+    console.log(availableStudyPrograms);
+
+
+  }, [years, studyPrograms]);
 
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);
   };
 
-  // console.log(
-  //   "GODINE I PROGRAMII :                         " + years,
-  //   studyPrograms
-  // );
   const methods = useForm({
     mode: "all",
     resolver: yupResolver(validationSchema),
   });
+
   useEffect(() => {
     if (!filtersLoaded) dispatch(fetchAllYearsPrograms());
   }, [dispatch, filtersLoaded]);
+
   const {
     control,
     setValue,
+    setError,
     register,
     formState: { errors },
   } = methods;
@@ -77,7 +91,6 @@ export default function CreateCourse() {
     console.log(newCourse);
 
     const resultAction = await dispatch(createCourseAsync(newCourse));
-    
 
     if (createCourseAsync.fulfilled.match(resultAction)) {
       navigate(`/courses/${resultAction.payload.id}`);
@@ -87,6 +100,195 @@ export default function CreateCourse() {
       console.error("Failed to create course:", resultAction.payload);
     }
   };
+
+  // const handleStudyProgramChange = (studyProgramId: string) => {
+  //   const id = parseInt(studyProgramId);
+
+  //   setSelectedStudyProgram(id);
+  //   if (years && studyPrograms) {
+  //     if (id == 0) {
+  //       setAvailableYears(years);
+  //       setAvailableStudyPrograms(studyPrograms);
+  //       setSelectedYear(0);
+
+  //       setTimeout(() => {
+  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
+  //       }, 0);
+
+  //     } else if (id === 4) {
+  //       setAvailableYears(years.filter((year) => year.id <= 2)); // Zajednička osnova - dozvoljene samo prve dve godine
+  //       setAvailableStudyPrograms(studyPrograms); // Samo smjer Zajednička osnova
+
+  //       setTimeout(() => {
+  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
+  //       }, 0);
+
+  //     } else {
+  //       setAvailableYears(years.filter((year) => year.id >= 3)); // Ostali smjerovi - dozvoljene treća i četvrta godina
+  //       setAvailableStudyPrograms(studyPrograms); // Svi osim Zajedničke osnove
+
+  //       setTimeout(() => {
+  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
+  //       }, 0);
+  //     }
+  //   }
+  // };
+
+  // const handleYearChange = (yearId: string) => {
+  //   const id = parseInt(yearId);
+  //   // console.log(yearId);
+  //   // console.log(id);
+  //   // setSelectedYear(id);
+  //   console.log(selectedYear);
+  //   console.log(selectedStudyProgram);
+
+  //   if (years && studyPrograms) {
+  //     if (id == 0) {
+  //       setAvailableStudyPrograms(studyPrograms);
+  //       setAvailableYears(years);
+  //       setSelectedStudyProgram(0);
+
+  //       setTimeout(() => {
+  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
+  //       }, 0);
+  //     } else if (id > 0 && id <= 2) {
+  //       setAvailableStudyPrograms(
+  //         studyPrograms.filter((program) => program.id === 4)
+  //       ); // Ako je prva ili druga godina, samo smjer Zajednička osnova
+  //       setAvailableYears(years);
+
+  //       setTimeout(() => {
+  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
+  //       }, 0);
+
+  //     } else {
+  //       setAvailableStudyPrograms(
+  //         studyPrograms.filter((program) => program.id !== 4)
+  //       ); // Ako je treća ili četvrta godina, svi osim Zajedničke osnove
+  //       setAvailableYears(years);
+
+  //       setTimeout(() => {
+  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
+  //       }, 0);
+  //     }
+  //   }
+  // };
+
+  useEffect(() => {
+    if (selectedStudyProgram) {
+      // const filteredYears = years?.filter(y => y.studyProgramId === selectedStudyProgram);
+      // setAvailableYears(filteredYears);
+
+      // // Ako odabrani smer nema trenutnu godinu, resetuj
+      // if (!filteredYears.some(y => y.id === selectedYear)) {
+      //   setSelectedYear("");
+      // }
+      if (selectedStudyProgram == 0) {
+        // const filteredPrograms = studyPrograms?.filter(sp => years?.some(y => y.studyProgramId === sp.id && y.id === selectedYear));
+        if (selectedStudyProgram == 0 && selectedYear == 0) {
+          setAvailableYears(years);
+          setAvailableStudyPrograms(studyPrograms);
+        } else {
+          setAvailableYears(years);
+        }
+      } else if (selectedStudyProgram > 0 && selectedStudyProgram <= 3) {
+        const filteredYears = years!.filter((y) => y.id >= 3);
+        setAvailableYears(filteredYears);
+      } else {
+        const filteredYears = years!.filter((y) => y.id <= 2);
+        setAvailableYears(filteredYears);
+      }
+
+      console.log(selectedYear);
+      console.log(selectedStudyProgram);
+    }
+  }, [selectedStudyProgram, years, selectedYear]);
+
+  useEffect(() => {
+    if (selectedYear) {
+      if (selectedYear == 0) {
+        // const filteredPrograms = studyPrograms?.filter(sp => years?.some(y => y.studyProgramId === sp.id && y.id === selectedYear));
+        setAvailableStudyPrograms(studyPrograms);
+        setAvailableYears(years);
+
+        if (selectedStudyProgram == 0 && selectedYear == 0) {
+          setAvailableYears(years);
+          setAvailableStudyPrograms(studyPrograms);
+        } else {
+          setAvailableStudyPrograms(studyPrograms);
+        }
+      } else if (selectedYear > 0 && selectedYear <= 2) {
+        const filteredPrograms = studyPrograms!.filter((sp) => sp.id === 4);
+        setAvailableStudyPrograms(filteredPrograms);
+      } else {
+        const filteredPrograms = studyPrograms!.filter((sp) => sp.id !== 4);
+        setAvailableStudyPrograms(filteredPrograms);
+      }
+
+      console.log(selectedYear);
+      console.log(selectedStudyProgram);
+
+      // const filteredPrograms = studyPrograms?.filter(sp => years?.some(y => y.studyProgramId === sp.id && y.id === selectedYear));
+      // setAvailableStudyPrograms(filteredPrograms);
+
+      // // Ako odabrana godina više ne pripada trenutnom programu, resetuj program
+      // if (!filteredPrograms.some(sp => sp.id === selectedStudyProgram)) {
+      //   setSelectedStudyProgram("");
+      // }
+    }
+  }, [selectedYear, studyPrograms, years, selectedStudyProgram]);
+
+  const handleStudyProgramChange = useCallback((event) => {
+    const newProgramId = event.target.value;
+
+    setSelectedStudyProgram(newProgramId);
+
+    if (newProgramId === 0) {
+      setSelectedYear(0);
+      // trigger("yearId");
+      validateFieldY("0");  
+
+      setAvailableYears(years);
+      setAvailableStudyPrograms(studyPrograms);
+    }
+  }, [studyPrograms]);
+
+  const handleYearChange = useCallback((event) => {
+    const newYearId=event.target.value;
+    setSelectedYear(newYearId);
+    if(newYearId===0){
+      setSelectedStudyProgram(0);
+      // trigger("studyProgramId");
+      validateFieldP("0");
+
+      console.log(studyPrograms);
+      setAvailableStudyPrograms(studyPrograms);
+      console.log(years);
+
+      setAvailableYears(years);
+
+    }
+  }, [years]);
+
+  const validateFieldY = (fieldValue) => {
+    validationSchema
+      .validateAt("yearId", { yearId: fieldValue }) // Validacija samo za "yearId"
+      .catch((err) => setError("yearId", { type: "manual", message: err.message })  // Postavljanje greške
+    ); // Prikazivanje grešaka
+
+
+
+  };
+  const validateFieldP = (fieldValue) => {
+    validationSchema
+      .validateAt("studyProgramId", { studyProgramId: fieldValue }) // Validacija samo za "yearId"
+      .catch((err) => setError("studyProgramId", { type: "manual", message: err.message })  // Postavljanje greške
+    ); // Prikazivanje grešaka
+
+
+
+  };
+
   if (!filtersLoaded) return <LoadingComponent message="Učitavanje..." />;
 
   return (
@@ -175,7 +377,14 @@ export default function CreateCourse() {
             />
           </Grid>
 
-          <Grid container sx={{ padding: 0, display: "flex", justifyContent:"space-between" }}>
+          <Grid
+            container
+            sx={{
+              padding: 0,
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
             <Box component={Grid} sx={{ width: "48%", margin: 0, padding: 0 }}>
               <FormControl
                 fullWidth
@@ -192,18 +401,30 @@ export default function CreateCourse() {
                       <Select
                         {...field}
                         labelId="yearId-label"
-                        value={field.value || "0"}
+                        value={selectedYear}
                         label="Godina"
                         error={!!fieldState.error}
                         onChange={(e) => {
                           // console.log(e.target.value);
-                          setValue("yearId", e.target.value || "0", {
-                            shouldValidate: true,
-                          });
+                          handleYearChange(e);
+
+                          setValue(
+                            "yearId",
+                            e.target.value.toString()
+                            || selectedYear.toString()
+                            ,
+                            {
+                              shouldValidate: true,
+                            }
+                          );
+                          // console.log(e.target.value);
+                          // setSelectedYear(parseInt(e.target.value));
+                          // setTimeout(() => {
+                          // }, 1000);
                         }}
                       >
                         <MenuItem value={0}>Izaberite godinu</MenuItem>
-                        {years?.map((year) => (
+                        {availableYears?.map((year) => (
                           <MenuItem key={year.id} value={year.id}>
                             {year.name}
                           </MenuItem>
@@ -214,12 +435,13 @@ export default function CreateCourse() {
                           {fieldState.error?.message ||
                             "Greška u izboru godine"}
                         </FormHelperText>
-                      )}{" "}
+                      )}
                     </>
                   )}
                 />
               </FormControl>
             </Box>
+
             <Box component={Grid} sx={{ width: "48%", margin: 0, padding: 0 }}>
               <FormControl
                 fullWidth
@@ -236,18 +458,31 @@ export default function CreateCourse() {
                       <Select
                         {...field}
                         labelId="studyProgramId-label"
-                        value={field.value || "0"}
+                        value={selectedStudyProgram}
                         label="Smjer"
                         error={!!fieldState.error}
                         onChange={(e) => {
                           // console.log(e.target.value);
-                          setValue("studyProgramId", e.target.value || "0", {
-                            shouldValidate: true,
-                          });
+                          handleStudyProgramChange(e);
+
+                          setValue(
+                            "studyProgramId",
+                            e.target.value.toString()
+                            || selectedStudyProgram.toString()
+                            ,
+                            {
+                              shouldValidate: true,
+                            }
+                          );
+
+                          // console.log(e.target.value);
+                          // setSelectedStudyProgram(parseInt(e.target.value));
+                          // setTimeout(() => {
+                          // }, 1000);
                         }}
                       >
                         <MenuItem value={0}>Izaberite smjer</MenuItem>
-                        {studyPrograms?.map((program) => (
+                        {availableStudyPrograms?.map((program) => (
                           <MenuItem key={program.id} value={program.id}>
                             {program.name}
                           </MenuItem>

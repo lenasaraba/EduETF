@@ -13,4 +13,9 @@ export interface ProfessorsParams {
   year?: string;
 }
 
+export interface StudentsParams {
+  searchTerm?: string;
+}
+
+
 

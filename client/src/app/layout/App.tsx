@@ -1,4 +1,4 @@
-import { extendTheme } from "@mui/material";
+import { Divider, extendTheme, Stack } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import { AppProvider } from "@toolpad/core/react-router-dom";
 import LaunchIcon from "@mui/icons-material/Launch";
@@ -8,13 +8,23 @@ import SchoolIcon from "@mui/icons-material/School";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ForumIcon from "@mui/icons-material/Forum";
-import type { Navigation } from "@toolpad/core";
-import { useAppDispatch } from "../store/configureStore";
-import { useCallback, useEffect, useState } from "react";
+import {
+  Account,
+  AccountPreview,
+  SidebarFooterProps,
+  type AccountPreviewProps,
+  type Navigation,
+  type Session,
+} from "@toolpad/core";
+import { useAppDispatch, useAppSelector } from "../store/configureStore";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import LoadingComponent from "./LoadingComponent";
-import { fetchCurrentUser } from "../../features/account/accountSlice";
+import { fetchCurrentUser, signOut } from "../../features/account/accountSlice";
 import lightLogo from "../../assets/lightLogo.png";
 import darkLogo from "../../assets/darkLogo.png";
+import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
+import BadgeTwoToneIcon from "@mui/icons-material/BadgeTwoTone";
+import GroupsTwoToneIcon from "@mui/icons-material/GroupsTwoTone";
 
 import "./app.css"; //
 import { BrandingContext } from "./BrandingContext";
@@ -28,23 +38,67 @@ const NAVIGATION: Navigation = [
     title: "Početna",
     icon: <HomeIcon />,
   },
+
+  {
+    kind: "divider",
+  },
+  {
+    kind: "header",
+    title: "EduETF",
+  },
   {
     //provjeriti segment
     segment: "onlineStudy",
     title: "Online učenje",
     icon: <AutoStoriesIcon />,
   },
-  {
-    //provjera
-    segment: "profile",
-    title: "Profil",
-    icon: <PersonOutlineIcon />,
-  },
+
   {
     segment: "forum",
     title: "Forum",
     icon: <ForumIcon />,
   },
+  {
+    kind: "divider",
+  },
+  {
+    kind: "header",
+    title: "Korisnici",
+  },
+
+  {
+    //provjera
+    segment: "profile",
+    title: "Moj profil",
+    icon: <PersonOutlineIcon />,
+  },
+  {
+    segment: "users",
+
+    title: "Korisnici",
+    icon: <PeopleOutlineIcon />,
+    children: [
+      {
+        segment: "professors", // Dodajemo "/" ispred da se tretira kao apsolutna putanja
+        title: "Profesori",
+        icon: <BadgeTwoToneIcon />,
+      },
+      {
+        segment: "students", // Isto za studente
+        title: "Studenti",
+        icon: <GroupsTwoToneIcon />,
+      },
+    ],
+  },
+
+  {
+    kind: "divider",
+  },
+  // {
+  //   kind: 'header',
+  //   title: 'Analytics',
+  // },
+
   {
     segment: "etfis",
     title: "ETFIS",
@@ -54,6 +108,9 @@ const NAVIGATION: Navigation = [
     segment: "about",
     title: "O nama",
     icon: <InfoIcon />,
+  },
+  {
+    kind: "divider",
   },
 ];
 
@@ -75,6 +132,18 @@ const demoTheme = extendTheme({
           fontFamily: "'Raleway', sans-serif",
         },
       },
+    },
+    MuiList: {
+      styleOverrides: {
+        root: {
+          fontSize:"5px !important",
+          
+          // padding: "160px", // ili p: 2, ovisno o tvojoj preferenciji
+          marginBottom:"0px!important",
+        },
+        padding:{marginBottom:"0px !important", fontSize:"5px !important"},
+      },
+
     },
   },
   colorSchemes: {
@@ -172,6 +241,37 @@ const demoTheme = extendTheme({
 export default function App() {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
+  const user = useAppSelector((state) => state.account.user);
+
+  const currentSession = {
+    user: {
+      name: user?.firstName + " " + user?.lastName,
+      email: user?.email,
+      image: user?.firstName ? user.firstName[0].toUpperCase() : "", // Prvo slovo imena
+    },
+  };
+
+  const [session, setSession] = useState<Session | null>(
+    user ? currentSession : null
+  );
+
+  const authentication = useMemo(() => {
+    return {
+      signIn: () => {
+        setSession(currentSession);
+      },
+      signOut: () => {
+        setSession(null);
+        dispatch(signOut());
+      },
+    };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      setSession(currentSession);
+    }
+  }, [user]);
 
   const [branding, setBranding] = useState(
     localStorage.getItem("toolpad-mode")?.toString() == "light"
@@ -179,16 +279,9 @@ export default function App() {
       : BRANDINGD
   );
 
-  console.log(localStorage.getItem("toolpad-mode"));
   const initApp = useCallback(async () => {
     try {
-      await dispatch(fetchCurrentUser()); //da pribavimo korisnika ako je prethodno bio prijavljen, a aplikacija ugašena
-      // await dispatch(fetchCoursesAsync());        //paginated
-      // await dispatch(fetchCoursesListAsync());
-      //await dispatch(fetchUserCoursesAsync());
-      // await dispatch(fetchProfessorsAsync());
-      // await dispatch(fetchThemesAsync());
-      // await dispatch(fetchMessagesAsync());
+      await dispatch(fetchCurrentUser());
     } catch (error: unknown) {
       console.log(error);
     }
@@ -198,30 +291,9 @@ export default function App() {
     initApp().then(() => setLoading(false));
   }, [initApp]);
 
-  window.scrollTo(0, 0); // Pomeri na vrh prilikom prve učitavanja stranice
+  window.scrollTo(0, 0);
 
   if (loading) return <LoadingComponent message="EduETF"></LoadingComponent>;
-
-  // const dispatch = useAppDispatch();
-  // const [loading, setLoading] = useState(true);
-
-  // const initApp = useCallback(async () => {
-  //   try {
-  //     await dispatch(fetchCurrentUser());
-  //     await dispatch(fetchBasketAsync());
-  //   } catch (error: any) {
-  //     console.log(error);
-  //   }
-  // }, [dispatch]);
-
-  // useEffect(() => {
-  //   initApp().then(() => setLoading(false));
-  // }, [initApp]);
-  // if (loading)
-  //   return (
-  //     <LoadingComponent message="Initializing app..."></LoadingComponent>
-  //   );
-
   return (
     <>
       {/* <ThemeProvider theme={demoTheme}> */}
@@ -231,6 +303,8 @@ export default function App() {
           theme={demoTheme}
           navigation={NAVIGATION}
           branding={branding}
+          authentication={authentication}
+          session={session}
         >
           <Outlet />
         </AppProvider>

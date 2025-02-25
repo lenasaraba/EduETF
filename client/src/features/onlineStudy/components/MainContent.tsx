@@ -25,7 +25,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import { useState } from "react";
-import { deleteCourseAsync } from "../courseSlice";
+import { deleteCourseAsync, removeProfessorFromCourse } from "../courseSlice";
 import { Course } from "../../../app/models/course";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
@@ -90,7 +90,33 @@ export default function MainContent() {
   const [courseSelected, setCourseSelected] = useState<Course | undefined>(
     undefined
   );
+  const status = useAppSelector((state) => state.course.status);
+  const [openDialogRemoveProfessor, setOpenDialogRemoveProfessor] =
+    useState(false);
 
+  const handleRemoveProfClick = () => {
+    setOpenDialogRemoveProfessor(true);
+    setAnchorEl(null);
+
+  };
+
+  const handleCloseDialogRemoveProfessor = () => {
+    setOpenDialogRemoveProfessor(false);
+    setAnchorEl(null);
+
+  };
+
+  const handleRemoveProfFromCourse: () => Promise<void> = async () => {
+    try {
+      await dispatch(removeProfessorFromCourse(courseSelected!.id));
+    } catch (error) {
+      console.error("Greška prilikom uklanjanja profesora sa kursa:", error);
+    } finally {
+      setOpenDialogRemoveProfessor(false);
+      setAnchorEl(null);
+
+    }
+  };
   const handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
     setOpenDialog(true);
   };
@@ -229,7 +255,8 @@ export default function MainContent() {
               margin: 0,
               padding: 1,
             }}
-          ><Typography variant="body1">Učitavanje kurseva</Typography>
+          >
+            <Typography variant="body1">Učitavanje kurseva</Typography>
             <CircularProgress size={120} sx={{ color: "text.secondary" }} />
           </Box>
         ) : (
@@ -344,7 +371,7 @@ export default function MainContent() {
                         </StyledTypography>
                         {user &&
                         course.professorsCourse.some(
-                          (pc) => pc.user.username === user.username
+                          (pc) => pc.user.username === user.username && pc.withdrawDate == null
                         ) ? (
                           <>
                             <div>
@@ -401,6 +428,23 @@ export default function MainContent() {
                                   }}
                                 >
                                   Obriši kurs
+                                </Typography>
+                                <Typography
+                                  onClick={handleRemoveProfClick}
+                                  variant="body2"
+                                  sx={{
+                                    paddingX: 2,
+                                    paddingY: 1,
+                                    "&:hover": {
+                                      cursor: "pointer",
+                                      color: "primary.light",
+                                    },
+                                    fontFamily: "Raleway, sans-serif",
+                                    color: "text.primary",
+                                    backgroundColor: "background.paper",
+                                  }}
+                                >
+                                  Napusti kurs
                                 </Typography>
                               </Popover>
                             </div>
@@ -520,7 +564,7 @@ export default function MainContent() {
                           </Typography>
                           {user &&
                           course.professorsCourse.some(
-                            (pc) => pc.user.username === user.username
+                            (pc) => pc.user.username === user.username && pc.withdrawDate == null
                           ) ? (
                             <>
                               <div>
@@ -579,6 +623,23 @@ export default function MainContent() {
                                     }}
                                   >
                                     Obriši kurs
+                                  </Typography>
+                                  <Typography
+                                    onClick={handleRemoveProfClick}
+                                    variant="body2"
+                                    sx={{
+                                      paddingX: 2,
+                                      paddingY: 1,
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        color: "primary.light",
+                                      },
+                                      fontFamily: "Raleway, sans-serif",
+                                      color: "text.primary",
+                                      backgroundColor: "background.paper",
+                                    }}
+                                  >
+                                    Napusti kurs
                                   </Typography>
                                 </Popover>
                               </div>
@@ -674,6 +735,57 @@ export default function MainContent() {
             variant="contained"
           >
             Obriši
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openDialogRemoveProfessor}
+        onClose={handleCloseDialogRemoveProfessor}
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "12pt",
+            padding: 3,
+            minWidth: 300,
+            textAlign: "center",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "Raleway, sans-serif",
+            fontSize: "1.2rem",
+          }}
+        >
+          Napuštate kurs?
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            sx={{
+              fontFamily: "Raleway, sans-serif",
+              color: "text.secondary",
+            }}
+          >
+            Da li ste sigurni da želite da napustite ovaj kurs? - {courseSelected?.name}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
+          <Button
+            onClick={handleCloseDialogRemoveProfessor}
+            sx={{ color: "text.primary" }}
+          >
+            Odustani
+          </Button>
+          <LoadingButton
+            loading={status == "loadingRemoveProfessorFromCourse"}
+            onClick={handleRemoveProfFromCourse}
+            color="error"
+            variant="contained"
+            loadingIndicator={
+              <CircularProgress size={18} sx={{ color: "white" }} />
+            }
+          >
+            Napusti kurs
           </LoadingButton>
         </DialogActions>
       </Dialog>

@@ -14,19 +14,22 @@ import {
   Button,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, FieldValues, useForm } from "react-hook-form";
 import { validationSchema } from "./forumpageValidation";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 // import Theme from "./Theme";
 import { createThemeAsync } from "./themeSlice";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { fetchCoursesListAsync } from "../onlineStudy/courseSlice";
+import Course from "../onlineStudy/Course";
+import { Course } from "../../app/models/theme";
 
 export default function CreateTheme() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const courses = useAppSelector((state) => state.course.allCourses);
+  const enrolledCourses = useAppSelector((state) => state.course.allCourses);
+  const user = useAppSelector((state) => state.account.user);
 
   const [isFreeTopic, setIsFreeTopic] = useState(false);
   const methods = useForm({
@@ -90,6 +93,17 @@ export default function CreateTheme() {
 
   console.log(window.history);
 
+  let courses: typeof enrolledCourses = [];
+  
+  if (user?.role === "Profesor") {
+    courses = enrolledCourses?.filter((course) =>
+      course.professorsCourse?.some((pc) => pc.user.username === user.username)
+    ) || [];
+  } else if (user?.role === "Student") {
+    courses = enrolledCourses?.filter((course) =>
+      course.usersCourse?.some((uc) => uc.user?.username === user.username)
+    ) || [];
+  }
   return (
     <Grid
       sx={{

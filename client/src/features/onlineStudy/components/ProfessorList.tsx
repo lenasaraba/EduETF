@@ -68,7 +68,7 @@ export default function ProfessorList() {
             size="small"
             icon={<OpenInNewRounded />}
             component={Link}
-            to="/professors"
+            to="/users/professors"
             sx={{
               backgroundColor: "primary.dark",
               color: "#fff",

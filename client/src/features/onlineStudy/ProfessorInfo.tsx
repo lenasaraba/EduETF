@@ -2,9 +2,14 @@ import {
   Avatar,
   Box,
   Breadcrumbs,
+  Button,
   CardContent,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   Grid,
   IconButton,
@@ -30,18 +35,20 @@ import {
   deleteProfessorsCourseAsync,
   deleteProfessorsThemeAsync,
   fetchProfessorByIdAsync,
-  fetchProfessorsAsync,
-  fetchProfessorThemesAsync,
-  fetchProfessorYearsProgramsAsync,
+  fetchProfessorByIdCoursesAsync,
+  fetchProfessorByIdThemesAsync,
+  removeProfessorFromCourse,
   updateThemeStatus,
 } from "./professorSlice";
-import CourseCardSkeleton from "./components/CourseCardSkeleton";
-import LoadingComponent from "../../app/layout/LoadingComponent";
+// import CourseCardSkeleton from "./components/CourseCardSkeleton";
+// import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Theme } from "../../app/models/theme";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 import DeleteDialog from "./components/DeleteDialog";
 import NotFound from "../../app/errors/NotFound";
+import { LoadingButton } from "@mui/lab";
+import { Course } from "../../app/models/course";
 
 const Demo = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
@@ -51,7 +58,7 @@ const Demo = styled("div")(({ theme }) => ({
 
 export default function ProfessorInfo() {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const { id } = useParams<{ id: string }>();
   const user = useAppSelector((state) => state.account.user);
@@ -59,16 +66,15 @@ export default function ProfessorInfo() {
   useEffect(() => {
     if (id) {
       dispatch(fetchProfessorByIdAsync(parseInt(id)));
-      dispatch(fetchProfessorThemesAsync(parseInt(id)));
+      dispatch(fetchProfessorByIdThemesAsync(parseInt(id)));
+      dispatch(fetchProfessorByIdCoursesAsync(parseInt(id)));
+
+      // dispatch(fetchProfessorThemesAsync(parseInt(id)));
     }
     console.log("prvi dispatch");
-  }, [dispatch, id]);
+  }, []);
 
-  const professor = useAppSelector(
-    (state) =>
-      // if (!id)return undefined;
-      state.professor.currentProfessor
-  );
+  const professor = useAppSelector((state) => state.professor.currentProfessor);
 
   const [themeSelected, setThemeSelected] = useState<Theme | undefined>(
     undefined
@@ -76,15 +82,14 @@ export default function ProfessorInfo() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const [openDialog, setOpenDialog] = useState(false);
+  const [openDialogRemoveProfessor, setOpenDialogRemoveProfessor] =
+    useState(false);
 
   const idMenu = open ? "simple-popover" : undefined;
   const [loadingStatus, setLoadingStatus] = useState<{
     [key: number]: boolean;
   }>({});
 
-  const coursesLoaded = useAppSelector(
-    (state) => state.professor.coursesLoaded
-  );
   // const allProfessors = useAppSelector((state) => state.professor.professors);
 
   const statusProf = useAppSelector((state) => state.professor.status);
@@ -113,6 +118,18 @@ export default function ProfessorInfo() {
   const coursesToDisplay = useAppSelector(
     (state) => state.professor.currentProfessorCourses
   );
+  const coursesLoaded = useAppSelector(
+    (state) => state.professor.currentProfCoursesLoaded
+  );
+
+  const themesToDisplay = useAppSelector(
+    (state) => state.professor.currentProfessorThemes
+  );
+
+  const themesLoaded = useAppSelector(
+    (state) => state.professor.currentProfThemesLoaded
+  );
+
   console.log(coursesToDisplay);
   const years = useAppSelector(
     (state) => state.professor.currentProfessorYears
@@ -121,9 +138,9 @@ export default function ProfessorInfo() {
     (state) => state.professor.currentProfessorPrograms
   );
 
-  const professorThemes = useAppSelector(
-    (state) => state.professor.professorThemes
-  );
+  // const professorThemes = useAppSelector(
+  //   (state) => state.professor.professorThemes
+  // );
 
   // useEffect(() => {
   //  if(id)
@@ -142,10 +159,14 @@ export default function ProfessorInfo() {
       active: !theme.active,
     };
 
+    console.log("PROFESSOR INFO TSX")
+
+    console.log(updateData);
+
     try {
-      await dispatch(updateThemeStatus(updateData)).unwrap();
+      await dispatch(updateThemeStatus(updateData));
     } catch (error) {
-      console.error("Greška prilikom ažuriranja statusa:", error);
+      console.error("Greška prilikom ažuriranja statusa u professor slice:", error);
     } finally {
       setLoadingStatus((prev) => ({ ...prev, [theme.id]: false }));
     }
@@ -198,8 +219,34 @@ export default function ProfessorInfo() {
     }, 0);
   };
 
+  const handleRemoveProfClick = (
+    event: React.MouseEvent<HTMLElement>,
+    course: Course
+  ) => {
+    setCourseToRemoveProfFrom(course);
+    setOpenDialogRemoveProfessor(true);
+  };
+
+  const handleRemoveProfFromCourse: () => Promise<void> = async () => {
+    try {
+      await dispatch(removeProfessorFromCourse(courseToRemoveProfFrom!.id));
+      // navigate("/courses?type=all");
+    } catch (error) {
+      console.error("Greška prilikom uklanjanja profesora sa kursa:", error);
+    } finally {
+      setOpenDialogRemoveProfessor(false);
+    }
+  };
+  const handleCloseDialogRemoveProfessor = () => {
+    setOpenDialogRemoveProfessor(false);
+    setCourseToRemoveProfFrom(null);
+  };
+
   const [itemToDelete, setItemToDelete] = useState<any>(null);
+
   const [itemType, setItemType] = useState<"course" | "theme">("theme");
+  const [courseToRemoveProfFrom, setCourseToRemoveProfFrom] =
+    useState<Course | null>(null);
 
   const handleDeleteClick = (
     event: React.MouseEvent<HTMLElement>,
@@ -255,9 +302,8 @@ export default function ProfessorInfo() {
                 >
                   <Box
                     component={Link}
-                    to="/onlineStudy"
+                    to="/users/professors"
                     sx={{ display: "flex", alignItems: "center" }}
-                    onClick={() => navigate(-1)}
                   >
                     <SchoolIcon
                       sx={{
@@ -287,21 +333,21 @@ export default function ProfessorInfo() {
                   </Typography>
                 </Breadcrumbs>
               </Box>
-              {statusProf != "fulfilledFetchProfessorByIdAsync" ? (
+              {statusProf == "pendingFetchProfessorById" ? (
                 <Box
                   sx={{
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
                     alignItems: "center",
-                    height: "80vh",
+                    height: "20vh",
                     width: "100%",
                     margin: 0,
                     padding: 1,
                   }}
                 >
                   <CircularProgress
-                    size={120}
+                    size={20}
                     sx={{ color: "text.secondary" }}
                   />
                 </Box>
@@ -431,313 +477,314 @@ export default function ProfessorInfo() {
                       </CardContent>
                     </Grid>
                   </Grid>
-                  <Divider sx={{ marginY: 2 }} />
-                  <Typography variant="h3">Teme profesora</Typography>
-
-                  <Demo sx={{ borderRadius: 2, height: "15rem", marginY: 2 }}>
-                    <List
-                      sx={{
-                        overflowY: "auto",
-                        height: "15rem",
-                        backgroundColor: "secondary.main",
-                      }}
+                </>
+              )}
+              <Divider sx={{ marginY: 2 }} />
+              <Typography variant="h3">Teme profesora</Typography>
+              {!themesLoaded ? (
+                <>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "20vh",
+                      width: "100%",
+                      margin: 0,
+                      padding: 1,
+                    }}
+                  >
+                    {" "}
+                    <Typography
+                      sx={{ marginBottom: 2, color: "text.secondary" }}
                     >
-                      {professorThemes &&
-                      professorThemes[professor!.id] &&
-                      professorThemes[professor!.id].length > 0 ? (
-                        professorThemes[professor!.id].map((theme, index) => (
-                          <ListItem
-                            key={index}
+                      Učitavanje tema
+                    </Typography>
+                    <CircularProgress
+                      size={20}
+                      sx={{ color: "text.secondary" }}
+                    />
+                  </Box>
+                </>
+              ) : (
+                <Demo sx={{ borderRadius: 2, height: "15rem", marginY: 2 }}>
+                  <List
+                    sx={{
+                      overflowY: "auto",
+                      height: "15rem",
+                      backgroundColor: "secondary.main",
+                    }}
+                  >
+                    {themesToDisplay && themesToDisplay.length > 0 ? (
+                      themesToDisplay.map((theme, index) => (
+                        <ListItem
+                          key={index}
+                          sx={{
+                            "&:hover": {
+                              backgroundColor: "background.paper",
+                            },
+                          }}
+                        >
+                          <ListItemAvatar>
+                            <Avatar sx={{ backgroundColor: "primary.main" }}>
+                              <ForumIcon />
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={theme.title}
                             sx={{
+                              width: "50%",
+                              textDecoration: "none", // Uklanja podvlačenje linka
+                              color: "text.primary", // Koristi boju teksta iz roditeljskog elementa
+                              "&:visited": {
+                                color: "text.primary", // Zadrži istu boju za visited linkove
+                              },
                               "&:hover": {
-                                backgroundColor: "background.paper",
+                                cursor: "normal",
+                                color: "text.primary", // Zadrži istu boju za visited linkove
+                              },
+                              "&:active": {
+                                color: "text.primary", // Zadrži istu boju pri aktivnom linku
                               },
                             }}
+                          />
+                          <Box
+                            sx={{
+                              margin: 0,
+                              padding: 0,
+                              display: "flex",
+
+                              alignItems: "center",
+                              flexDirection: "row",
+                            }}
                           >
-                            <ListItemAvatar>
-                              <Avatar sx={{ backgroundColor: "primary.main" }}>
-                                <ForumIcon />
-                              </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText
-                              primary={theme.title}
+                            <Chip
+                              size="small"
+                              icon={
+                                loadingStatus[theme.id] ? (
+                                  <CircularProgress
+                                    size={16}
+                                    sx={{ color: "#fff" }}
+                                  />
+                                ) : theme.active ? (
+                                  <CheckRoundedIcon />
+                                ) : (
+                                  <BlockIcon />
+                                )
+                              }
                               sx={{
-                                width: "50%",
-                                textDecoration: "none", // Uklanja podvlačenje linka
-                                color: "text.primary", // Koristi boju teksta iz roditeljskog elementa
-                                "&:visited": {
-                                  color: "text.primary", // Zadrži istu boju za visited linkove
-                                },
-                                "&:hover": {
-                                  cursor: "normal",
-                                  color: "text.primary", // Zadrži istu boju za visited linkove
-                                },
-                                "&:active": {
-                                  color: "text.primary", // Zadrži istu boju pri aktivnom linku
+                                marginX: 1,
+                                backgroundColor: loadingStatus[theme.id]
+                                  ? "grey"
+                                  : theme.active
+                                    ? "text.primaryChannel"
+                                    : "text.secondaryChannel",
+                                color: "#fff",
+                                borderRadius: "16px",
+                                ".MuiChip-icon": {
+                                  color: "#fff",
                                 },
                               }}
+                              label={
+                                loadingStatus[theme!.id]
+                                  ? "Ažuriranje..."
+                                  : theme!.active
+                                    ? "Aktivno"
+                                    : "Zatvoreno"
+                              }
                             />
-                            <Box
+                            <IconButton
+                              edge="end"
+                              aria-label="open"
+                              component={Link}
+                              to={user ? `/forum/${theme.id}` : `/login`}
                               sx={{
-                                margin: 0,
-                                padding: 0,
-                                display: "flex",
+                                marginX: 2,
 
-                                alignItems: "center",
-                                flexDirection: "row",
+                                color: "text.primary",
+                                "&:hover": {
+                                  color: "primary.main",
+                                },
                               }}
                             >
-                              <Chip
-                                size="small"
-                                icon={
-                                  loadingStatus[theme.id] ? (
-                                    <CircularProgress
-                                      size={16}
-                                      sx={{ color: "#fff" }}
-                                    />
-                                  ) : theme.active ? (
-                                    <CheckRoundedIcon />
-                                  ) : (
-                                    <BlockIcon />
-                                  )
-                                }
-                                sx={{
-                                  marginX: 1,
-                                  backgroundColor: loadingStatus[theme.id]
-                                    ? "grey"
-                                    : theme.active
-                                      ? "text.primaryChannel"
-                                      : "text.secondaryChannel",
-                                  color: "#fff",
-                                  borderRadius: "16px",
-                                  ".MuiChip-icon": {
-                                    color: "#fff",
-                                  },
-                                }}
-                                label={
-                                  loadingStatus[theme!.id]
-                                    ? "Ažuriranje..."
-                                    : theme!.active
-                                      ? "Aktivno"
-                                      : "Zatvoreno"
-                                }
-                              />
-                              <IconButton
-                                edge="end"
-                                aria-label="open"
-                                component={Link}
-                                to={user ? `/forum/${theme.id}` : `/login`}
-                                sx={{
-                                  marginX: 2,
+                              <OpenInNewIcon />
+                            </IconButton>
+                            {user && user.username == theme.user.username ? (
+                              <>
+                                <div>
+                                  <Box
+                                    aria-describedby={idMenu}
+                                    onClick={(event) =>
+                                      handleClick(event, theme)
+                                    }
+                                    sx={{
+                                      display: "flex",
+                                      width: "fit-content",
+                                      padding: 0,
+                                      marginX: 1,
 
-                                  color: "text.primary",
-                                  "&:hover": {
-                                    color: "primary.main",
-                                  },
-                                }}
-                              >
-                                <OpenInNewIcon />
-                              </IconButton>
-                              {user && user.username == theme.user.username ? (
-                                <>
-                                  <div>
-                                    <Box
-                                      aria-describedby={idMenu}
-                                      onClick={(event) =>
-                                        handleClick(event, theme)
-                                      }
-                                      sx={{
-                                        display: "flex",
-                                        width: "fit-content",
-                                        padding: 0,
-                                        marginX: 1,
-
-                                        "&:hover": {
-                                          cursor: "pointer",
-                                        },
-                                      }}
-                                    >
-                                      <MoreVertIcon />
-                                    </Box>
-                                    <Popover
-                                      id={idMenu}
-                                      open={open}
-                                      anchorEl={anchorEl}
-                                      onClose={handleClose}
-                                      anchorOrigin={{
-                                        vertical: "bottom",
-                                        horizontal: "center",
-                                      }}
-                                      slotProps={{
-                                        paper: {
-                                          sx: {
-                                            borderRadius: "10pt",
-                                            "&:hover": {
-                                              cursor: "pointer",
-                                            },
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                      },
+                                    }}
+                                  >
+                                    <MoreVertIcon />
+                                  </Box>
+                                  <Popover
+                                    id={idMenu}
+                                    open={open}
+                                    anchorEl={anchorEl}
+                                    onClose={handleClose}
+                                    anchorOrigin={{
+                                      vertical: "bottom",
+                                      horizontal: "center",
+                                    }}
+                                    slotProps={{
+                                      paper: {
+                                        sx: {
+                                          borderRadius: "10pt",
+                                          "&:hover": {
+                                            cursor: "pointer",
                                           },
                                         },
-                                      }}
-                                    >
-                                      <>
-                                        <Typography
-                                          onClick={(event) =>
-                                            updateStatus(event, themeSelected!)
-                                          }
-                                          variant="body2"
-                                          sx={{
-                                            paddingX: 2,
-                                            paddingY: 1,
-                                            "&:hover": {
-                                              cursor: "pointer",
-                                              color: "primary.light",
-                                            },
-                                            fontFamily: "Raleway, sans-serif",
-                                            color: "text.primary",
-                                            backgroundColor: "background.paper",
-                                          }}
-                                        >
-                                          Ažuriraj aktivnost
-                                        </Typography>
-                                        <Typography
-                                          onClick={(event) =>
-                                            handleDeleteClick(
-                                              event,
-                                              "theme",
-                                              themeSelected
-                                            )
-                                          }
-                                          variant="body2"
-                                          sx={{
-                                            paddingX: 2,
-                                            paddingY: 1,
-                                            "&:hover": {
-                                              cursor: "pointer",
-                                              color: "primary.light",
-                                            },
-                                            fontFamily: "Raleway, sans-serif",
-                                            color: "text.secondaryChannel",
-                                            backgroundColor: "background.paper",
-                                          }}
-                                        >
-                                          Obriši
-                                        </Typography>
-                                      </>
-                                    </Popover>
-                                  </div>
-                                </>
-                              ) : (
-                                ""
-                              )}
-                            </Box>
-                          </ListItem>
-                        ))
-                      ) : (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ fontSize: "1rem", paddingX: 2, paddingY: 1 }}
-                        >
-                          Nema tema ovog profesora.
-                        </Typography>
-                      )}
-                    </List>
-                  </Demo>
-                  <Divider sx={{ marginY: 2 }} />
-
-                  <Typography variant="h3">Kursevi profesora</Typography>
-                  {coursesToDisplay && coursesToDisplay.length > 0 ? (
-                    <>
-                      {/* {!coursesLoaded ? (
-                    <Grid
-                      container
-                      spacing={0} // Uklanjamo automatski razmak između elemenata
-                      justifyContent="flex-start" // Elementi idu redom, bez centriranja ili raspodele
-                      columns={12}
-                      sx={{
-                        width: "100%",
-                        gap: "2.5%",
-                        mt: 4,
-                        rowGap: 4,
-                      }}
-                    >
-                      {coursesToDisplay!.map((course) => (
-                        <Grid item xs={12} sm={5.8} md={3.8} key={course.id}>
-                          <CourseCardSkeleton />
-                        </Grid>
-                      ))}
-                    </Grid>
-                  ) : ( */}
-                      <Grid
-                        container
-                        spacing={0}
-                        justifyContent="flex-start"
-                        columns={12}
-                        sx={{
-                          width: "100%",
-                          gap: "2.5%",
-                          mt: 4,
-                          rowGap: 4,
-                        }}
-                      >
-                        {coursesToDisplay!.map((course) => (
-                          <Grid item xs={12} sm={5.8} md={3.8} key={course.id}>
-                            <FlipCard
-                              course={course}
-                              handleDeleteClick={handleDeleteClick}
-                            />
-                          </Grid>
-                        ))}
-                      </Grid>
-                      {/* )} */}
-                      {/* <Box sx={{ mb: 2, mt: 2 }}>
-                {metaData && (
-                  <AppPagination
-                    metaData={metaData}
-                    onPageChange={(page: number) =>
-                      dispatch(setPageNumber({ pageNumber: page }))
-                    }
-                  />
-                )}
-              </Box> */}
-                    </>
-                  ) : (
-                    <Box
-                      sx={{ display: "flex", flexDirection: "column", mt: 0 }}
-                    >
+                                      },
+                                    }}
+                                  >
+                                    <>
+                                      <Typography
+                                        onClick={(event) =>{
+                                          console.log(themeSelected)
+                                          updateStatus(event, themeSelected!)}
+                                        }
+                                        variant="body2"
+                                        sx={{
+                                          paddingX: 2,
+                                          paddingY: 1,
+                                          "&:hover": {
+                                            cursor: "pointer",
+                                            color: "primary.light",
+                                          },
+                                          fontFamily: "Raleway, sans-serif",
+                                          color: "text.primary",
+                                          backgroundColor: "background.paper",
+                                        }}
+                                      >
+                                        Ažuriraj aktivnost
+                                      </Typography>
+                                      <Typography
+                                        onClick={(event) =>
+                                          handleDeleteClick(
+                                            event,
+                                            "theme",
+                                            themeSelected
+                                          )
+                                        }
+                                        variant="body2"
+                                        sx={{
+                                          paddingX: 2,
+                                          paddingY: 1,
+                                          "&:hover": {
+                                            cursor: "pointer",
+                                            color: "primary.light",
+                                          },
+                                          fontFamily: "Raleway, sans-serif",
+                                          color: "text.secondaryChannel",
+                                          backgroundColor: "background.paper",
+                                        }}
+                                      >
+                                        Obriši
+                                      </Typography>
+                                    </>
+                                  </Popover>
+                                </div>
+                              </>
+                            ) : (
+                              ""
+                            )}
+                          </Box>
+                        </ListItem>
+                      ))
+                    ) : (
                       <Typography
-                        variant="h4"
-                        sx={{
-                          fontFamily: "Raleway, sans-serif",
-                          paddingTop: 4,
-                          color: "text.primary",
-                          ml: 4,
-                        }}
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontSize: "1rem", paddingX: 2, paddingY: 1 }}
                       >
-                        Nije pronađen nijedan kurs.
+                        Nema tema ovog profesora.
                       </Typography>
-                      {/* <Typography
-              variant="body1"
-              sx={{
-                fontFamily: "Raleway, sans-serif",
-                paddingTop: 4,
-                color: "text.primary",
-                ml: 4,
-              }}
-            >
-              Vrati se na{" "}
-              <Box
-                component={Link}
-                to="/onlineStudy"
-                sx={{ margin: 0, padding: 0 }}
-              >
-                početnu stranicu.
-              </Box>
-              .
-            </Typography> */}
-                    </Box>
-                  )}
+                    )}
+                  </List>
+                </Demo>
+              )}
+              <Divider sx={{ marginY: 2 }} />
+
+              <Typography variant="h3">Kursevi profesora</Typography>
+              {!coursesLoaded ? (
+                <>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "20vh",
+                      width: "100%",
+                      margin: 0,
+                      padding: 1,
+                    }}
+                  >
+                    {" "}
+                    <Typography
+                      sx={{ marginBottom: 2, color: "text.secondary" }}
+                    >
+                      Učitavanje tema
+                    </Typography>
+                    <CircularProgress
+                      size={20}
+                      sx={{ color: "text.secondary" }}
+                    />
+                  </Box>
                 </>
+              ) : coursesToDisplay && coursesToDisplay.length > 0 ? (
+                <>
+                  <Grid
+                    container
+                    spacing={0}
+                    justifyContent="flex-start"
+                    columns={12}
+                    sx={{
+                      width: "100%",
+                      gap: "2.5%",
+                      mt: 4,
+                      rowGap: 4,
+                    }}
+                  >
+                    {coursesToDisplay!.map((course) => (
+                      <Grid item xs={12} sm={5.8} md={3.8} key={course.id}>
+                        <FlipCard
+                          course={course}
+                          handleDeleteClick={handleDeleteClick}
+                          handleRemoveProfClick={handleRemoveProfClick}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </>
+              ) : (
+                <Box sx={{ display: "flex", flexDirection: "column", mt: 0 }}>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontFamily: "Raleway, sans-serif",
+                      paddingTop: 4,
+                      color: "text.primary",
+                      ml: 4,
+                    }}
+                  >
+                    Nije pronađen nijedan kurs.
+                  </Typography>
+                </Box>
               )}
             </Grid>
           </Grid>
@@ -749,6 +796,57 @@ export default function ProfessorInfo() {
             itemType={itemType}
             itemData={itemToDelete}
           />
+
+          <Dialog
+            open={openDialogRemoveProfessor}
+            onClose={handleCloseDialogRemoveProfessor}
+            sx={{
+              "& .MuiDialog-paper": {
+                borderRadius: "12pt",
+                padding: 3,
+                minWidth: 300,
+                textAlign: "center",
+              },
+            }}
+          >
+            <DialogTitle
+              sx={{
+                fontFamily: "Raleway, sans-serif",
+                fontSize: "1.2rem",
+              }}
+            >
+              Napuštate kurs?
+            </DialogTitle>
+            <DialogContent>
+              <Typography
+                sx={{
+                  fontFamily: "Raleway, sans-serif",
+                  color: "text.secondary",
+                }}
+              >
+                Da li ste sigurni da želite da napustite ovaj kurs?
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
+              <Button
+                onClick={handleCloseDialogRemoveProfessor}
+                sx={{ color: "text.primary" }}
+              >
+                Odustani
+              </Button>
+              <LoadingButton
+                loading={statusProf == "pendingRemoveProfessorFromCourse"}
+                onClick={handleRemoveProfFromCourse}
+                color="error"
+                variant="contained"
+                loadingIndicator={
+                  <CircularProgress size={18} sx={{ color: "white" }} />
+                }
+              >
+                Napusti kurs
+              </LoadingButton>
+            </DialogActions>
+          </Dialog>
         </>
       )}
     </>

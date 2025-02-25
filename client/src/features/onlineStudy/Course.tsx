@@ -39,6 +39,8 @@ import {
   deleteMaterialAsync,
   fetchCourseAsync,
   fetchCurrentCourseMaterialAsync,
+  removeProfessorFromCourse,
+  removeStudentFromCourse,
   uploadFile,
 } from "./courseSlice";
 import LoadingComponent from "../../app/layout/LoadingComponent";
@@ -54,9 +56,11 @@ import { LoadingButton } from "@mui/lab";
 import Unauthorized from "../../app/errors/Unauthorized";
 import { fetchProfessorsAsync } from "./professorSlice";
 import { Professor } from "../../app/models/professor";
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 
 export default function Course() {
   const [currentMat, setCurrentMat] = useState<Material>();
+  const dispatch = useAppDispatch();
 
   const status = useAppSelector((state) => state.course.status);
 
@@ -181,6 +185,12 @@ export default function Course() {
   const idMenu = open ? "simple-popover" : undefined;
   const [openDialog, setOpenDialog] = useState(false);
   const [openDialogMaterial, setOpenDialogMaterial] = useState(false);
+  const [openDialogRemoveProfessor, setOpenDialogRemoveProfessor] =
+    useState(false);
+
+    const [openDialogRemoveStudent, setOpenDialogRemoveStudent] =
+    useState(false);
+
   // const [isStudent, setIsStudent] = useState(false);
   // const [isProfessor, setIsProfessor] = useState(false);
 
@@ -253,15 +263,19 @@ export default function Course() {
 
   const { id } = useParams<{ id: string }>();
   // const prevProfessors = useRef(0);
-  const dispatch = useAppDispatch();
 
   const course = useAppSelector((state) => state.course.currentCourse);
   useEffect(() => {
-    const response = dispatch(fetchCourseAsync(parseInt(id!)));
-    console.log(response);
-    dispatch(fetchCurrentCourseMaterialAsync(parseInt(id!)));
-    // prevProfessors.current = course?.professorsCourse.length || 0;
-  }, []);
+    const fetchData = async () => {
+      const response = await dispatch(fetchCourseAsync(parseInt(id!)));
+
+      if (fetchCourseAsync.fulfilled.match(response)) {
+        dispatch(fetchCurrentCourseMaterialAsync(parseInt(id!)));
+      }
+    };
+
+    fetchData();
+  }, [dispatch, id]);
 
   const topOfPageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -366,6 +380,14 @@ export default function Course() {
     setOpenDialog(true);
     setAnchorEl(null);
   };
+  const handleRemoveProfClick = () => {
+    setOpenDialogRemoveProfessor(true);
+  };
+
+  const handleRemoveStudentClick = () => {
+    setOpenDialogRemoveStudent(true);
+  };
+
   const handleDeleteMaterialClick = (material: Material) => {
     setSelectedMaterial(material);
   };
@@ -398,6 +420,15 @@ export default function Course() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
+
+  const handleCloseDialogRemoveProfessor = () => {
+    setOpenDialogRemoveProfessor(false);
+  };
+
+  const handleCloseDialogRemoveStudent = () => {
+    setOpenDialogRemoveStudent(false);
+  };
+
   const handleCloseDialogMaterial = () => {
     setOpenDialogMaterial(false);
 
@@ -424,6 +455,29 @@ export default function Course() {
       setOpenDialog(false);
     }
   };
+
+  const handleRemoveProfFromCourse: () => Promise<void> = async () => {
+    try {
+      await dispatch(removeProfessorFromCourse(course!.id));
+      navigate("/courses?type=all");
+    } catch (error) {
+      console.error("Greška prilikom uklanjanja profesora sa kursa:", error);
+    } finally {
+      setOpenDialogRemoveProfessor(false);
+    }
+  };
+
+  const handleRemoveStudentFromCourse: () => Promise<void> = async () => {
+    try {
+      await dispatch(removeStudentFromCourse(course!.id));
+      navigate("/courses?type=all");
+    } catch (error) {
+      console.error("Greška prilikom uklanjanja studenta sa kursa:", error);
+    } finally {
+      setOpenDialogRemoveStudent(false);
+    }
+  };
+
 
   const showFile = (material: Material) => {
     setFileVisible(true);
@@ -578,100 +632,192 @@ export default function Course() {
                 </Breadcrumbs>
               </Box>
               {user &&
-              course?.professorsCourse.some(
-                (pc) => pc.user.username === user.username
-              ) ? (
-                <>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      margin: 0,
-                      padding: 0,
-                      boxSizing: "border-box",
-                      justifyContent: "flex-end",
-                    }}
-                  >
+                course?.professorsCourse.some(
+                  (pc) => pc.user.username === user.username
+                ) && (
+                  <>
                     <Box
-                      aria-describedby={idMenu}
-                      // variant="contained"
-                      onClick={handleClick}
                       sx={{
                         display: "flex",
-                        width: "fit-content",
+                        margin: 0,
                         padding: 0,
-                        "&:hover": {
-                          cursor: "pointer",
-                        },
+                        boxSizing: "border-box",
+                        justifyContent: "flex-end",
                       }}
                     >
-                      <SettingsIcon
-                        sx={{ fontSize: "1.8rem", color: "primary.dark" }}
-                      />
-                    </Box>
-                    <Popover
-                      id={idMenu}
-                      open={open}
-                      anchorEl={anchorEl}
-                      onClose={handleClose}
-                      anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "center",
-                      }}
-                      slotProps={{
-                        paper: {
-                          sx: {
-                            borderRadius: "10pt",
-                            "&:hover": {
-                              cursor: "pointer",
+                      <Box
+                        aria-describedby={idMenu}
+                        // variant="contained"
+                        onClick={handleClick}
+                        sx={{
+                          display: "flex",
+                          width: "fit-content",
+                          padding: 0,
+                          "&:hover": {
+                            cursor: "pointer",
+                          },
+                        }}
+                      >
+                        <SettingsIcon
+                          sx={{ fontSize: "1.8rem", color: "primary.dark" }}
+                        />
+                      </Box>
+                      <Popover
+                        id={idMenu}
+                        open={open}
+                        anchorEl={anchorEl}
+                        onClose={handleClose}
+                        anchorOrigin={{
+                          vertical: "bottom",
+                          horizontal: "center",
+                        }}
+                        slotProps={{
+                          paper: {
+                            sx: {
+                              borderRadius: "10pt",
+                              "&:hover": {
+                                cursor: "pointer",
+                              },
                             },
                           },
-                        },
+                        }}
+                      >
+                        <Typography
+                          onClick={toggleEdit}
+                          variant="body2"
+                          sx={{
+                            paddingX: 2,
+                            paddingY: 1,
+                            "&:hover": {
+                              cursor: "pointer",
+                              color: "primary.light",
+                            },
+                            // textTransform: "uppercase",
+                            width: "max-content",
+                            fontFamily: "Raleway, sans-serif",
+                            color: "text.primary",
+                            backgroundColor: "background.paper",
+                          }}
+                        >
+                          {isEditing ? "Završi uređivanje" : "Uredi kurs"}
+                        </Typography>
+                        <Divider sx={{ borderColor: "primary.main" }} />
+                        <Typography
+                          onClick={handleDeleteClick} // Otvara dijalog
+                          variant="body2"
+                          sx={{
+                            paddingX: 2,
+                            paddingY: 1,
+                            "&:hover": {
+                              cursor: "pointer",
+                              color: "primary.light",
+                            },
+                            // textTransform: "uppercase",
+                            fontFamily: "Raleway, sans-serif",
+                            color: "text.secondaryChannel",
+                            backgroundColor: "background.paper",
+                          }}
+                        >
+                          Obriši kurs
+                        </Typography>
+
+                        <Divider sx={{ borderColor: "primary.main" }} />
+                        <Typography
+                          onClick={handleRemoveProfClick}
+                          variant="body2"
+                          sx={{
+                            paddingX: 2,
+                            paddingY: 1,
+                            "&:hover": {
+                              cursor: "pointer",
+                              color: "primary.light",
+                            },
+                            // textTransform: "uppercase",
+                            fontFamily: "Raleway, sans-serif",
+                            color: "text.secondaryChannel",
+                            backgroundColor: "background.paper",
+                          }}
+                        >
+                          Napusti kurs
+                        </Typography>
+                      </Popover>
+                    </Box>
+                  </>
+                )}
+              {user &&
+                course?.usersCourse.some(
+                  (uc) => uc.user.username === user.username
+                ) && (
+                  <>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        margin: 0,
+                        padding: 0,
+                        boxSizing: "border-box",
+                        justifyContent: "flex-end",
                       }}
                     >
-                      <Typography
-                        onClick={toggleEdit}
-                        variant="body2"
+                      <Box
+                        aria-describedby={idMenu}
+                        // variant="contained"
+                        onClick={handleClick}
                         sx={{
-                          paddingX: 2,
-                          paddingY: 1,
+                          display: "flex",
+                          width: "fit-content",
+                          padding: 0,
                           "&:hover": {
                             cursor: "pointer",
-                            color: "primary.light",
                           },
-                          // textTransform: "uppercase",
-                          width: "max-content",
-                          fontFamily: "Raleway, sans-serif",
-                          color: "text.primary",
-                          backgroundColor: "background.paper",
                         }}
                       >
-                        {isEditing ? "Završi uređivanje" : "Uredi kurs"}
-                      </Typography>
-                      <Divider sx={{ borderColor: "primary.main" }} />
-                      <Typography
-                        onClick={handleDeleteClick} // Otvara dijalog
-                        variant="body2"
-                        sx={{
-                          paddingX: 2,
-                          paddingY: 1,
-                          "&:hover": {
-                            cursor: "pointer",
-                            color: "primary.light",
+                        <RemoveCircleOutlineIcon
+                          sx={{ fontSize: "1.8rem", color: "text.secondaryChannel" }}
+                        />
+                      </Box>
+                      <Popover
+                        id={idMenu}
+                        open={open}
+                        anchorEl={anchorEl}
+                        onClose={handleClose}
+                        anchorOrigin={{
+                          vertical: "bottom",
+                          horizontal: "center",
+                        }}
+                        slotProps={{
+                          paper: {
+                            sx: {
+                              borderRadius: "10pt",
+                              "&:hover": {
+                                cursor: "pointer",
+                              },
+                            },
                           },
-                          // textTransform: "uppercase",
-                          fontFamily: "Raleway, sans-serif",
-                          color: "text.secondaryChannel",
-                          backgroundColor: "background.paper",
                         }}
                       >
-                        Obriši kurs
-                      </Typography>
-                    </Popover>
-                  </Box>
-                </>
-              ) : (
-                ""
-              )}
+                       
+                        <Typography
+                          onClick={handleRemoveStudentClick}
+                          variant="body2"
+                          sx={{
+                            paddingX: 2,
+                            paddingY: 1,
+                            "&:hover": {
+                              cursor: "pointer",
+                              color: "primary.light",
+                            },
+                            // textTransform: "uppercase",
+                            fontFamily: "Raleway, sans-serif",
+                            color: "text.secondaryChannel",
+                            backgroundColor: "background.paper",
+                          }}
+                        >
+                          Ispiši se
+                        </Typography>
+                      </Popover>
+                    </Box>
+                  </>
+                )}
             </Grid>
 
             <Dialog
@@ -733,6 +879,107 @@ export default function Course() {
                   }
                 >
                   Obriši
+                </LoadingButton>
+              </DialogActions>
+            </Dialog>
+
+            <Dialog
+              open={openDialogRemoveProfessor}
+              onClose={handleCloseDialogRemoveProfessor}
+              sx={{
+                "& .MuiDialog-paper": {
+                  borderRadius: "12pt",
+                  padding: 3,
+                  minWidth: 300,
+                  textAlign: "center",
+                },
+              }}
+            >
+              <DialogTitle
+                sx={{
+                  fontFamily: "Raleway, sans-serif",
+                  fontSize: "1.2rem",
+                }}
+              >
+                Napuštate kurs?
+              </DialogTitle>
+              <DialogContent>
+                <Typography
+                  sx={{
+                    fontFamily: "Raleway, sans-serif",
+                    color: "text.secondary",
+                  }}
+                >
+                  Da li ste sigurni da želite da napustite ovaj kurs?
+                </Typography>
+              </DialogContent>
+              <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
+                <Button
+                  onClick={handleCloseDialogRemoveProfessor}
+                  sx={{ color: "text.primary" }}
+                >
+                  Odustani
+                </Button>
+                <LoadingButton
+                  loading={status == "loadingRemoveProfessorFromCourse"}
+                  onClick={handleRemoveProfFromCourse}
+                  color="error"
+                  variant="contained"
+                  loadingIndicator={
+                    <CircularProgress size={18} sx={{ color: "white" }} />
+                  }
+                >
+                  Napusti kurs
+                </LoadingButton>
+              </DialogActions>
+            </Dialog>
+            <Dialog
+              open={openDialogRemoveStudent}
+              onClose={handleCloseDialogRemoveStudent}
+              sx={{
+                "& .MuiDialog-paper": {
+                  borderRadius: "12pt",
+                  padding: 3,
+                  minWidth: 300,
+                  textAlign: "center",
+                },
+              }}
+            >
+              <DialogTitle
+                sx={{
+                  fontFamily: "Raleway, sans-serif",
+                  fontSize: "1.2rem",
+                }}
+              >
+                Ispis
+              </DialogTitle>
+              <DialogContent>
+                <Typography
+                  sx={{
+                    fontFamily: "Raleway, sans-serif",
+                    color: "text.secondary",
+                  }}
+                >
+                  Da li ste sigurni da želite da se ispišete sa kursa?
+                </Typography>
+              </DialogContent>
+              <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
+                <Button
+                  onClick={handleCloseDialogRemoveStudent}
+                  sx={{ color: "text.primary" }}
+                >
+                  Odustani
+                </Button>
+                <LoadingButton
+                  loading={status == "loadingRemoveStudentFromCourse"}
+                  onClick={handleRemoveStudentFromCourse}
+                  color="error"
+                  variant="contained"
+                  loadingIndicator={
+                    <CircularProgress size={18} sx={{ color: "white" }} />
+                  }
+                >
+                  Ispiši se 
                 </LoadingButton>
               </DialogActions>
             </Dialog>

@@ -45,7 +45,7 @@ import { Message } from "../../app/models/theme";
 import { Theme as ThemeMod } from "../../app/models/theme";
 
 import "./themeStyle.css";
-import { borderRadius } from "@mui/system";
+import { borderRadius, margin } from "@mui/system";
 import Unauthorized from "../../app/errors/Unauthorized";
 import { LoadingButton } from "@mui/lab";
 
@@ -105,11 +105,11 @@ export default function Theme() {
   );
 
   const mentionUsers = uniqueUsers
-    ?.filter((user) => user?.username) // Filtriramo korisnike koji imaju username
-    .map((user) => ({
-      id: String(user?.id), // Pretvaramo ID u string
-      display: String(user?.username), // Pretvaramo username u string
-    }));
+  ?.filter((u) => u?.username && u?.id !== user?.id) // Filtriramo korisnike koji imaju username i koji nisu prijavljeni korisnik
+  .map((u) => ({
+    id: String(u?.id), // Pretvaramo ID u string
+    display: String(u?.username), // Pretvaramo username u string
+  }));
 
   // mentionUsers.map((m) => console.log({ ...m }));
   // console.log({ ...mentionUsers });
@@ -1067,6 +1067,9 @@ export default function Theme() {
                         displayTransform={(id: string, display: string) =>
                           "@" + display.toString()
                         }
+                        style={{
+                          // margin:"200px",
+                        }}
                       />
                     </MentionsInput>
 

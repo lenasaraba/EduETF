@@ -18,6 +18,7 @@ import CreateCourse from "../../features/onlineStudy/CreateCourse";
 import ProfessorsTable from "../../features/onlineStudy/components/ProfessorsTable";
 import Professors from "../../features/onlineStudy/Professors";
 import ProfessorInfo from "../../features/onlineStudy/ProfessorInfo";
+import Students from "../../features/onlineStudy/components/Students";
 
 const ExternalRedirect = ({ url }: { url: string }) => {
   useEffect(() => {
@@ -99,12 +100,16 @@ export const router = createBrowserRouter([
             element: <CreateCourse />,
           },
           {
-            path: "professors",
+            path: "users/professors",
             element: <Professors />,
           },
           {
             path: "professorInfo/:id",
             element: <ProfessorInfo />,
+          },
+          {
+            path: "users/students",
+            element: <Students />,
           },
         ],
       },

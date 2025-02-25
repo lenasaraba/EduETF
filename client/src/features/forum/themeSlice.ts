@@ -121,6 +121,8 @@ export const updateThemeStatus = createAsyncThunk<Theme, UpdateThemeDto>(
   "theme/updateTheme",
   async (themeData, thunkAPI) => {
     try {
+
+      console.log("theme slice")
       const themeDto = await agent.Theme.updateTheme(themeData); // Pozivanje agenta sa parametrima
       console.log(themeDto);
       return themeDto;
@@ -211,6 +213,13 @@ export const themeSlice = createSlice({
     builder.addCase(updateThemeStatus.fulfilled, (state, action) => {
       state.status = "idle";
 
+      //OVO SAM ZAKOMENTARISALA JER IZ NEPOZNATNOG RAZLOGA UTICE NA ISTU FJU U PROF SLICE
+
+      // !!!!!!!!!!!!!
+
+
+
+      
       const index = state.themes?.findIndex(
         (theme) => theme.id === action.payload.id
       );

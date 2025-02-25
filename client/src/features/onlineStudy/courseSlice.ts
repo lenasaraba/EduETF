@@ -13,6 +13,7 @@ import agent from "../../app/api/agent";
 import { RootState } from "../../app/store/configureStore";
 import { MetaData } from "../../app/models/pagination";
 import { router } from "../../app/router/Routes";
+import { StudentsParams } from "../../app/models/professor";
 
 export interface CourseState {
   courses: Course[] | null;
@@ -23,17 +24,17 @@ export interface CourseState {
   // myCourses: Course[] | null;
   professorCourses: Record<number, Course[]> | null;
   userCourses: Record<number, Course[]> | null;
-
+  students: User[] | null;
+  studentsLoaded: boolean;
+  studentsParams: StudentsParams;
   status: string;
   filtersLoaded: boolean;
   optionsLoaded: boolean;
-
   allcoursesLoaded: boolean;
   pagecoursesLoaded: boolean;
   currentCourseLoaded: boolean;
   yearsFilter: Year[] | null;
   programsFilter: StudyProgram[] | null;
-
   years: Year[] | null;
   programs: StudyProgram[] | null;
   coursesParams: CoursesParams;
@@ -50,7 +51,9 @@ const initialState: CourseState = {
   materialsLoaded: false,
   professorCourses: {},
   userCourses: {},
-
+  students: null,
+  studentsLoaded: false,
+  studentsParams: {},
   status: "idle",
   allcoursesLoaded: false,
   pagecoursesLoaded: false,
@@ -98,6 +101,13 @@ function getAxiosParams(coursesParams: CoursesParams) {
     coursesParams.studyPrograms.forEach((program) => {
       params.append("studyPrograms", program);
     });
+  return params;
+}
+
+function getStudentsAxiosParams(studentsParams: StudentsParams) {
+  const params = new URLSearchParams();
+  if (studentsParams.searchTerm)
+    params.append("searchTerm", studentsParams.searchTerm.toString());
   return params;
 }
 
@@ -161,6 +171,26 @@ export const fetchCourseAsync = createAsyncThunk<Course, number>(
     }
   }
 );
+
+export const fetchStudentsAsync = createAsyncThunk<
+  User[],
+  void,
+  { state: RootState }
+>("account/fetchStudentsAsync", async (_, thunkAPI) => {
+  const params = getStudentsAxiosParams(
+    thunkAPI.getState().course.studentsParams
+  );
+
+  try {
+    const students = await agent.Course.AllStudents(params);
+    console.log(students);
+
+    return students;
+  } catch (error: any) {
+    console.log(error.data);
+    return thunkAPI.rejectWithValue({ error: error.data });
+  }
+});
 
 interface ProfCourseResponse {
   profId: number;
@@ -290,6 +320,12 @@ interface EnrollRequestProf {
   courseId: number;
   professorId: number;
 }
+
+interface RemoveResponseProf {
+  Message: string;
+  professorId: number;
+  courseId: number;
+}
 export const addProfessorToCourse = createAsyncThunk<
   EnrollResponseProf,
   EnrollRequestProf
@@ -301,6 +337,42 @@ export const addProfessorToCourse = createAsyncThunk<
     );
     console.log(profCourse);
     return profCourse;
+  } catch (error: any) {
+    console.log(error.data);
+    return thunkAPI.rejectWithValue({ error: error.data });
+  }
+});
+
+export const removeProfessorFromCourse = createAsyncThunk<
+  RemoveResponseProf,
+  number
+>("course/removeProfessorFromCourse", async (courseId, thunkAPI) => {
+  try {
+    const profCourse =
+      await agent.Professor.removeProfessorFromCourse(courseId);
+    // console.log(profCourse);
+    return profCourse;
+  } catch (error: any) {
+    console.log(error.data);
+    return thunkAPI.rejectWithValue({ error: error.data });
+  }
+});
+
+interface RemoveResponseStudent {
+  Message: string;
+  studentId: number;
+  courseId: number;
+}
+
+export const removeStudentFromCourse = createAsyncThunk<
+  RemoveResponseStudent,
+  number
+>("course/removeStudentFromCourse", async (courseId, thunkAPI) => {
+  try {
+    const studentCourse =
+      await agent.Course.removeStudentFromCourse(courseId);
+    console.log(studentCourse);
+    return studentCourse;
   } catch (error: any) {
     console.log(error.data);
     return thunkAPI.rejectWithValue({ error: error.data });
@@ -365,6 +437,16 @@ export const courseSlice = createSlice({
         pageNumber: 1,
       };
     },
+    setStudentsParams: (state, action) => {
+      state.studentsLoaded = false;
+      state.studentsParams = {
+        ...state.studentsParams,
+        ...action.payload,
+      };
+    },
+    resetStudentsParams: (state) => {
+      state.studentsParams = {};
+    },
     setPageNumber: (state, action) => {
       state.pagecoursesLoaded = false;
       state.coursesParams = { ...state.coursesParams, ...action.payload };
@@ -426,6 +508,18 @@ export const courseSlice = createSlice({
 
       state.currentCourseLoaded = false;
     });
+    builder.addCase(fetchStudentsAsync.pending, (state) => {
+      state.status = "pendingFetchStudents";
+    });
+    builder.addCase(fetchStudentsAsync.fulfilled, (state, action) => {
+      state.students = action.payload;
+      state.status = "idle";
+      state.studentsLoaded = true;
+    });
+    builder.addCase(fetchStudentsAsync.rejected, (state) => {
+      state.status = "rejectedStudents";
+    });
+
     builder.addCase(enrollOnCourse.pending, (state) => {
       state.status = "loadingEnrollOnCourse";
     });
@@ -591,13 +685,126 @@ export const courseSlice = createSlice({
           enrollDate: action.payload.enrollDate,
         });
         console.log(state.currentCourse);
-        state.status = "fulfilledProfessorOnCourse";
-
-        //OVO PROMIJENITI
-        //state.currentCourse?.usersCourse=state.currentCourse?.usersCourse.concat(action.payload);
+        state.status = "fulfilledRemoveProfessorFromCourse";
       }
     );
     builder.addCase(addProfessorToCourse.rejected, (state) => {
+      state.status = "idle";
+    });
+
+    builder.addCase(removeProfessorFromCourse.pending, (state) => {
+      state.status = "loadingRemoveProfessorFromCourse";
+    });
+    builder.addCase(
+      removeProfessorFromCourse.fulfilled,
+      (state, action: PayloadAction<RemoveResponseProf>) => {
+        console.log(action.payload);
+
+        // Proveri da li professorCourses postoji za datog profesora
+        if (
+          state.professorCourses &&
+          state.professorCourses[action.payload.professorId]
+        ) {
+          state.professorCourses[action.payload.professorId] =
+            state.professorCourses[action.payload.professorId].filter(
+              (pc) => pc.id !== action.payload.courseId
+            );
+        }
+
+        // Proveri da li currentCourse i professorsCourse postoje pre nego što primeniš filter
+        if (state.currentCourse?.professorsCourse) {
+          state.currentCourse.professorsCourse =
+            state.currentCourse.professorsCourse.filter(
+              (pc) => pc.courseId !== action.payload.courseId
+            );
+        }
+
+        if (state.courses && state.courses.length>0) {
+          const course = state.courses.find(
+            (course) => course.id === action.payload.courseId
+          );
+          if (course) {
+            course.professorsCourse = course.professorsCourse.filter(
+              (professor) => professor.user.id !== action.payload.professorId
+            );
+          }
+        }
+
+        if (state.allCourses && state.allCourses.length>0) {
+          const course = state.allCourses.find(
+            (course) => course.id === action.payload.courseId
+          );
+          if (course) {
+            course.professorsCourse = course.professorsCourse.filter(
+              (professor) => professor.user.id !== action.payload.professorId
+            );
+          }
+        }
+
+        state.status = "fulfilledRemoveProfessorFromCourse";
+      }
+    );
+
+    builder.addCase(removeProfessorFromCourse.rejected, (state) => {
+      state.status = "idle";
+    });
+
+
+
+
+    builder.addCase(removeStudentFromCourse.pending, (state) => {
+      state.status = "loadingRemoveStudentFromCourse";
+    });
+    builder.addCase(
+      removeStudentFromCourse.fulfilled,
+      (state, action: PayloadAction<RemoveResponseStudent>) => {
+        console.log(action.payload);
+
+        if (
+          state.userCourses &&
+          state.userCourses[action.payload.studentId]
+        ) {
+          state.userCourses[action.payload.studentId] =
+            state.userCourses[action.payload.studentId].filter(
+              (uc) => uc.id !== action.payload.courseId
+            );
+        }
+
+        // Proveri da li currentCourse i usersCourse postoje pre nego što primeniš filter
+        if (state.currentCourse?.usersCourse) {
+          state.currentCourse.usersCourse =
+            state.currentCourse.usersCourse.filter(
+              (uc) => uc.courseId !== action.payload.courseId
+            );
+        }
+
+        if (state.courses && state.courses.length>0) {
+          const course = state.courses.find(
+            (course) => course.id === action.payload.courseId
+          );
+          if (course) {
+            course.usersCourse = course.usersCourse.filter(
+              (student) => student.user.id !== action.payload.studentId
+            );
+          }
+        }
+
+        if (state.allCourses && state.allCourses.length>0) {
+          const course = state.allCourses.find(
+            (course) => course.id === action.payload.courseId
+          );
+          if (course) {
+            course.usersCourse = course.usersCourse.filter(
+              (student) => student.user.id !== action.payload.studentId
+            );
+          }
+        }
+
+        state.status = "fulfilledRemoveStudentFromCourse";
+      }
+    );
+
+    builder.addCase(removeStudentFromCourse.rejected, (state) => {
       state.status = "idle";
     });
   },
@@ -612,4 +819,6 @@ export const {
   setPageNumber,
   resetCoursesParams,
   setMetaData,
+  setStudentsParams,
+  resetStudentsParams,
 } = courseSlice.actions;

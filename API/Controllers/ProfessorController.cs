@@ -26,7 +26,7 @@ namespace API.Controllers
         {
             _context = context;
             _mapper = mapper;
-            _roleManager = roleManager; 
+            _roleManager = roleManager;
             _userManager = userManager;
         }
 
@@ -34,6 +34,12 @@ namespace API.Controllers
         {
             public int CourseId { get; set; }
             public int ProfessorId { get; set; }
+
+        }
+
+         public class RemoveRequest
+        {
+            public int CourseId { get; set; }
 
         }
 
@@ -142,14 +148,14 @@ namespace API.Controllers
         }
 
 
-        [Authorize(Roles="Profesor")]
+        [Authorize(Roles = "Profesor")]
         [HttpPost("addProfessorToCourse")]
         public async Task<IActionResult> AddProfessorToCourse([FromBody] AddRequest request)
         {
             int courseId = request.CourseId;
-            int professorId=request.ProfessorId;
+            int professorId = request.ProfessorId;
 
-            var course = await _context.Courses.Include(c=>c.Year).Include(c=>c.StudyProgram).FirstOrDefaultAsync(c => c.Id == courseId);
+            var course = await _context.Courses.Include(c => c.Year).Include(c => c.StudyProgram).FirstOrDefaultAsync(c => c.Id == courseId);
 
             var professor = await _userManager.FindByIdAsync(professorId.ToString());
 
@@ -194,9 +200,48 @@ namespace API.Controllers
                 Message = "Uspješan upis na kurs",
                 professor = professorDto,
                 course = courseDto,
-                enrollDate=enrollment.EnrollDate,
-                pcId=enrollment.Id
+                enrollDate = enrollment.EnrollDate,
+                pcId = enrollment.Id
             });
         }
+
+        [Authorize(Roles = "Profesor")]
+        [HttpPost("removeProfessorFromCourse")]
+        public async Task<IActionResult> RemoveProfessorFromCourse([FromBody] RemoveRequest request)
+        {
+            int courseId = request.CourseId;
+
+            // Provera identiteta profesora
+            var professor = await _userManager.FindByNameAsync(User.Identity.Name);
+            // int professorId=professor.Id;
+            if (professor == null)
+                return NotFound("Profesor nije pronađen");
+
+            // Provera da li kurs postoji
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId);
+            if (course == null)
+                return NotFound("Kurs nije pronađen");
+
+            // Provera da li je profesor upisan na kurs
+            var enrollment = await _context.ProfessorCourses
+                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId);
+
+            if (enrollment == null)
+                return BadRequest("Profesor nije upisan na kurs.");
+
+            enrollment.WithdrawDate=DateTime.UtcNow;
+
+            // Brisanje zapisa o upisu profesora na kurs
+            // _context.ProfessorCourses.Remove(enrollment);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {   Method="RemoveProfessorFromCourse",
+                Message = "Uspješno ste ispisani sa kursa.",
+                professorId = professor.Id,
+                courseId = course.Id
+            });
+        }
+
     }
 }

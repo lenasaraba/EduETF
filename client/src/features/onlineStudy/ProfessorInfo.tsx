@@ -159,14 +159,17 @@ export default function ProfessorInfo() {
       active: !theme.active,
     };
 
-    console.log("PROFESSOR INFO TSX")
+    console.log("PROFESSOR INFO TSX");
 
     console.log(updateData);
 
     try {
       await dispatch(updateThemeStatus(updateData));
     } catch (error) {
-      console.error("Greška prilikom ažuriranja statusa u professor slice:", error);
+      console.error(
+        "Greška prilikom ažuriranja statusa u professor slice:",
+        error
+      );
     } finally {
       setLoadingStatus((prev) => ({ ...prev, [theme.id]: false }));
     }
@@ -226,8 +229,27 @@ export default function ProfessorInfo() {
     setCourseToRemoveProfFrom(course);
     setOpenDialogRemoveProfessor(true);
   };
+  const [isLastProf, setIsLastProf] = useState(false);
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
+    // try {
+    //   await dispatch(removeProfessorFromCourse(courseToRemoveProfFrom!.id));
+    //   // navigate("/courses?type=all");
+    // } catch (error) {
+    //   console.error("Greška prilikom uklanjanja profesora sa kursa:", error);
+    // } finally {
+    //   setOpenDialogRemoveProfessor(false);
+    // }
+
+    if (courseToRemoveProfFrom?.professorsCourse.length == 1) {
+      setIsLastProf(true);
+      setOpenDialogRemoveProfessor(false);
+      handleDeleteClick("course", courseToRemoveProfFrom);
+      // navigate("/courses?type=all");
+    } else removeProfFromCourse();
+  };
+
+  const removeProfFromCourse: () => Promise<void> = async () => {
     try {
       await dispatch(removeProfessorFromCourse(courseToRemoveProfFrom!.id));
       // navigate("/courses?type=all");
@@ -237,6 +259,7 @@ export default function ProfessorInfo() {
       setOpenDialogRemoveProfessor(false);
     }
   };
+
   const handleCloseDialogRemoveProfessor = () => {
     setOpenDialogRemoveProfessor(false);
     setCourseToRemoveProfFrom(null);
@@ -248,11 +271,7 @@ export default function ProfessorInfo() {
   const [courseToRemoveProfFrom, setCourseToRemoveProfFrom] =
     useState<Course | null>(null);
 
-  const handleDeleteClick = (
-    event: React.MouseEvent<HTMLElement>,
-    type: "course" | "theme",
-    item: any
-  ) => {
+  const handleDeleteClick = (type: "course" | "theme", item: any) => {
     setItemType(type);
     setItemToDelete(item);
     setOpenDialog(true);
@@ -653,10 +672,10 @@ export default function ProfessorInfo() {
                                   >
                                     <>
                                       <Typography
-                                        onClick={(event) =>{
-                                          console.log(themeSelected)
-                                          updateStatus(event, themeSelected!)}
-                                        }
+                                        onClick={(event) => {
+                                          console.log(themeSelected);
+                                          updateStatus(event, themeSelected!);
+                                        }}
                                         variant="body2"
                                         sx={{
                                           paddingX: 2,
@@ -795,6 +814,7 @@ export default function ProfessorInfo() {
             handleConfirmDelete={handleConfirmDelete}
             itemType={itemType}
             itemData={itemToDelete}
+            isLastProf={isLastProf}
           />
 
           <Dialog

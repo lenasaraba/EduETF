@@ -25,7 +25,7 @@ import {
 import { Course } from "../../app/models/course";
 import CourseCardMedia from "./components/CourseCardMedia";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -50,6 +50,8 @@ export default function CourseCard({ course }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const [openDialog, setOpenDialog] = useState(false);
+
+  const type = useAppSelector((state) => state.course.coursesParams.type);
 
   const [anchorElProf, setAnchorElProf] = useState<HTMLButtonElement | null>(
     null
@@ -76,7 +78,7 @@ export default function CourseCard({ course }: Props) {
   const [coursePassword, setCoursePassword] = useState("");
   const [error, setError] = useState(false);
 
-  const handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
+  const handleDeleteClick = () => {
     setOpenDialog(true);
   };
 
@@ -84,6 +86,24 @@ export default function CourseCard({ course }: Props) {
     setOpenDialog(false);
     setAnchorEl(null);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (anchorElProf && !anchorElProf.contains(event.target as Node)) {
+        setOpenProf(false);
+      }
+    };
+
+    if (openProf) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openProf, anchorElProf]);
 
   const handleConfirmDelete = async (event: React.MouseEvent<HTMLElement>) => {
     try {
@@ -134,8 +154,21 @@ export default function CourseCard({ course }: Props) {
   const handleCloseDialogRemoveProfessor = () => {
     setOpenDialogRemoveProfessor(false);
   };
+  const [isLastProf, setIsLastProf] = useState(false);
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
+    console.log(course?.professorsCourse);
+    if (course?.professorsCourse.length == 1) {
+      setIsLastProf(true);
+      handleDeleteClick();
+      // navigate("/courses?type=all");
+    } else {
+      removeProfFromCourse();
+      if (type == "my") dispatch(fetchCoursesAsync());
+    }
+  };
+
+  const removeProfFromCourse: () => Promise<void> = async () => {
     try {
       await dispatch(removeProfessorFromCourse(course!.id));
       // navigate("/courses?type=all");
@@ -157,13 +190,14 @@ export default function CourseCard({ course }: Props) {
   const handleRemoveStudentFromCourse: () => Promise<void> = async () => {
     try {
       await dispatch(removeStudentFromCourse(course!.id));
+      if (type == "myLearning") await dispatch(fetchCoursesAsync()); //zbog meta data
     } catch (error) {
       console.error("Greška prilikom ispisivanja studenta sa kursa:", error);
     } finally {
       setOpenDialogRemoveStudent(false);
     }
   };
-  const theme = useTheme();
+  // const theme = useTheme();
   return (
     <>
       <Card
@@ -236,7 +270,8 @@ export default function CourseCard({ course }: Props) {
           />
           {user &&
           course.professorsCourse.some(
-            (pc) => pc.user.username === user.username && pc.withdrawDate == null
+            (pc) =>
+              pc.user.username === user.username && pc.withdrawDate == null
           ) ? (
             <>
               <div>
@@ -354,7 +389,8 @@ export default function CourseCard({ course }: Props) {
           {user &&
             user.role === "Student" &&
             !course.usersCourse.some(
-              (uc) => uc.user?.username === user.username && uc.withdrawDate == null
+              (uc) =>
+                uc.user?.username === user.username && uc.withdrawDate == null
             ) && (
               <Button
                 onClick={() => setOpenEnrollDialog(true)}
@@ -376,10 +412,12 @@ export default function CourseCard({ course }: Props) {
             )}
           {user &&
           (course.professorsCourse.some(
-            (pc) => pc.user.username === user.username && pc.withdrawDate == null
+            (pc) =>
+              pc.user.username === user.username && pc.withdrawDate == null
           ) ||
             course.usersCourse.some(
-              (uc) => uc.user?.username === user.username && uc.withdrawDate == null
+              (uc) =>
+                uc.user?.username === user.username && uc.withdrawDate == null
             )) ? (
             <Button
               component={Link}
@@ -479,7 +517,9 @@ export default function CourseCard({ course }: Props) {
               color: "text.secondary",
             }}
           >
-            Da li ste sigurni da želite da obrišete ovaj kurs?
+            {isLastProf
+              ? "Jedini ste profesor na ovom kursu. Ako napustite kurs, ovaj kurs će biti obrisan. Da li ste sigurni da želite da obrišete ovaj kurs?"
+              : "Da li ste sigurni da želite da obrišete ovaj kurs?"}
           </Typography>
           <Typography
             color="info.light"
@@ -575,14 +615,17 @@ export default function CourseCard({ course }: Props) {
         {({ TransitionProps }) => (
           <Fade {...TransitionProps} timeout={350}>
             <Paper>
-              {course.professorsCourse.map((prof, index) => (
-                <Typography
-                  key={index}
-                  sx={{ paddingX: 2, paddingY: 1, fontSize: "11pt" }}
-                >
-                  {prof.user.firstName} {prof.user.lastName}
-                </Typography>
-              ))}
+              {course.professorsCourse.map(
+                (prof, index) =>
+                  prof.withdrawDate == null && (
+                    <Typography
+                      key={index}
+                      sx={{ paddingX: 2, paddingY: 1, fontSize: "11pt" }}
+                    >
+                      {prof.user.firstName} {prof.user.lastName}
+                    </Typography>
+                  )
+              )}
             </Paper>
           </Fade>
         )}

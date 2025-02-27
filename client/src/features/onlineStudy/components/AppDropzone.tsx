@@ -93,13 +93,15 @@ export default function AppDropzone<T extends FieldValues>({
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
-      "application/pdf": [".pdf"],  
-      "application/msword": [".doc"],  
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],  
-      "image/*": [], // Sve slike  
-      "video/mp4": [".mp4"],  
+      "application/pdf": [".pdf"],
+      "application/msword": [".doc"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        [".docx"],
+      "image/*": [], // Sve slike
+      "video/mp4": [".mp4"],
     },
-    multiple: true, });
+    multiple: true,
+  });
 
   // Funkcija za dobijanje odgovarajuće ikonice
   const getFileIcon = (file: File) => {
@@ -134,7 +136,13 @@ export default function AppDropzone<T extends FieldValues>({
 
   return (
     <Box
-      sx={{ margin: 0, padding: 0, display: "flex", flexDirection: "column" }}
+      sx={{
+        margin: 0,
+        padding: 0,
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+      }}
     >
       <Typography variant="body2">Sedmica {newWeek}</Typography>
       <div style={{ display: "flex", gap: 20 }}>
@@ -147,7 +155,7 @@ export default function AppDropzone<T extends FieldValues>({
               border: "2px dashed gray",
               padding: 2.5,
               textAlign: "center",
-              width: "20vw",
+              width: "100%",
               height: "20vh",
               display: "flex",
               alignItems: "center",
@@ -182,7 +190,7 @@ export default function AppDropzone<T extends FieldValues>({
               <Paper
                 // elevation={3}
                 sx={{
-                  width: "30vw",
+                  width: "100%",
                   height: "20vh",
                   overflowY: "auto",
                   // padding: 1,

@@ -178,6 +178,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
     event: React.MouseEvent<HTMLElement>,
     theme: ThemeModel
   ) => {
+    console.log(theme);
     event.preventDefault(); // Sprečava osvežavanje stranice
 
     setLoadingStatus((prev) => ({ ...prev, [theme.id]: true })); // Postavi loading za određenu temu
@@ -381,25 +382,34 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
             color: themeM.palette.primary.main,
           }}
         >
-          <MenuItem
-            sx={{
-              backgroundColor: themeM.palette.background.paper,
-              color: themeM.palette.primary.main,
-              "&:hover": {
-                backgroundColor: themeM.palette.text.primary,
-                color: themeM.palette.background.paper,
-              },
-              "&.Mui-selected, &[aria-selected='true']": {
-                backgroundColor: themeM.palette.primary.main,
-                color: "white",
-                fontWeight: "bolder",
-              },
-            }}
-            onClick={(event) => updateStatus(event, themeF)}
-          >
-            Ažuriraj aktivnost
-          </MenuItem>
-          <Divider />
+          {themeF.course &&
+            themeF.course.usersCourse &&
+            themeF.course.usersCourse.some(
+              (uc) =>
+                uc.user?.username === user.username && uc.withdrawDate == null
+            ) && (
+              <>
+                <MenuItem
+                  sx={{
+                    backgroundColor: themeM.palette.background.paper,
+                    color: themeM.palette.primary.main,
+                    "&:hover": {
+                      backgroundColor: themeM.palette.text.primary,
+                      color: themeM.palette.background.paper,
+                    },
+                    "&.Mui-selected, &[aria-selected='true']": {
+                      backgroundColor: themeM.palette.primary.main,
+                      color: "white",
+                      fontWeight: "bolder",
+                    },
+                  }}
+                  onClick={(event) => updateStatus(event, themeF)}
+                >
+                  Ažuriraj aktivnost
+                </MenuItem>
+                <Divider />
+              </>
+            )}
           <MenuItem
             // color="danger"
             sx={{
@@ -1124,7 +1134,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                             user.username == theme1.user?.username ? (
                               RowMenu(theme1)
                             ) : user && theme1.course ? (
-                              theme1.course.usersCourse.some(
+                              theme1.course.usersCourse?.some(
                                 (uc) => uc.user.username === user.username
                               ) ||
                               theme1.course.professorsCourse.some(

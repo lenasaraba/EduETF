@@ -195,7 +195,7 @@ export const updateThemeStatus = createAsyncThunk<Theme[], UpdateThemeDto>(
   "professor/updateTheme",
   async (themeData, thunkAPI) => {
     try {
-      console.log("PROFESSOR slice ts")
+      console.log("PROFESSOR slice ts");
 
       const themeDto = await agent.Theme.updateTheme(themeData); // Pozivanje agenta sa parametrima
       console.log(themeDto);
@@ -207,9 +207,7 @@ export const updateThemeStatus = createAsyncThunk<Theme[], UpdateThemeDto>(
 
       console.log(professorThemes);
 
-
-
-      console.log("APDEJTOVAO STATUS")
+      console.log("APDEJTOVAO STATUS");
 
       // thunkAPI.dispatch(
       //   setProfessorThemes({
@@ -312,6 +310,7 @@ interface RemoveResponseProf {
   Message: string;
   professorId: number;
   courseId: number;
+  withdrawDate: string;
 }
 export const removeProfessorFromCourse = createAsyncThunk<
   RemoveResponseProf,
@@ -394,15 +393,14 @@ export const professorSlice = createSlice({
     builder.addCase(updateThemeStatus.pending, (state) => {
       state.status = "pendingUpdateThemeStatus";
     });
-    builder.addCase(updateThemeStatus.fulfilled, (state, action)=>{
+    builder.addCase(updateThemeStatus.fulfilled, (state, action) => {
       console.log("prof slice reducer");
       console.log(action.payload);
 
-      state.currentProfessorThemes=action.payload;
-      console.log("usao u reducer na update status")
-      state.status="fulfilledUpdateThemeStatus";
-      
-    })
+      state.currentProfessorThemes = action.payload;
+      console.log("usao u reducer na update status");
+      state.status = "fulfilledUpdateThemeStatus";
+    });
     builder.addCase(updateThemeStatus.rejected, (state) => {
       state.status = "idle";
     });
@@ -429,10 +427,10 @@ export const professorSlice = createSlice({
       //   state.professorThemes![action.payload.idProfessor].filter(
       //     (theme) => theme.id !== action.payload.id
       //   );
-      if(state.currentProfessorThemes)
-      state.currentProfessorThemes=state.currentProfessorThemes?.filter(
-        (theme) => theme.id !== action.payload.id
-      )
+      if (state.currentProfessorThemes)
+        state.currentProfessorThemes = state.currentProfessorThemes?.filter(
+          (theme) => theme.id !== action.payload.id
+        );
     });
     builder.addCase(deleteProfessorsThemeAsync.rejected, (state) => {
       state.status = "rejectedDeleteProfTheme";
@@ -452,8 +450,10 @@ export const professorSlice = createSlice({
       //   state.professorThemes![action.payload.idProfessor].filter(
       //     (theme) => theme.course?.id !== action.payload.id
       //   );
-      if(state.currentProfessorCourses)
-        state.currentProfessorCourses=state.currentProfessorCourses?.filter( (course) => course.id !== action.payload.id)
+      if (state.currentProfessorCourses)
+        state.currentProfessorCourses = state.currentProfessorCourses?.filter(
+          (course) => course.id !== action.payload.id
+        );
     });
     builder.addCase(deleteProfessorsCourseAsync.rejected, (state) => {
       state.status = "rejectedDeleteProfCourse";
@@ -473,7 +473,7 @@ export const professorSlice = createSlice({
     builder.addCase(fetchProfessorByIdAsync.fulfilled, (state, action) => {
       //state.loading = false; // Postavi loading na true
       // state.coursesLoaded = true;
-      state.currentProfessorLoaded=true;
+      state.currentProfessorLoaded = true;
       console.log(action.payload);
       state.currentProfessor = action.payload.professor;
       // state.currentProfessorCourses = action.payload.courses;
@@ -495,13 +495,13 @@ export const professorSlice = createSlice({
       state.status = "rejectedFetchProfessorThemes";
     });
     builder.addCase(fetchProfessorByIdCoursesAsync.pending, (state) => {
-      state.currentProfCoursesLoaded=false;
+      state.currentProfCoursesLoaded = false;
     });
     builder.addCase(
       fetchProfessorByIdCoursesAsync.fulfilled,
       (state, action) => {
         state.currentProfessorCourses = action.payload.courses;
-        state.currentProfCoursesLoaded=true;
+        state.currentProfCoursesLoaded = true;
       }
     );
     builder.addCase(fetchProfessorByIdCoursesAsync.rejected, (state) => {
@@ -512,7 +512,7 @@ export const professorSlice = createSlice({
       state.status = "pendingRemoveProfessorFromCourse";
     });
     builder.addCase(removeProfessorFromCourse.fulfilled, (state, action) => {
-      console.log(action.payload)
+      console.log(action.payload);
       if (state.currentProfessorCourses) {
         const course = state.currentProfessorCourses.find(
           (course) => course.id === action.payload.courseId
@@ -520,11 +520,15 @@ export const professorSlice = createSlice({
         console.log(course?.professorsCourse);
 
         if (course) {
-          course.professorsCourse = course.professorsCourse.filter(
+          const profCourse = course.professorsCourse.find(
             (professor) => professor.user.id !== action.payload.professorId
           );
+          if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
         }
-        console.log(course?.professorsCourse);
+        state.currentProfessorCourses = state.currentProfessorCourses.filter(
+          (course) => course.id != action.payload.courseId
+        );
+        // console.log(course?.professorsCourse);
       }
       state.status = "fulfilledRemoveProfessorFromCourse";
     });

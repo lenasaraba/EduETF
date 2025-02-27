@@ -11,12 +11,14 @@ import {
   CardContent,
   Chip,
   CircularProgress,
+  debounce,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
   Grid,
+  Input,
   Popover,
   Stack,
   TextField,
@@ -26,8 +28,9 @@ import {
   createMessage,
   deleteMessageAsync,
   fetchMessagesAsync,
+  searchMessagesAsync,
 } from "./messageSlice";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   deleteThemeAsync,
   fetchThemeByIdAsync,
@@ -45,11 +48,166 @@ import { Message } from "../../app/models/theme";
 import { Theme as ThemeMod } from "../../app/models/theme";
 
 import "./themeStyle.css";
-import { borderRadius, margin } from "@mui/system";
 import Unauthorized from "../../app/errors/Unauthorized";
 import { LoadingButton } from "@mui/lab";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+interface SearchBarProps {
+  onSearch: (query: string) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
+  const [query, setQuery] = useState<string>("");
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((event: any) => {
+        console.log(event);
+        onSearch(event);
+      }, 1000),
+    [] // Zavisi samo od dispatch-ap
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.clear();
+    };
+  }, [debouncedSearch]);
+
+  return (
+    <TextField
+      placeholder="Pretraga.."
+      variant="outlined"
+      fullWidth
+      InputProps={{
+        startAdornment: (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              padding: 0,
+            }}
+          >
+            <SearchRoundedIcon
+              fontSize="small"
+              sx={{ color: "primary.main" }}
+            />
+          </Box>
+        ),
+      }}
+      sx={{
+        backgroundColor: "background.paper",
+        borderColor: "background.default",
+        padding: 0,
+        height: 40,
+        borderRadius: "8px",
+        "& .MuiOutlinedInput-root": {
+          height: 40,
+          paddingRight: "14px",
+          "& fieldset": {
+            borderColor: "background.default",
+          },
+          "&:hover fieldset": {
+            borderColor: "action.hover", // Promeni samo obrub, ako želiš
+          },
+          "&:hover": {
+            backgroundColor: "action.hover", // Ovdje se menja pozadina celog inputa
+          },
+          "&.Mui-focused fieldset": {
+            borderColor: "primary.main",
+          },
+        },
+        "& .MuiOutlinedInput-input": {
+          // padding: 0,
+          // height: "100%",
+        },
+        // "& .MuiInputBase-inputAdornedStart": {
+        //   paddingLeft: 0,
+        // },
+        // "& input": {
+        //   color: "primary.main", // Osnovna boja teksta
+        //   fontSize: 14,
+        // },
+      }}
+      value={query}
+      onChange={(e: any) => {
+        setQuery(e.target.value);
+        console.log(query);
+        debouncedSearch(e.target.value);
+      }}
+    />
+    // <button onClick={handleSearch}>Search</button>
+  );
+};
 
 export default function Theme() {
+  const [searchResults, setSearchResults] = useState<Message[] | null>([]);
+  const [highlightedMessage, setHighlightedMessage] = useState<number | null>(
+    null
+  );
+  const resultMessages = useAppSelector(
+    (state) => state.message.resultMessages
+  );
+  console.log(resultMessages);
+  const [currentResultIndex, setCurrentResultIndex] = useState<number>(0);
+  useEffect(() => {
+    if (resultMessages && resultMessages.length > 0) {
+      setCurrentResultIndex(0);
+      scrollToMessage(resultMessages[0].id!);
+    } else {
+      setHighlightedMessage(null);
+    }
+    setSearchResults(resultMessages);
+  }, [resultMessages]);
+  const handleSearch = async (query: string) => {
+    try {
+      console.log(query);
+      if (theme)
+        await dispatch(
+          searchMessagesAsync({ themeId: theme.id, query: query })
+        );
+      console.log(resultMessages);
+      // if (resultMessages) {
+      //   setSearchResults(resultMessages);
+      //   setCurrentResultIndex(0);
+      //   if (resultMessages.length > 0 && resultMessages[0]) {
+      //     scrollToMessage(resultMessages[0].id!);
+      //   }
+      // }
+    } catch (error) {
+      console.error("Error searching messages:", error);
+    }
+  };
+
+  const scrollToMessage = (messageId: number) => {
+    setHighlightedMessage(messageId);
+    const messageElement = document.getElementById(`message-${messageId}`);
+    // if (messageElement) {
+    //   messageElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    // }
+  };
+
+  const handleNextResult = () => {
+    if (searchResults)
+      if (currentResultIndex < searchResults.length - 1) {
+        const nextIndex = currentResultIndex + 1;
+        setCurrentResultIndex(nextIndex);
+        if (searchResults[nextIndex].id)
+          scrollToMessage(searchResults[nextIndex].id);
+      }
+  };
+
+  const handlePreviousResult = () => {
+    if (searchResults)
+      if (currentResultIndex > 0) {
+        const prevIndex = currentResultIndex - 1;
+        setCurrentResultIndex(prevIndex);
+        if (searchResults[prevIndex].id)
+          scrollToMessage(searchResults[prevIndex].id);
+      }
+  };
+
   const navigate = useNavigate();
   const status = useAppSelector((state) => state.theme.status);
   const statusMessage = useAppSelector((state) => state.message.status);
@@ -105,11 +263,11 @@ export default function Theme() {
   );
 
   const mentionUsers = uniqueUsers
-  ?.filter((u) => u?.username && u?.id !== user?.id) // Filtriramo korisnike koji imaju username i koji nisu prijavljeni korisnik
-  .map((u) => ({
-    id: String(u?.id), // Pretvaramo ID u string
-    display: String(u?.username), // Pretvaramo username u string
-  }));
+    ?.filter((u) => u?.username && u?.id !== user?.id) // Filtriramo korisnike koji imaju username i koji nisu prijavljeni korisnik
+    .map((u) => ({
+      id: String(u?.id), // Pretvaramo ID u string
+      display: String(u?.username), // Pretvaramo username u string
+    }));
 
   // mentionUsers.map((m) => console.log({ ...m }));
   // console.log({ ...mentionUsers });
@@ -261,10 +419,10 @@ export default function Theme() {
                   >
                     <Box
                       component={Link}
-                      to="/onlineStudy"
+                      to="/forum"
                       sx={{ display: "flex", alignItems: "center" }}
                       // onClick={() => dispatch(resetCoursesParams())}
-                      onClick={() => navigate(-1)}
+                      // onClick={() => navigate("../forum")}
                     >
                       <ChatTwoToneIcon
                         sx={{
@@ -419,25 +577,31 @@ export default function Theme() {
                                   },
                                 }}
                               >
-                                <Typography
-                                  onClick={(event) =>
-                                    updateStatus(event, theme)
-                                  }
-                                  variant="body2"
-                                  sx={{
-                                    paddingX: 2,
-                                    paddingY: 1,
-                                    "&:hover": {
-                                      cursor: "pointer",
-                                      color: "primary.light",
-                                    },
-                                    fontFamily: "Raleway, sans-serif",
-                                    color: "text.primary",
-                                    backgroundColor: "background.paper",
-                                  }}
-                                >
-                                  {theme.active ? "Zaključaj" : "Otključaj"}
-                                </Typography>
+                                {theme.course?.usersCourse.some(
+                                  (uc) =>
+                                    uc.user?.username === user.username &&
+                                    uc.withdrawDate == null
+                                ) && (
+                                  <Typography
+                                    onClick={(event) =>
+                                      updateStatus(event, theme)
+                                    }
+                                    variant="body2"
+                                    sx={{
+                                      paddingX: 2,
+                                      paddingY: 1,
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        color: "primary.light",
+                                      },
+                                      fontFamily: "Raleway, sans-serif",
+                                      color: "text.primary",
+                                      backgroundColor: "background.paper",
+                                    }}
+                                  >
+                                    {theme.active ? "Zaključaj" : "Otključaj"}
+                                  </Typography>
+                                )}
                                 <Typography
                                   onClick={handleDeleteClick} // Otvara dijalog
                                   variant="body2"
@@ -714,6 +878,67 @@ export default function Theme() {
                 {theme.active ? "" : "Zatvorena tema"}
               </Typography>
 
+              <Box
+                sx={{
+                  margin: 0,
+                  padding: 0,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  mb: 1,
+                }}
+              >
+                <SearchBar onSearch={handleSearch} />
+                {searchResults.length > 0 && (
+                  <Box
+                    sx={{
+                      margin: 0,
+                      padding: 0,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        margin: 0,
+                        padding: 0,
+                        width: "100%",
+                      }}
+                    >
+                      <Button
+                        onClick={handlePreviousResult}
+                        disabled={currentResultIndex === 0}
+                      >
+                        <ArrowBackIosIcon sx={{ fontSize: "10pt" }} />
+                      </Button>
+                      <Button
+                        onClick={handleNextResult}
+                        disabled={
+                          currentResultIndex === searchResults.length - 1
+                        }
+                      >
+                        <ArrowForwardIosIcon sx={{ fontSize: "10pt" }} />
+                      </Button>
+                    </Box>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "row",
+                        margin: 0,
+                        padding: 0,
+                        justifyContent: "center",
+                        fontSize: "9pt",
+                      }}
+                    >
+                      {currentResultIndex + 1} / {searchResults.length}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+
               <Grid
                 item
                 xs={12}
@@ -803,7 +1028,9 @@ export default function Theme() {
                         messages.map((message, index) => (
                           <Box
                             key={index} // Dodaj ključ da izbegneš React grešku
+                            id={`message-${message.id}`}
                             sx={{
+                              marginTop: 2,
                               display: "flex",
                               alignItems: "center",
                               justifyContent:
@@ -811,17 +1038,34 @@ export default function Theme() {
                                   ? "flex-end"
                                   : "flex-start", // Poravnanje poruka
                               marginBottom: 2,
+                              // backgroundColor:
+                              //   highlightedMessage === message.id
+                              //     ? "#f0f8ff"
+                              //     : "#fff",
                             }}
                           >
                             <Box
                               sx={{
                                 backgroundColor:
+                                  // highlightedMessage === message.id
+                                  //   ? "background.paper" // Svetlija nijansa primarne boje za highlight
+                                  //   :
                                   message.user?.email === user?.email
                                     ? "common.background"
                                     : "common.onBackground",
                                 padding: 2,
                                 borderRadius: 2,
-                                maxWidth: "70%", // Ograniči širinu poruke
+                                maxWidth: "70%",
+                                border: "2px solid",
+                                borderColor:
+                                  highlightedMessage === message.id
+                                    ? "text.primary"
+                                    : "transparent",
+                                boxShadow: (theme) =>
+                                  highlightedMessage === message.id
+                                    ? ` 0px 0px 15px 2px ${theme.palette.text.primary}`
+                                    : "none",
+                                transition: "all 0.2s ease-in-out", // Glatka animacija promene stanja
                               }}
                             >
                               <Stack direction="row" alignItems="center">
@@ -939,44 +1183,6 @@ export default function Theme() {
                                           sx={{ fontSize: "16pt" }}
                                         />
                                       </Box>
-                                      {/* <Popover
-                                  id={idMenu}
-                                  open={open}
-                                  anchorEl={anchorEl}
-                                  onClose={handleClose}
-                                  anchorOrigin={{
-                                    vertical: "bottom",
-                                    horizontal: "center",
-                                  }}
-                                  slotProps={{
-                                    paper: {
-                                      sx: {
-                                        borderRadius: "10pt",
-                                        "&:hover": {
-                                          cursor: "pointer",
-                                        },
-                                      },
-                                    },
-                                  }}
-                                >
-                                  <Typography
-                                    onClick={handleDeleteClick}
-                                    variant="body2"
-                                    sx={{
-                                      paddingX: 2,
-                                      paddingY: 1,
-                                      "&:hover": {
-                                        cursor: "pointer",
-                                        color: "primary.light",
-                                      },
-                                      fontFamily: "Raleway, sans-serif",
-                                      color: "text.secondaryChannel",
-                                      backgroundColor: "background.paper",
-                                    }}
-                                  >
-                                    Obriši kurs
-                                  </Typography>
-                                </Popover> */}
                                     </div>
                                   ) : (
                                     ""
@@ -1067,9 +1273,11 @@ export default function Theme() {
                         displayTransform={(id: string, display: string) =>
                           "@" + display.toString()
                         }
-                        style={{
-                          // margin:"200px",
-                        }}
+                        style={
+                          {
+                            // margin:"200px",
+                          }
+                        }
                       />
                     </MentionsInput>
 

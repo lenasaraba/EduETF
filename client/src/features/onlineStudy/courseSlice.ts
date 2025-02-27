@@ -325,6 +325,7 @@ interface RemoveResponseProf {
   Message: string;
   professorId: number;
   courseId: number;
+  withdrawDate: string;
 }
 export const addProfessorToCourse = createAsyncThunk<
   EnrollResponseProf,
@@ -362,6 +363,7 @@ interface RemoveResponseStudent {
   Message: string;
   studentId: number;
   courseId: number;
+  withdrawDate: string;
 }
 
 export const removeStudentFromCourse = createAsyncThunk<
@@ -369,8 +371,7 @@ export const removeStudentFromCourse = createAsyncThunk<
   number
 >("course/removeStudentFromCourse", async (courseId, thunkAPI) => {
   try {
-    const studentCourse =
-      await agent.Course.removeStudentFromCourse(courseId);
+    const studentCourse = await agent.Course.removeStudentFromCourse(courseId);
     console.log(studentCourse);
     return studentCourse;
   } catch (error: any) {
@@ -529,11 +530,11 @@ export const courseSlice = createSlice({
         state.status = "idle";
         console.log(action.payload);
         // Pretpostavljamo da je tip stanja 'userCourses' tipa Record<number, Course[]>
-        state.userCourses![action.payload.student.id] =
-          state.userCourses![action.payload.student.id] || [];
-        state.userCourses![action.payload.student.id].push(
-          action.payload.course
-        );
+        // state.userCourses![action.payload.student.id] =
+        //   state.userCourses![action.payload.student.id] || [];
+        // state.userCourses![action.payload.student.id].push(
+        //   action.payload.course
+        // );
         //OVO PROMIJENITI
         //state.currentCourse?.usersCourse=state.currentCourse?.usersCourse.concat(action.payload);
       }
@@ -589,9 +590,10 @@ export const courseSlice = createSlice({
     });
     builder.addCase(deleteCourseAsync.fulfilled, (state, action) => {
       state.status = "idle";
-      state.allCourses = state.allCourses!.filter(
-        (course) => course.id !== action.payload
-      );
+      if (state.allCourses)
+        state.allCourses = state.allCourses!.filter(
+          (course) => course.id !== action.payload
+        );
     });
     builder.addCase(deleteCourseAsync.rejected, (state) => {
       state.status = "rejectedDeleteCourse";
@@ -719,7 +721,7 @@ export const courseSlice = createSlice({
             );
         }
 
-        if (state.courses && state.courses.length>0) {
+        if (state.courses && state.courses.length > 0) {
           const course = state.courses.find(
             (course) => course.id === action.payload.courseId
           );
@@ -730,7 +732,7 @@ export const courseSlice = createSlice({
           }
         }
 
-        if (state.allCourses && state.allCourses.length>0) {
+        if (state.allCourses && state.allCourses.length > 0) {
           const course = state.allCourses.find(
             (course) => course.id === action.payload.courseId
           );
@@ -749,9 +751,6 @@ export const courseSlice = createSlice({
       state.status = "idle";
     });
 
-
-
-
     builder.addCase(removeStudentFromCourse.pending, (state) => {
       state.status = "loadingRemoveStudentFromCourse";
     });
@@ -760,45 +759,51 @@ export const courseSlice = createSlice({
       (state, action: PayloadAction<RemoveResponseStudent>) => {
         console.log(action.payload);
 
-        if (
-          state.userCourses &&
-          state.userCourses[action.payload.studentId]
-        ) {
-          state.userCourses[action.payload.studentId] =
-            state.userCourses[action.payload.studentId].filter(
-              (uc) => uc.id !== action.payload.courseId
-            );
-        }
+        // if (state.userCourses && state.userCourses[action.payload.studentId]) {
+        //   state.userCourses[action.payload.studentId] = state.userCourses[
+        //     action.payload.studentId
+        //   ].filter((uc) => uc.id !== action.payload.courseId);
+        // }
 
         // Proveri da li currentCourse i usersCourse postoje pre nego što primeniš filter
-        if (state.currentCourse?.usersCourse) {
-          state.currentCourse.usersCourse =
-            state.currentCourse.usersCourse.filter(
-              (uc) => uc.courseId !== action.payload.courseId
-            );
-        }
+        // if (state.currentCourse?.usersCourse) {
+        //   state.currentCourse.usersCourse =
+        //     state.currentCourse.usersCourse.filter(
+        //       (uc) => uc.courseId !== action.payload.courseId
+        //     );
+        // }
 
-        if (state.courses && state.courses.length>0) {
+        if (state.courses && state.courses.length > 0) {
           const course = state.courses.find(
             (course) => course.id === action.payload.courseId
           );
           if (course) {
-            course.usersCourse = course.usersCourse.filter(
-              (student) => student.user.id !== action.payload.studentId
+            const userCourse = course.usersCourse.find(
+              (uc) =>
+                uc.user.id == action.payload.studentId &&
+                uc.withdrawDate == null
             );
+            if (userCourse) {
+              console.log(action.payload.withdrawDate);
+              userCourse.withdrawDate = action.payload.withdrawDate;
+            }
+
+            // course.usersCourse = course.usersCourse.filter(
+            //   (student) => student.user.id !== action.payload.studentId
+            // );
           }
         }
 
-        if (state.allCourses && state.allCourses.length>0) {
-          const course = state.allCourses.find(
-            (course) => course.id === action.payload.courseId
-          );
-          if (course) {
-            course.usersCourse = course.usersCourse.filter(
-              (student) => student.user.id !== action.payload.studentId
-            );
-          }
-        }
+        // if (state.allCourses && state.allCourses.length > 0) {
+        //   const course = state.allCourses.find(
+        //     (course) => course.id === action.payload.courseId
+        //   );
+        //   if (course) {
+        //     course.usersCourse = course.usersCourse.filter(
+        //       (student) => student.user.id !== action.payload.studentId
+        //     );
+        //   }
+        // }
 
         state.status = "fulfilledRemoveStudentFromCourse";
       }

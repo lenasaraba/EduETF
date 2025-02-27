@@ -16,6 +16,7 @@ interface DeleteDialogProps {
   handleConfirmDelete: (item: any, itemType: string) => void; // Ovdje proslediš objekat koji brišeš, može biti kurs ili tema
   itemType: "course" | "theme"; // Tip stavke koja se briše
   itemData: any; // Podaci o kursu ili temi koji se brišu
+  isLastProf: boolean;
 }
 
 const DeleteDialog: React.FC<DeleteDialogProps> = ({
@@ -24,17 +25,18 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({
   handleConfirmDelete,
   itemType,
   itemData,
+  isLastProf,
 }) => {
   const isCourse = itemType === "course";
   const title = isCourse ? "Potvrda brisanja kursa" : "Potvrda brisanja teme";
   const message = isCourse
-    ? `Da li ste sigurni da želite da obrišete kurs "${itemData?.name}"?`
+    ? isLastProf
+      ? `Jedini ste profesor na ovom kursu. Da li ste sigurni da želite da obrišete kurs "${itemData?.name}"? `
+      : `Da li ste sigurni da želite da obrišete kurs "${itemData?.name}"?`
     : `Da li ste sigurni da želite da obrišete temu "${itemData?.title}"?`;
 
+  const statusProf = useAppSelector((state) => state.professor.status);
 
-  const statusProf=useAppSelector((state)=>state.professor.status);
-  
-  
   return (
     <Dialog
       open={openDialog}
@@ -65,7 +67,11 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({
           Odustani
         </Button>
         <LoadingButton
-        loading={isCourse?statusProf=="pendingDeleteCourse" : statusProf=="pendingDeleteTheme"}
+          loading={
+            isCourse
+              ? statusProf == "pendingDeleteCourse"
+              : statusProf == "pendingDeleteTheme"
+          }
           onClick={() => handleConfirmDelete(itemData, itemType)}
           color="error"
           variant="contained"

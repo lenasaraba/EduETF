@@ -8,6 +8,7 @@ export interface MessageState {
   messages: Message[] | null;
   status: string;
   messagesLoaded: boolean;
+  resultMessages: Message[] | null;
 }
 
 const initialState: MessageState = {
@@ -15,6 +16,7 @@ const initialState: MessageState = {
   messages: [],
   status: "idle",
   messagesLoaded: false,
+  resultMessages: [],
 };
 
 // interface MessagesResponse{
@@ -32,6 +34,25 @@ export const fetchMessagesAsync = createAsyncThunk<
   // return {messages:messages,themeId:id};
   return messages;
 });
+
+interface MessageRequest {
+  themeId: number;
+  query: string;
+}
+
+export const searchMessagesAsync = createAsyncThunk<Message[], MessageRequest>(
+  "message/searchMessagesAsync",
+  async (query, thunkAPI) => {
+    const messagesA = await agent.Message.searchMessage(
+      query.themeId,
+      query.query
+    );
+    console.log(messagesA);
+    // thunkAPI.dispatch(setMessages({ themeId: id, messagesTheme: messages }));
+    // return {messages:messages,themeId:id};
+    return messagesA;
+  }
+);
 
 // interface MessageResponse{
 //   message: Message
@@ -134,6 +155,14 @@ export const messageSlice = createSlice({
     });
     builder.addCase(deleteMessageAsync.rejected, (state) => {
       state.status = "rejected";
+    });
+
+    builder.addCase(searchMessagesAsync.fulfilled, (state, action) => {
+      //  state.status = "idle";
+      // state.messages![action.payload.themeId] = action.payload.messages;
+      state.resultMessages = action.payload;
+      console.log(state.resultMessages);
+      //  state.messagesLoaded = true;
     });
   },
 });

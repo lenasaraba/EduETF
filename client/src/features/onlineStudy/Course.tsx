@@ -56,7 +56,7 @@ import { LoadingButton } from "@mui/lab";
 import Unauthorized from "../../app/errors/Unauthorized";
 import { fetchProfessorsAsync } from "./professorSlice";
 import { Professor } from "../../app/models/professor";
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 
 export default function Course() {
   const [currentMat, setCurrentMat] = useState<Material>();
@@ -188,9 +188,8 @@ export default function Course() {
   const [openDialogRemoveProfessor, setOpenDialogRemoveProfessor] =
     useState(false);
 
-    const [openDialogRemoveStudent, setOpenDialogRemoveStudent] =
-    useState(false);
-
+  const [openDialogRemoveStudent, setOpenDialogRemoveStudent] = useState(false);
+  const [isLastProf, setIsLastProf] = useState(false);
   // const [isStudent, setIsStudent] = useState(false);
   // const [isProfessor, setIsProfessor] = useState(false);
 
@@ -414,6 +413,7 @@ export default function Course() {
       console.error("Greška prilikom brisanja kursa:", error);
     } finally {
       setOpenDialogMaterial(false);
+      setEditingWeek(false);
     }
   };
 
@@ -457,6 +457,15 @@ export default function Course() {
   };
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
+    console.log(course?.professorsCourse);
+    if (course?.professorsCourse.length == 1) {
+      setIsLastProf(true);
+      handleDeleteClick();
+      // navigate("/courses?type=all");
+    } else removeProfFromCourse();
+  };
+
+  const removeProfFromCourse: () => Promise<void> = async () => {
     try {
       await dispatch(removeProfessorFromCourse(course!.id));
       navigate("/courses?type=all");
@@ -477,7 +486,6 @@ export default function Course() {
       setOpenDialogRemoveStudent(false);
     }
   };
-
 
   const showFile = (material: Material) => {
     setFileVisible(true);
@@ -693,7 +701,7 @@ export default function Course() {
                               color: "primary.light",
                             },
                             // textTransform: "uppercase",
-                            width: "max-content",
+                            width: "100%",
                             fontFamily: "Raleway, sans-serif",
                             color: "text.primary",
                             backgroundColor: "background.paper",
@@ -768,11 +776,17 @@ export default function Course() {
                           padding: 0,
                           "&:hover": {
                             cursor: "pointer",
+                            backgroundColor: "transparent",
                           },
                         }}
+                        component={Button}
+                        title="Napusti kurs"
                       >
                         <RemoveCircleOutlineIcon
-                          sx={{ fontSize: "1.8rem", color: "text.secondaryChannel" }}
+                          sx={{
+                            fontSize: "1.8rem",
+                            color: "text.secondaryChannel",
+                          }}
                         />
                       </Box>
                       <Popover
@@ -795,7 +809,6 @@ export default function Course() {
                           },
                         }}
                       >
-                       
                         <Typography
                           onClick={handleRemoveStudentClick}
                           variant="body2"
@@ -850,7 +863,9 @@ export default function Course() {
                   }}
                 >
                   {openDialog
-                    ? "Da li ste sigurni da želite da obrišete ovaj kurs?"
+                    ? isLastProf
+                      ? "Jedini ste profesor na ovom kursu. Ako napustite kurs, ovaj kurs će biti obrisan. Da li ste sigurni da želite da obrišete ovaj kurs?"
+                      : "Da li ste sigurni da želite da obrišete ovaj kurs?"
                     : "Da li ste sigurni da želite da obrišete ovaj materijal?"}
                 </Typography>
               </DialogContent>
@@ -979,7 +994,7 @@ export default function Course() {
                     <CircularProgress size={18} sx={{ color: "white" }} />
                   }
                 >
-                  Ispiši se 
+                  Ispiši se
                 </LoadingButton>
               </DialogActions>
             </Dialog>
@@ -1262,7 +1277,6 @@ export default function Course() {
 
             <Grid item xs={12} md={12} sx={{ padding: 1 }}>
               <Divider sx={{ width: "100%", marginY: 2 }} />
-
               <Box
                 sx={{
                   margin: 0,
@@ -1313,8 +1327,14 @@ export default function Course() {
                       </Button>
                     </Box>
                   )}
-              </Box>
-              {courseMaterials && courseMaterials.length > 0 ? (
+              </Box>{" "}
+              <Grid
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-evenly",
+                  gridTemplateRows: "1fr 1fr",
+                }}
+              >
                 <Box
                   sx={{
                     margin: 0,
@@ -1322,6 +1342,7 @@ export default function Course() {
                     display: "flex",
                     width: "100%",
                     marginBottom: 5,
+                    justifyContent: "center",
                     minHeight:
                       openWeeks.some((week) => week) || fileVisible
                         ? "40vh"
@@ -1330,211 +1351,229 @@ export default function Course() {
                     transition: "max-height 0.3s ease-in-out", // Glatka animacija
                   }}
                 >
-                  {" "}
-                  <List
-                    sx={{
-                      maxWidth: "30vw",
-                      width: "100%",
-                      maxHeight: "100%", // Lista prati roditeljsku visinu
-                      overflowY: "auto", // Skrol samo ovde
-                      overflowX: "hidden",
-                      whiteSpace: "nowrap",
-                      padding: 0,
-                    }}
-                  >
-                    {[...Array(course.weekCount)].map((_, index) => (
-                      <div key={index}>
-                        <ListItem
-                          component="div"
+                  {course.weekCount > 0 ? (
+                    <>
+                      <List
+                        sx={{
+                          // maxWidth: "30vw",
+                          width: "100%",
+                          maxHeight: "100%", // Lista prati roditeljsku visinu
+                          overflowY: "auto", // Skrol samo ovde
+                          overflowX: "hidden",
+                          whiteSpace: "nowrap",
+                          padding: 0,
+                        }}
+                      >
+                        {[...Array(course.weekCount)].map((_, index) => (
+                          <div key={index}>
+                            <ListItem
+                              component="div"
+                              sx={{
+                                // cursor: "pointer",
+                                padding: "8px 16px",
+                                backgroundColor: openWeeks[index]
+                                  ? "rgba(0, 0, 0, 0.04)"
+                                  : "inherit",
+                                borderRadius: 2,
+                                "&:hover": {
+                                  backgroundColor: "rgba(0, 0, 0, 0.1)",
+                                },
+                              }}
+                            >
+                              <ListItemText primary={`Sedmica ${index + 1}`} />
+                              {isEditing && !editingWeek && !addingWeek && (
+                                <IconButton onClick={() => editWeek(index + 1)}>
+                                  <EditNote />
+                                </IconButton>
+                              )}
+                              <IconButton onClick={() => toggleWeek(index)}>
+                                {openWeeks[index] ? (
+                                  <ExpandLess
+                                  //  onClick={() => toggleWeek(index)}
+                                  />
+                                ) : (
+                                  <ExpandMore
+                                  // onClick={() => toggleWeek(index)}
+                                  />
+                                )}
+                              </IconButton>
+                            </ListItem>
+                            {/* {courseMaterials && courseMaterials.length > 0 && ( */}
+                            <Collapse
+                              in={openWeeks[index]}
+                              timeout="auto"
+                              unmountOnExit
+                            >
+                              <List
+                                component="div"
+                                disablePadding
+                                sx={{ width: "30vw", height: "100%" }}
+                              >
+                                {courseMaterials &&
+                                courseMaterials.filter(
+                                  (material) => material.week === index + 1
+                                ).length > 0 ? (
+                                  <CustomTimeline
+                                    materials={courseMaterials.filter(
+                                      (material) => material.week === index + 1
+                                    )}
+                                    showFile={showFile}
+                                    handleDelete={handleDeleteMaterialClick}
+                                    isEditing={isEditing}
+                                  />
+                                ) : (
+                                  <ListItem>
+                                    <ListItemText primary="Nema materijala za ovu sedmicu." />
+                                  </ListItem>
+                                )}
+                              </List>
+                            </Collapse>
+                            {/* )} */}
+                          </div>
+                        ))}
+                      </List>
+                      {!addingWeek && !editingWeek && currentMat ? (
+                        <Box
                           sx={{
-                            // cursor: "pointer",
-                            padding: "8px 16px",
-                            backgroundColor: openWeeks[index]
-                              ? "rgba(0, 0, 0, 0.04)"
-                              : "inherit",
-                            borderRadius: 2,
-                            "&:hover": {
-                              backgroundColor: "rgba(0, 0, 0, 0.1)",
-                            },
+                            height: "100%",
+                            // maxHeight: "60vh",
+                            // height:"60vh",
+                            backgroundColor: "transparent",
+                            width: "100%",
+                            paddingX: 1,
+                            display: fileVisible ? "block" : "none",
+                            // minHeight: fileVisible ? "40vh" : "0", // Ako su sve zatvorene, minHeight je auto
+                            // Skrol samo ovde
+
+                            // mb: 2,
                           }}
                         >
-                          <ListItemText primary={`Sedmica ${index + 1}`} />
-                          {isEditing && !editingWeek && !addingWeek && (
-                            <IconButton onClick={() => editWeek(index + 1)}>
-                              <EditNote />
-                            </IconButton>
-                          )}
-                          <IconButton>
-                            {openWeeks[index] ? (
-                              <ExpandLess onClick={() => toggleWeek(index)} />
-                            ) : (
-                              <ExpandMore onClick={() => toggleWeek(index)} />
-                            )}
-                          </IconButton>
-                        </ListItem>
-
-                        <Collapse
-                          in={openWeeks[index]}
-                          timeout="auto"
-                          unmountOnExit
-                        >
-                          <List
-                            component="div"
-                            disablePadding
-                            sx={{ width: "30vw", height: "100%" }}
+                          <Box
+                            sx={{
+                              margin: 0,
+                              padding: 0,
+                              maxHeight: "100%", // Sprečava preveliko širenje
+                              overflowY: "auto",
+                            }}
                           >
-                            {courseMaterials.filter(
-                              (material) => material.week === index + 1
-                            ).length > 0 ? (
-                              <CustomTimeline
-                                materials={courseMaterials.filter(
-                                  (material) => material.week === index + 1
-                                )}
-                                showFile={showFile}
-                                handleDelete={handleDeleteMaterialClick}
-                                isEditing={isEditing}
-                              />
-                            ) : (
-                              <ListItem>
-                                <ListItemText primary="Nema materijala za ovu sedmicu." />
-                              </ListItem>
-                            )}
-                          </List>
-                        </Collapse>
-                      </div>
-                    ))}
-                  </List>
-                  {currentMat ? (
-                    <Box
-                      sx={{
-                        height: "100%",
-                        // maxHeight: "60vh",
-                        // height:"60vh",
-                        backgroundColor: "transparent",
-                        width: "100%",
-                        paddingX: 1,
-                        display: fileVisible ? "block" : "none",
-                        // minHeight: fileVisible ? "40vh" : "0", // Ako su sve zatvorene, minHeight je auto
-                        // Skrol samo ovde
+                            {" "}
+                            {getFilePreview(currentMat.filePath)}
+                          </Box>
+                          <Button
+                            sx={{
+                              width: "100%",
+                              color: "text.primary",
+                              // paddingX: 2,
+                              borderRadius: "20pt",
 
-                        // mb: 2,
-                      }}
+                              // display: "inline-block", // Ovo osigurava da padding i borderRadius funkcionišu ispravno
+                              "&:hover": {
+                                cursor: "pointer",
+                                backgroundColor: "action.acive",
+                                color: "primary.light",
+                              },
+                            }}
+                          >
+                            <CloseIcon
+                              color="inherit" // Ovo sprečava preklapanje sa default stilovima
+                              onClick={() => hideFile()}
+                            />
+                          </Button>
+                        </Box>
+                      ) : (
+                        ""
+                      )}
+                    </>
+                  ) : (
+                    <Typography
+                      variant="h6"
+                      width="100%"
+                      sx={{ mb: 2, fontWeight: "normal", fontStyle: "italic" }}
                     >
+                      Nema materijala za kurs.
+                    </Typography>
+                  )}
+                </Box>
+                {/* Forma za novu sedmicu */}
+                {materialsLoaded ? (
+                  addingWeek ? (
+                    <>
                       <Box
                         sx={{
                           margin: 0,
                           padding: 0,
-                          maxHeight: "100%", // Sprečava preveliko širenje
-                          overflowY: "auto",
-                        }}
-                      >
-                        {" "}
-                        {getFilePreview(currentMat.filePath)}
-                      </Box>
-                      <Button
-                        sx={{
+                          display: "flex",
+                          justifyContent: "space-around",
+                          alignItems: "center",
                           width: "100%",
-                          color: "text.primary",
-                          // paddingX: 2,
-                          borderRadius: "20pt",
-
-                          // display: "inline-block", // Ovo osigurava da padding i borderRadius funkcionišu ispravno
-                          "&:hover": {
-                            cursor: "pointer",
-                            backgroundColor: "action.acive",
-                            color: "primary.light",
-                          },
                         }}
                       >
-                        <CloseIcon
-                          color="inherit" // Ovo sprečava preklapanje sa default stilovima
-                          onClick={() => hideFile()}
-                        />
-                      </Button>
-                    </Box>
-                  ) : (
-                    ""
-                  )}
-                </Box>
-              ) : (
-                !isEditing && (
-                  <Typography
-                    variant="h6"
-                    width="100%"
-                    sx={{ mb: 2, fontWeight: "normal", fontStyle: "italic" }}
-                  >
-                    Nema materijala za kurs.
-                  </Typography>
-                )
-              )}
-              {/* Forma za novu sedmicu */}
-              {materialsLoaded ? (
-                addingWeek ? (
-                  <>
-                    <Box
-                      sx={{
-                        margin: 0,
-                        padding: 0,
-                        display: "flex",
-                        justifyContent: "space-around",
-                        alignItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <Box sx={{ margin: 0, padding: 0, display: "flex" }}>
-                        <AppDropzone
-                          name="file"
-                          control={control}
-                          handleCloseWeek={handleCloseWeek}
-                          handleSaveWeek={handleSaveWeek}
-                          setSelectedFiles={setSelectedFiles}
-                          newWeek={newWeek}
-                        />{" "}
-                      </Box>{" "}
-                      {watchFile && (
-                        <img
-                          src={watchFile.preview}
-                          alt="nesh"
-                          style={{ maxHeight: "20vh" }}
-                        />
-                      )}
-                    </Box>
-                  </>
-                ) : editingWeek ? (
-                  <>
-                    <Box
-                      sx={{
-                        margin: 0,
-                        padding: 0,
-                        display: "flex",
-                        justifyContent: "space-around",
-                        alignItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <Box sx={{ margin: 0, padding: 0, display: "flex" }}>
-                        <AppDropzone
-                          name="file"
-                          control={control}
-                          handleCloseWeek={handleCloseWeek}
-                          handleSaveWeek={handleSaveWeek}
-                          setSelectedFiles={setSelectedFiles}
-                          newWeek={newWeek}
-                        />{" "}
-                      </Box>{" "}
-                      {watchFile && (
-                        <img
-                          src={watchFile.preview}
-                          alt="nesh"
-                          style={{ maxHeight: "20vh" }}
-                        />
-                      )}
-                    </Box>
-                  </>
-                ) : null
-              ) : (
-                <CircularProgress size={60} sx={{ color: "text.secondary" }} />
-              )}
+                        <Box
+                          sx={{
+                            margin: 0,
+                            padding: 0,
+                            display: "flex",
+                            maxWidth: "30vw",
+                            width: "30vw",
+                          }}
+                        >
+                          <AppDropzone
+                            name="file"
+                            control={control}
+                            handleCloseWeek={handleCloseWeek}
+                            handleSaveWeek={handleSaveWeek}
+                            setSelectedFiles={setSelectedFiles}
+                            newWeek={newWeek}
+                          />{" "}
+                        </Box>{" "}
+                        {watchFile && (
+                          <img
+                            src={watchFile.preview}
+                            alt="nesh"
+                            style={{ maxHeight: "20vh" }}
+                          />
+                        )}
+                      </Box>
+                    </>
+                  ) : editingWeek ? (
+                    <>
+                      <Box
+                        sx={{
+                          margin: 0,
+                          padding: 0,
+                          display: "flex",
+                          justifyContent: "space-around",
+                          alignItems: "center",
+                          width: "100%",
+                        }}
+                      >
+                        <Box sx={{ margin: 0, padding: 0, display: "flex" }}>
+                          <AppDropzone
+                            name="file"
+                            control={control}
+                            handleCloseWeek={handleCloseWeek}
+                            handleSaveWeek={handleSaveWeek}
+                            setSelectedFiles={setSelectedFiles}
+                            newWeek={newWeek}
+                          />{" "}
+                        </Box>{" "}
+                        {watchFile && (
+                          <img
+                            src={watchFile.preview}
+                            alt="nesh"
+                            style={{ maxHeight: "20vh" }}
+                          />
+                        )}
+                      </Box>
+                    </>
+                  ) : null
+                ) : (
+                  <CircularProgress
+                    size={60}
+                    sx={{ color: "text.secondary" }}
+                  />
+                )}
+              </Grid>
             </Grid>
             <Grid item xs={12} md={12} sx={{ padding: 1 }}>
               <Divider sx={{ marginY: 2, width: "100%" }} />

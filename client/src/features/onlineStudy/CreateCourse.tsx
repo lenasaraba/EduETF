@@ -47,8 +47,6 @@ export default function CreateCourse() {
 
     console.log(availableYears);
     console.log(availableStudyPrograms);
-
-
   }, [years, studyPrograms]);
 
   const handleTogglePassword = () => {
@@ -238,55 +236,57 @@ export default function CreateCourse() {
     }
   }, [selectedYear, studyPrograms, years, selectedStudyProgram]);
 
-  const handleStudyProgramChange = useCallback((event) => {
-    const newProgramId = event.target.value;
+  const handleStudyProgramChange = useCallback(
+    (event) => {
+      const newProgramId = event.target.value;
 
-    setSelectedStudyProgram(newProgramId);
+      setSelectedStudyProgram(newProgramId);
 
-    if (newProgramId === 0) {
-      setSelectedYear(0);
-      // trigger("yearId");
-      validateFieldY("0");  
+      if (newProgramId === 0) {
+        setSelectedYear(0);
+        // trigger("yearId");
+        validateFieldY("0");
 
-      setAvailableYears(years);
-      setAvailableStudyPrograms(studyPrograms);
-    }
-  }, [studyPrograms]);
+        setAvailableYears(years);
+        setAvailableStudyPrograms(studyPrograms);
+      }
+    },
+    [studyPrograms]
+  );
 
-  const handleYearChange = useCallback((event) => {
-    const newYearId=event.target.value;
-    setSelectedYear(newYearId);
-    if(newYearId===0){
-      setSelectedStudyProgram(0);
-      // trigger("studyProgramId");
-      validateFieldP("0");
+  const handleYearChange = useCallback(
+    (event) => {
+      const newYearId = event.target.value;
+      setSelectedYear(newYearId);
+      if (newYearId === 0) {
+        setSelectedStudyProgram(0);
+        // trigger("studyProgramId");
+        validateFieldP("0");
 
-      console.log(studyPrograms);
-      setAvailableStudyPrograms(studyPrograms);
-      console.log(years);
+        console.log(studyPrograms);
+        setAvailableStudyPrograms(studyPrograms);
+        console.log(years);
 
-      setAvailableYears(years);
-
-    }
-  }, [years]);
+        setAvailableYears(years);
+      }
+    },
+    [years]
+  );
 
   const validateFieldY = (fieldValue) => {
     validationSchema
       .validateAt("yearId", { yearId: fieldValue }) // Validacija samo za "yearId"
-      .catch((err) => setError("yearId", { type: "manual", message: err.message })  // Postavljanje greške
-    ); // Prikazivanje grešaka
-
-
-
+      .catch(
+        (err) => setError("yearId", { type: "manual", message: err.message }) // Postavljanje greške
+      ); // Prikazivanje grešaka
   };
   const validateFieldP = (fieldValue) => {
     validationSchema
       .validateAt("studyProgramId", { studyProgramId: fieldValue }) // Validacija samo za "yearId"
-      .catch((err) => setError("studyProgramId", { type: "manual", message: err.message })  // Postavljanje greške
-    ); // Prikazivanje grešaka
-
-
-
+      .catch(
+        (err) =>
+          setError("studyProgramId", { type: "manual", message: err.message }) // Postavljanje greške
+      ); // Prikazivanje grešaka
   };
 
   if (!filtersLoaded) return <LoadingComponent message="Učitavanje..." />;
@@ -410,9 +410,8 @@ export default function CreateCourse() {
 
                           setValue(
                             "yearId",
-                            e.target.value.toString()
-                            || selectedYear.toString()
-                            ,
+                            e.target.value.toString() ||
+                              selectedYear.toString(),
                             {
                               shouldValidate: true,
                             }
@@ -467,9 +466,8 @@ export default function CreateCourse() {
 
                           setValue(
                             "studyProgramId",
-                            e.target.value.toString()
-                            || selectedStudyProgram.toString()
-                            ,
+                            e.target.value.toString() ||
+                              selectedStudyProgram.toString(),
                             {
                               shouldValidate: true,
                             }
@@ -544,7 +542,7 @@ export default function CreateCourse() {
           <Grid
             sx={{ display: "flex", justifyContent: "space-evenly", padding: 0 }}
           >
-            <Button onClick={() => navigate(-1)}>Odustani</Button>
+            <Button onClick={() => navigate("/onlineStudy")}>Odustani</Button>
             <LoadingButton
               loading={loading}
               disabled={!methods.formState.isValid}

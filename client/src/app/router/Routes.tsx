@@ -100,7 +100,7 @@ export const router = createBrowserRouter([
             element: <CreateCourse />,
           },
           {
-            path: "users/professors",
+            path: "/professors",
             element: <Professors />,
           },
           {
@@ -108,7 +108,7 @@ export const router = createBrowserRouter([
             element: <ProfessorInfo />,
           },
           {
-            path: "users/students",
+            path: "/students",
             element: <Students />,
           },
         ],

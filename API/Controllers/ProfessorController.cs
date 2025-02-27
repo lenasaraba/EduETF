@@ -37,7 +37,7 @@ namespace API.Controllers
 
         }
 
-         public class RemoveRequest
+         public class RemoveRequestP
         {
             public int CourseId { get; set; }
 
@@ -207,7 +207,7 @@ namespace API.Controllers
 
         [Authorize(Roles = "Profesor")]
         [HttpPost("removeProfessorFromCourse")]
-        public async Task<IActionResult> RemoveProfessorFromCourse([FromBody] RemoveRequest request)
+        public async Task<IActionResult> RemoveProfessorFromCourse([FromBody] RemoveRequestP request)
         {
             int courseId = request.CourseId;
 
@@ -239,7 +239,8 @@ namespace API.Controllers
             {   Method="RemoveProfessorFromCourse",
                 Message = "Uspješno ste ispisani sa kursa.",
                 professorId = professor.Id,
-                courseId = course.Id
+                courseId = course.Id,
+                withdrawDate=enrollment.WithdrawDate
             });
         }
 

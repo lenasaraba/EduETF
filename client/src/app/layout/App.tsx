@@ -1,21 +1,13 @@
-import { Divider, extendTheme, Stack } from "@mui/material";
+import { extendTheme } from "@mui/material";
 import { Outlet } from "react-router-dom";
 import { AppProvider } from "@toolpad/core/react-router-dom";
 import LaunchIcon from "@mui/icons-material/Launch";
 import InfoIcon from "@mui/icons-material/Info";
 import HomeIcon from "@mui/icons-material/Home";
-import SchoolIcon from "@mui/icons-material/School";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ForumIcon from "@mui/icons-material/Forum";
-import {
-  Account,
-  AccountPreview,
-  SidebarFooterProps,
-  type AccountPreviewProps,
-  type Navigation,
-  type Session,
-} from "@toolpad/core";
+import { type Navigation, type Session } from "@toolpad/core";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import LoadingComponent from "./LoadingComponent";
@@ -73,18 +65,17 @@ const NAVIGATION: Navigation = [
     icon: <PersonOutlineIcon />,
   },
   {
-    segment: "users",
-
+    segment: " ",
     title: "Korisnici",
     icon: <PeopleOutlineIcon />,
     children: [
       {
-        segment: "professors", // Dodajemo "/" ispred da se tretira kao apsolutna putanja
+        segment: "../professors", // Dodajemo "/" ispred da se tretira kao apsolutna putanja
         title: "Profesori",
         icon: <BadgeTwoToneIcon />,
       },
       {
-        segment: "students", // Isto za studente
+        segment: "../students", // Isto za studente
         title: "Studenti",
         icon: <GroupsTwoToneIcon />,
       },
@@ -136,14 +127,13 @@ const demoTheme = extendTheme({
     MuiList: {
       styleOverrides: {
         root: {
-          fontSize:"5px !important",
-          
-          // padding: "160px", // ili p: 2, ovisno o tvojoj preferenciji
-          marginBottom:"0px!important",
-        },
-        padding:{marginBottom:"0px !important", fontSize:"5px !important"},
-      },
+          fontSize: "5px !important",
 
+          // padding: "160px", // ili p: 2, ovisno o tvojoj preferenciji
+          marginBottom: "0px!important",
+        },
+        padding: { marginBottom: "0px !important", fontSize: "5px !important" },
+      },
     },
   },
   colorSchemes: {

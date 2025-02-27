@@ -97,16 +97,26 @@ export default function MainContent() {
   const handleRemoveProfClick = () => {
     setOpenDialogRemoveProfessor(true);
     setAnchorEl(null);
-
   };
 
   const handleCloseDialogRemoveProfessor = () => {
     setOpenDialogRemoveProfessor(false);
     setAnchorEl(null);
-
   };
+  const [isLastProf, setIsLastProf] = useState(false);
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
+    // console.log(courseSelected?.professorsCourse);
+    if (courseSelected?.professorsCourse.length == 1) {
+      setIsLastProf(true);
+      handleDeleteClick();
+      setOpenDialogRemoveProfessor(false);
+
+      // navigate("/courses?type=all");
+    } else removeProfFromCourse();
+  };
+
+  const removeProfFromCourse: () => Promise<void> = async () => {
     try {
       await dispatch(removeProfessorFromCourse(courseSelected!.id));
     } catch (error) {
@@ -114,10 +124,10 @@ export default function MainContent() {
     } finally {
       setOpenDialogRemoveProfessor(false);
       setAnchorEl(null);
-
     }
   };
-  const handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
+
+  const handleDeleteClick = () => {
     setOpenDialog(true);
   };
 
@@ -371,7 +381,9 @@ export default function MainContent() {
                         </StyledTypography>
                         {user &&
                         course.professorsCourse.some(
-                          (pc) => pc.user.username === user.username && pc.withdrawDate == null
+                          (pc) =>
+                            pc.user.username === user.username &&
+                            pc.withdrawDate == null
                         ) ? (
                           <>
                             <div>
@@ -462,7 +474,11 @@ export default function MainContent() {
                           alignItems: "center",
                         }}
                       >
-                        <Author authors={course.professorsCourse} />
+                        <Author
+                          authors={course.professorsCourse.filter(
+                            (pc) => pc.withdrawDate == null
+                          )}
+                        />
 
                         <Typography
                           variant="caption"
@@ -564,7 +580,9 @@ export default function MainContent() {
                           </Typography>
                           {user &&
                           course.professorsCourse.some(
-                            (pc) => pc.user.username === user.username && pc.withdrawDate == null
+                            (pc) =>
+                              pc.user.username === user.username &&
+                              pc.withdrawDate == null
                           ) ? (
                             <>
                               <div>
@@ -668,7 +686,11 @@ export default function MainContent() {
                           padding: 2,
                         }}
                       >
-                        <Author authors={course.professorsCourse} />
+                        <Author
+                          authors={course.professorsCourse.filter(
+                            (pc) => pc.withdrawDate == null
+                          )}
+                        />
                         <Typography variant="caption">
                           <DateCard
                             date={course.courseCreationDate.split("T")[0]}
@@ -766,7 +788,8 @@ export default function MainContent() {
               color: "text.secondary",
             }}
           >
-            Da li ste sigurni da želite da napustite ovaj kurs? - {courseSelected?.name}
+            Da li ste sigurni da želite da napustite ovaj kurs? -{" "}
+            {courseSelected?.name}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ justifyContent: "center", gap: 2 }}>

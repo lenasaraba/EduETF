@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
+
 import {
   Box,
   Button,
   CircularProgress,
-  ClickAwayListener,
   Dialog,
   DialogActions,
   DialogContent,
@@ -12,6 +12,7 @@ import {
   FormControl,
   FormHelperText,
   Paper,
+  Popover,
   Popper,
   PopperPlacementType,
   TextField,
@@ -27,31 +28,35 @@ import {
 } from "../../../app/store/configureStore";
 import { enrollOnCourse } from "../courseSlice";
 import { LoadingButton } from "@mui/lab";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 const FlipCardContainer = styled("div")({
-  perspective: "1000px", // Dodajemo perspektivu za 3D efekat
+  perspective: "1000px",
   width: "100%",
   height: "300px",
   margin: "20px auto",
   position: "relative",
 });
 
-const FlipCardInner = styled("div")({
-  width: "100%",
-  height: "100%",
-  position: "relative",
-  transformStyle: "preserve-3d",
-  transition: "transform 1s", // Animacija tokom okretanja
-  "&:hover": {
-    transform: "rotateY(180deg)", // Efekat okretanja na hover
-  },
-});
+const FlipCardInner = styled("div")<{ isFlipped: boolean }>(
+  ({ isFlipped }) => ({
+    width: "100%",
+    height: "100%",
+    position: "relative",
+    transformStyle: "preserve-3d",
+    transition: "transform 1s",
+    transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+    "&:hover": {
+      transform: isFlipped ? "rotateY(180deg)" : "rotateY(180deg)", // Hover efekat samo ako nije već flipped
+    },
+  })
+);
 
 const FlipCardSide = styled(Box)({
   width: "100%",
   height: "100%",
   position: "absolute",
-  backfaceVisibility: "hidden", // Sakrivamo zadnju stranu
+  backfaceVisibility: "hidden",
   borderRadius: "16px",
   display: "flex",
   alignItems: "center",
@@ -62,25 +67,21 @@ const FlipCardSide = styled(Box)({
 });
 
 const FlipCardFront = styled(FlipCardSide)({
-  //   backgroundImage: "url('https://source.unsplash.com/random/300x400')", // Zameni URL
-  // backgroundColor:"green",
   backgroundSize: "cover",
   backgroundPosition: "center",
 });
 
 const FlipCardBack = styled(FlipCardSide)({
-  backgroundColor: "text.primary", // Plava boja pozadine za zadnju stranu
-  transform: "rotateY(180deg)", // Okrećemo zadnju stranu
+  backgroundColor: "text.primary",
+  transform: "rotateY(180deg)",
   padding: "20px",
 });
 
 interface Props {
   course: Course;
-  handleDeleteClick: (
-    event: React.MouseEvent<HTMLElement>,
-    type: "course" | "theme",
-    item: any
-  ) => void;
+
+  handleDeleteClick: (type: "course" | "theme", item: any) => void;
+
   handleRemoveProfClick: (
     event: React.MouseEvent<HTMLElement>,
     item: Course
@@ -98,19 +99,13 @@ export default function FlipCard({
 
   const status = useAppSelector((state) => state.course.status);
 
+  const [isFlipped, setIsFlipped] = useState(false); // State za kontrolu okretanja
+
   const [anchorElProf, setAnchorElProf] = useState<HTMLButtonElement | null>(
     null
   );
-  const [openProf, setOpenProf] = useState(false);
-  const [placement, setPlacement] = useState<PopperPlacementType>();
-  const handleClickProfessor =
-    (newPlacement: PopperPlacementType) =>
-    (event: React.MouseEvent<HTMLButtonElement>) => {
-      setAnchorElProf(event.currentTarget);
-      setOpenProf((prev) => placement !== newPlacement || !prev);
-      setPlacement(newPlacement);
-    };
 
+  const [openProf, setOpenProf] = useState(false);
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (anchorElProf && !anchorElProf.contains(event.target as Node)) {
@@ -128,21 +123,47 @@ export default function FlipCard({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openProf, anchorElProf]);
+  const [placement, setPlacement] = useState<PopperPlacementType>();
 
   const [openEnrollDialog, setOpenEnrollDialog] = useState(false);
+
   const [coursePassword, setCoursePassword] = useState("");
+
   const [error, setError] = useState(false);
 
-  const statusProf = useAppSelector((state) => state.professor.status);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const open = Boolean(anchorEl);
+
+  const idMenu = open ? "simple-popover" : undefined;
+
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped); // Ručno okretanje kartice
+  };
+
+  const handleClick = (
+    event: React.MouseEvent<HTMLElement>,
+    course: Course
+  ) => {
+    event.stopPropagation(); // Sprečava okretanje kartice
+
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+    setIsFlipped(false);
+  };
 
   const confirmEnroll = async () => {
     try {
-      console.log(course);
       if (coursePassword === course.password) {
         setError(false);
 
         await dispatch(enrollOnCourse(course.id));
+
         setOpenEnrollDialog(false);
+
         navigate(`/courses/${course.id}`);
       } else {
         setError(true);
@@ -151,13 +172,23 @@ export default function FlipCard({
       console.error("Greška prilikom upisa na kurs:", error);
     }
   };
+  const handleClickProfessor =
+    (newPlacement: PopperPlacementType) =>
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorElProf(event.currentTarget);
+      setOpenProf((prev) => placement !== newPlacement || !prev);
 
-  // console.log(statusProf);
+      setPlacement(newPlacement);
+    };
+
   return (
     <>
-      <FlipCardContainer>
-        <FlipCardInner>
+      <FlipCardContainer
+      // onClick={handleFlip}
+      >
+        <FlipCardInner isFlipped={isFlipped}>
           {/* Prednja strana kartice */}
+
           <FlipCardFront>
             <CourseCardMedia
               year={course.year}
@@ -166,13 +197,14 @@ export default function FlipCard({
                 position: "absolute",
                 top: 0,
                 left: 0,
-                width: "100%",
+                width: " 100%",
                 height: "100%",
                 zIndex: -1,
                 objectFit: "cover",
                 borderRadius: "16px",
               }}
             />
+
             <Box
               sx={{
                 position: "absolute",
@@ -192,17 +224,129 @@ export default function FlipCard({
           </FlipCardFront>
 
           {/* Zadnja strana kartice */}
+
           <FlipCardBack
             sx={{
               display: "flex",
+
               flexDirection: "column",
+
               justifyContent: "center",
+
               alignItems: "center",
+
               padding: 3,
+
               backgroundColor: "common.backgroundChannel",
+
               borderRadius: "16px",
+
+              position: "relative",
             }}
           >
+            {user &&
+              course.professorsCourse.some(
+                (pc) =>
+                  pc.user.username === user.username && pc.withdrawDate == null
+              ) && (
+                <div style={{ position: "absolute", top: 4, right: 1 }}>
+                  <Box
+                    aria-describedby={idMenu}
+                    onClick={(event) => {
+                      event.stopPropagation(); // Sprečava okretanje kartice
+                      setIsFlipped(true);
+                      handleClick(event, course);
+                    }}
+                    sx={{
+                      display: "flex",
+                      width: "fit-content",
+                      borderRadius: "20pt",
+                      padding: 0,
+                      marginTop: 2,
+                      marginRight: 2,
+                      "&:hover": {
+                        cursor: "pointer",
+                        color: "text.primary",
+                        backgroundColor: "primary.main",
+                      },
+                    }}
+                  >
+                    <MoreVertIcon />
+                  </Box>
+
+                  <Popover
+                    id={idMenu}
+                    open={open}
+                    anchorEl={anchorEl}
+                    onClose={handleClose}
+                    anchorOrigin={{
+                      vertical: "bottom",
+
+                      horizontal: "center",
+                    }}
+                    transformOrigin={{
+                      vertical: "top",
+                      horizontal: "center",
+                    }}
+                    slotProps={{
+                      paper: {
+                        sx: {
+                          backgroundColor: "red",
+                          borderRadius: "10pt",
+                          maxWidth: "200px",
+                          maxHeight: "150px",
+                          overflow: "auto",
+                          "&:hover": {
+                            cursor: "pointer",
+                          },
+                        },
+                      },
+                    }}
+                  >
+                    <Typography
+                      onClick={(event) => {
+                        handleDeleteClick(event, "course", course);
+                      }}
+                      variant="body2"
+                      sx={{
+                        paddingX: 2,
+                        paddingY: 1,
+                        "&:hover": {
+                          cursor: "pointer",
+                          color: "primary.light",
+                        },
+                        fontFamily: "Raleway, sans-serif",
+                        color: "text.secondaryChannel",
+                        backgroundColor: "background.paper",
+                      }}
+                    >
+                      Obriši kurs
+                    </Typography>
+
+                    <Typography
+                      onClick={(event) => {
+                        handleRemoveProfClick(event, course);
+                      }}
+                      variant="body2"
+                      sx={{
+                        paddingX: 2,
+                        paddingY: 1,
+                        "&:hover": {
+                          cursor: "pointer",
+                          color: "primary.light",
+                        },
+
+                        fontFamily: "Raleway, sans-serif",
+                        color: "text.primary",
+                        backgroundColor: "background.paper",
+                      }}
+                    >
+                      Napusti kurs
+                    </Typography>
+                  </Popover>
+                </div>
+              )}
+
             <Typography
               sx={{ color: "text.primary" }}
               variant="h6"
@@ -211,12 +355,15 @@ export default function FlipCard({
             >
               {course.name}
             </Typography>
+
             <Typography variant="body2" color="text.secondary" gutterBottom>
               <strong>Godina:</strong> {course.year.name}
             </Typography>
+
             <Typography variant="body2" color="text.secondary" gutterBottom>
               <strong>Smjer:</strong> {course.studyProgram.name}
             </Typography>
+
             <Typography
               variant="body2"
               color="text.secondary"
@@ -224,18 +371,18 @@ export default function FlipCard({
               sx={{
                 marginTop: "8px",
                 fontSize: "clamp(12px, 14px, 16px)",
-                overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                display: "-webkit-box", // Neophodno za multi-line truncation
-                WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                WebkitLineClamp: 3, // Maksimalan broj linija (menjajte po potrebi)
-                lineHeight: "1.2", // Podešava razmak između linija
-
-                height: "3.6em", // Fiksna visina: broj linija * lineHeight
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 3,
+                lineHeight: "1.2",
+                height: "3.6em",
                 textOverflow: "ellipsis",
               }}
             >
               {course.description}
             </Typography>
+
             <Box
               sx={{
                 margin: 0,
@@ -247,7 +394,6 @@ export default function FlipCard({
                 width: "100%",
               }}
             >
-              {/* Dugme za upis ako je korisnik student i nije već upisan */}
               {user &&
                 user.role === "Student" &&
                 !course.usersCourse.some(
@@ -260,8 +406,8 @@ export default function FlipCard({
                       m: 0,
                       ml: 0,
                       p: 0,
-                      borderRadius: "20pt",
                       paddingX: 1,
+                      borderRadius: "20pt",
                       "&:hover": {
                         backgroundColor: "primary.main",
                         color: "background.paper",
@@ -272,13 +418,16 @@ export default function FlipCard({
                   </Button>
                 )}
 
-              {/* Dugme za otvaranje ako je korisnik profesor ili student upisan na kurs */}
               {user &&
                 (course.professorsCourse.some(
-                  (pc) => pc.user.username === user.username
+                  (pc) =>
+                    pc.user.username === user.username &&
+                    pc.withdrawDate == null
                 ) ||
                   course.usersCourse.some(
-                    (uc) => uc.user?.username === user.username
+                    (uc) =>
+                      uc.user?.username === user.username &&
+                      uc.withdrawDate == null
                   )) && (
                   <Button
                     variant="contained"
@@ -294,8 +443,7 @@ export default function FlipCard({
                     Otvori
                   </Button>
                 )}
-
-              {/* Dugme za napuštanje kursa ako je korisnik profesor upisan na kurs */}
+              {/* 
               {user &&
                 course.professorsCourse.some(
                   (pc) => pc.user?.username === user.username
@@ -303,47 +451,57 @@ export default function FlipCard({
                   <Button
                     variant="contained"
                     color="secondary"
-                    
                     sx={{
                       fontSize: "clamp(8pt, 10pt, 12pt)",
                       color: "common.onBackground",
                       borderRadius: "15pt",
                     }}
                     onClick={(event) => {
-                      // console.log(statusProf);
                       handleRemoveProfClick(event, course);
                     }}
                   >
                     Napusti kurs
                   </Button>
+                )} */}
+
+              {user?.role === "Profesor" &&
+                !course.professorsCourse.some(
+                  (pc) =>
+                    pc.user.username === user.username &&
+                    pc.withdrawDate == null
+                ) && (
+                  <Button
+                    // onClick={(event) => {
+                    //   event.stopPropagation();
+
+                    //   setAnchorElProf(event.currentTarget);
+
+                    //   setOpenProf(true);
+                    // }}
+                    onClick={handleClickProfessor("right-start")}
+                    size="small"
+                    sx={{
+                      fontFamily: "Raleway, sans-serif",
+                      m: 0,
+                      ml: 0,
+                      p: 0,
+                      paddingX: 1,
+                      borderRadius: "20pt",
+                      "&:hover": {
+                        backgroundColor: "primary.main",
+                        color: "background.paper",
+                      },
+                    }}
+                  >
+                    Prikaži profesore
+                  </Button>
                 )}
-
-              {/* Dugme za prikaz profesora ako je korisnik profesor */}
-              {user?.role === "Profesor" && (
-                <Button
-                  onClick={handleClickProfessor("right-start")}
-                  size="small"
-                  sx={{
-                    fontFamily: "Raleway, sans-serif",
-                    m: 0,
-                    ml: 0,
-                    p: 0,
-                    paddingX: 1,
-                    borderRadius: "20pt",
-                    "&:hover": {
-                      backgroundColor: "primary.main",
-                      color: "background.paper",
-                    },
-                  }}
-                >
-                  Prikaži profesore
-                </Button>
-              )}
-
-              {/* Dugme za brisanje kursa ako je korisnik profesor na kursu */}
+              {/* 
               {user &&
                 course.professorsCourse.some(
-                  (pc) => pc.user.username === user.username
+                  (pc) =>
+                    pc.user.username === user.username &&
+                    pc.withdrawDate == null
                 ) && (
                   <LoadingButton
                     variant="contained"
@@ -353,13 +511,12 @@ export default function FlipCard({
                       borderRadius: "15pt",
                     }}
                     onClick={(event) => {
-                      console.log(statusProf);
                       handleDeleteClick(event, "course", course);
                     }}
                   >
                     Obriši kurs
                   </LoadingButton>
-                )}
+                )} */}
             </Box>
           </FlipCardBack>
         </FlipCardInner>
@@ -385,6 +542,7 @@ export default function FlipCard({
         >
           Unesite šifru kursa
         </DialogTitle>
+
         <DialogContent>
           <FormControl fullWidth error={error}>
             <TextField
@@ -396,11 +554,13 @@ export default function FlipCard({
               value={coursePassword}
               onChange={(e) => setCoursePassword(e.target.value)}
             />
+
             {error && (
               <FormHelperText>Pogrešna šifra, pokušajte ponovo.</FormHelperText>
             )}
           </FormControl>
         </DialogContent>
+
         <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
           <Button
             onClick={() => setOpenEnrollDialog(false)}
@@ -408,13 +568,14 @@ export default function FlipCard({
           >
             Odustani
           </Button>
+
           <LoadingButton
             loading={status == "loadingEnrollOnCourse"}
             onClick={() => confirmEnroll()}
             color="primary"
             variant="contained"
             loadingIndicator={
-              <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+              <CircularProgress size={18} sx={{ color: "white" }} />
             }
           >
             Potvrdi
@@ -430,16 +591,18 @@ export default function FlipCard({
         transition
       >
         {({ TransitionProps }) => (
-          <Fade {...TransitionProps} timeout={350}>
+          <Fade {...TransitionProps} timeout={150}>
             <Paper>
-              {course.professorsCourse.map((prof, index) => (
-                <Typography
-                  key={index}
-                  sx={{ paddingX: 2, paddingY: 1, fontSize: "11pt" }}
-                >
-                  {prof.user.firstName} {prof.user.lastName}
-                </Typography>
-              ))}
+              {course.professorsCourse
+                .filter((p) => p.withdrawDate == null)
+                .map((prof, index) => (
+                  <Typography
+                    key={index}
+                    sx={{ paddingX: 2, paddingY: 1, fontSize: "11pt" }}
+                  >
+                    {prof.user.firstName} {prof.user.lastName}
+                  </Typography>
+                ))}
             </Paper>
           </Fade>
         )}

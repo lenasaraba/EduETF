@@ -39,11 +39,10 @@ axios.interceptors.response.use(
         toast.success(response.data.message);
       if (response.data.method == "DeleteMaterial")
         toast.success(response.data.message);
-      if(response.data.method=="RemoveProfessorFromCourse")
+      if (response.data.method == "RemoveProfessorFromCourse")
         toast.success(response.data.message);
-      if(response.data.method=="RemoveStudentFromCourse")
+      if (response.data.method == "RemoveStudentFromCourse")
         toast.success(response.data.message);
-
     }
 
     // const pagination = response.headers["pagination"];
@@ -143,7 +142,8 @@ const Course = {
     requests.get(`course/getCourseMaterialsByCourseId/${id}`),
   enrollOnCourse: (courseId: number) =>
     requests.post("course/enroll", { courseId }),
-  AllStudents: (params: URLSearchParams)=>requests.get("course/getStudents", params),
+  AllStudents: (params: URLSearchParams) =>
+    requests.get("course/getStudents", params),
   removeStudentFromCourse: (courseId: number) =>
     requests.post("course/removeStudentFromCourse", { courseId }),
 };
@@ -177,6 +177,8 @@ const Message = {
   getAll: (id: number) => requests.get(`theme/GetAllMessages/${id}`),
   createMessage: (values: any) => requests.post("theme/CreateMessage", values),
   deleteMessage: (id: number) => requests.delete(`theme/DeleteMessage/${id}`),
+  searchMessage: (themeId: number, query: string) =>
+    requests.get(`theme/search`, { themeId, query }),
 };
 
 const agent = {

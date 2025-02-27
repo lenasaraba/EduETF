@@ -94,15 +94,21 @@ export default function CreateTheme() {
   console.log(window.history);
 
   let courses: typeof enrolledCourses = [];
-  
+
   if (user?.role === "Profesor") {
-    courses = enrolledCourses?.filter((course) =>
-      course.professorsCourse?.some((pc) => pc.user.username === user.username)
-    ) || [];
+    courses =
+      enrolledCourses?.filter((course) =>
+        course.professorsCourse?.some(
+          (pc) => pc.user.username === user.username && pc.withdrawDate == null
+        )
+      ) || [];
   } else if (user?.role === "Student") {
-    courses = enrolledCourses?.filter((course) =>
-      course.usersCourse?.some((uc) => uc.user?.username === user.username)
-    ) || [];
+    courses =
+      enrolledCourses?.filter((course) =>
+        course.usersCourse?.some(
+          (uc) => uc.user?.username === user.username && uc.withdrawDate == null
+        )
+      ) || [];
   }
   return (
     <Grid

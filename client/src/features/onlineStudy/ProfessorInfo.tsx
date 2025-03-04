@@ -49,6 +49,7 @@ import DeleteDialog from "./components/DeleteDialog";
 import NotFound from "../../app/errors/NotFound";
 import { LoadingButton } from "@mui/lab";
 import { Course } from "../../app/models/course";
+import CourseCardMedia from "./components/CourseCardMedia";
 
 const Demo = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
@@ -694,7 +695,6 @@ export default function ProfessorInfo() {
                                       <Typography
                                         onClick={(event) =>
                                           handleDeleteClick(
-                                            event,
                                             "theme",
                                             themeSelected
                                           )
@@ -757,7 +757,7 @@ export default function ProfessorInfo() {
                     <Typography
                       sx={{ marginBottom: 2, color: "text.secondary" }}
                     >
-                      Učitavanje tema
+                      Učitavanje kurseva
                     </Typography>
                     <CircularProgress
                       size={20}
@@ -777,17 +777,28 @@ export default function ProfessorInfo() {
                       gap: "2.5%",
                       mt: 4,
                       rowGap: 4,
+                      overflowY: "auto",
+                      overflowX: "hidden",
+                      maxHeight: "90vh",
                     }}
                   >
-                    {coursesToDisplay!.map((course) => (
-                      <Grid item xs={12} sm={5.8} md={3.8} key={course.id}>
-                        <FlipCard
-                          course={course}
-                          handleDeleteClick={handleDeleteClick}
-                          handleRemoveProfClick={handleRemoveProfClick}
-                        />
-                      </Grid>
-                    ))}
+                    {coursesToDisplay!
+                      .filter((course) =>
+                        course.professorsCourse.some(
+                          (pc) =>
+                            pc.user.id === professor?.id &&
+                            pc.withdrawDate === null
+                        )
+                      )
+                      .map((course) => (
+                        <Grid item xs={12} sm={5.8} md={3.8} key={course.id}>
+                          <FlipCard
+                            course={course}
+                            handleDeleteClick={handleDeleteClick}
+                            handleRemoveProfClick={handleRemoveProfClick}
+                          />
+                        </Grid>
+                      ))}
                   </Grid>
                 </>
               ) : (
@@ -804,6 +815,214 @@ export default function ProfessorInfo() {
                     Nije pronađen nijedan kurs.
                   </Typography>
                 </Box>
+              )}
+
+              {user?.id == professor?.id && (
+                <>
+                  <Divider sx={{ marginY: 2 }} />
+                  <Typography variant="h3">Istorija kurseva</Typography>
+                  {!coursesLoaded ? (
+                    <>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          height: "20vh",
+                          width: "100%",
+                          margin: 0,
+                          padding: 1,
+                        }}
+                      >
+                        <Typography
+                          sx={{ marginBottom: 2, color: "text.secondary" }}
+                        >
+                          Učitavanje kurseva
+                        </Typography>
+                        <CircularProgress
+                          size={20}
+                          sx={{ color: "text.secondary" }}
+                        />
+                      </Box>
+                    </>
+                  ) : coursesToDisplay && coursesToDisplay.length > 0 ? (
+                    <>
+                      <Box
+                        sx={{
+                          margin: 0,
+                          padding: 0,
+                          mt: 4,
+
+                          display: {
+                            xs: "block",
+                            sm: "block",
+                            ".MuiList-root": {
+                              paddingBottom: "0px !important",
+                            },
+                          },
+                        }}
+                      >
+                        {coursesToDisplay!
+                          .filter((course) =>
+                            course.professorsCourse.some(
+                              (pc) =>
+                                pc.user.id === professor?.id &&
+                                pc.withdrawDate !== null
+                            )
+                          )
+                          .map((course) => (
+                            <List
+                              key={course.id}
+                              sx={{
+                                "--ListItem-paddingX": 0,
+                                "--ListItem-paddingY": 0,
+                              }}
+                            >
+                              <ListItem
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "start",
+                                  height: "20vh",
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    gap: 2,
+                                    alignItems: "start",
+                                    width: "60%",
+                                    height: "100%",
+                                  }}
+                                >
+                                  <Box>
+                                    <CourseCardMedia
+                                      year={course.year}
+                                      studyProgram={course.studyProgram}
+                                      sx={{
+                                        objectFit: "cover",
+                                        borderRadius: "15pt",
+                                        height: 80,
+                                        width: 100,
+                                      }}
+                                    />
+                                  </Box>
+                                  <Box sx={{ padding: 0, margin: 0 }}>
+                                    <Typography
+                                      variant="h6"
+                                      gutterBottom
+                                      sx={{
+                                        fontWeight: 600,
+                                        lineHeight: 1,
+                                        textDecoration: "none",
+                                        color: "text.primary",
+                                        "&:hover": {
+                                          color: "primary.dark",
+                                        },
+                                      }}
+                                    >
+                                      {course.name}
+                                    </Typography>
+                                    <Typography
+                                      variant="body2"
+                                      gutterBottom
+                                      sx={{ fontSize: "9pt" }}
+                                    >
+                                      {course.description}
+                                    </Typography>
+                                    <Typography variant="caption">
+                                      {course.year.name} &bull;{" "}
+                                      {course.studyProgram.name}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                <Box
+                                  sx={{
+                                    margin: 0,
+                                    padding: 0,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "flex-end",
+                                    overflowY: "auto",
+                                    maxHeight: "100%",
+                                    paddingRight: 1,
+                                  }}
+                                >
+                                  {course.professorsCourse
+                                    .filter(
+                                      (u) =>
+                                        u.user.id === user?.id &&
+                                        u.withdrawDate != null
+                                    )
+                                    .map((u) => {
+                                      return (
+                                        <Box
+                                          sx={{
+                                            display: "flex",
+                                            flexDirection: "row",
+                                            justifyContent: "space-between",
+                                            marginBottom: 1,
+                                            alignItems: "center",
+                                            gap: 1,
+                                          }}
+                                        >
+                                          <Typography variant="caption">
+                                            {new Date(
+                                              u.enrollDate
+                                            ).toLocaleDateString("sr-RS")}
+                                            {" - "}
+                                            {u.withdrawDate != null
+                                              ? new Date(
+                                                  u.withdrawDate
+                                                ).toLocaleDateString("sr-RS")
+                                              : "danas"}
+                                          </Typography>
+                                          <Chip
+                                            label={
+                                              u.withdrawDate != null
+                                                ? "Neaktivan"
+                                                : "Aktivan"
+                                            }
+                                            sx={{
+                                              color:
+                                                u.withdrawDate != null
+                                                  ? "text.secondaryChannel"
+                                                  : "text.primaryChannel",
+                                              ".MuiChip-label": {
+                                                paddingX: 1,
+                                                fontSize: "8pt",
+                                              },
+                                            }} // Crveno ako je ispisan, zeleno ako nije
+                                          />
+                                        </Box>
+                                      );
+                                    })}
+                                </Box>
+                              </ListItem>
+                              <Divider />
+                            </List>
+                          ))}
+                      </Box>
+                    </>
+                  ) : (
+                    <Box
+                      sx={{ display: "flex", flexDirection: "column", mt: 0 }}
+                    >
+                      <Typography
+                        variant="h4"
+                        sx={{
+                          fontFamily: "Raleway, sans-serif",
+                          paddingTop: 4,
+                          color: "text.primary",
+                          ml: 4,
+                        }}
+                      >
+                        Nije pronađen nijedan kurs.
+                      </Typography>
+                    </Box>
+                  )}
+                </>
               )}
             </Grid>
           </Grid>

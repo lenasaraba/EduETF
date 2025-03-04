@@ -236,7 +236,6 @@ export const fetchProfessorByIdAsync = createAsyncThunk<
     const professor = await agent.Professor.getProfessorById(id);
     const { years, programs } =
       await agent.Professor.getProfessorYearsPrograms(id);
-    //const professorCourses = await agent.Course.getProfessorCourses(id);
     return {
       professor: professor,
       years: years,
@@ -290,15 +289,10 @@ export const fetchProfessorByIdCoursesAsync = createAsyncThunk<
   number
 >("professor/fetchProfessorByIdCoursesAsync", async (id, thunkAPI) => {
   try {
-    // const professor = await agent.Professor.getProfessorById(id);
-    // const { years, programs } =
-    //   await agent.Professor.getProfessorYearsPrograms(id);
+   
     const professorCourses = await agent.Course.getProfessorCourses(id);
     console.log(professorCourses);
     return {
-      // professor: professor,
-      // years: years,
-      // programs: programs,
       courses: professorCourses.courses,
     };
   } catch (error: any) {
@@ -525,9 +519,9 @@ export const professorSlice = createSlice({
           );
           if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
         }
-        state.currentProfessorCourses = state.currentProfessorCourses.filter(
-          (course) => course.id != action.payload.courseId
-        );
+        // state.currentProfessorCourses = state.currentProfessorCourses.filter(
+        //   (course) => course.id != action.payload.courseId
+        // );
         // console.log(course?.professorsCourse);
       }
       state.status = "fulfilledRemoveProfessorFromCourse";

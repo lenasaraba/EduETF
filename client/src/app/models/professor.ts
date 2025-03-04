@@ -17,5 +17,10 @@ export interface StudentsParams {
   searchTerm?: string;
 }
 
+export interface MyCoursesParams {
+  searchTerm?: string;
+}
+
+
 
 

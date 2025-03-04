@@ -19,6 +19,8 @@ import ProfessorsTable from "../../features/onlineStudy/components/ProfessorsTab
 import Professors from "../../features/onlineStudy/Professors";
 import ProfessorInfo from "../../features/onlineStudy/ProfessorInfo";
 import Students from "../../features/onlineStudy/components/Students";
+import UserProfile from "../../features/profile/components/UserProfile";
+import StudentHistory from "../../features/onlineStudy/StudentHistory";
 
 const ExternalRedirect = ({ url }: { url: string }) => {
   useEffect(() => {
@@ -63,22 +65,22 @@ export const router = createBrowserRouter([
             path: "courses/:id",
             element: <Course />,
           },
+          {
+            path: "profile",
+            element: (
+              <RequireAuth>
+                <UserProfile />
+              </RequireAuth>
+            ),
+          },
           // {
-          //   path: "profile/:id",
+          //   path: "profile",
           //   element: (
           //     <RequireAuth>
           //       <ProfilePage />
           //     </RequireAuth>
           //   ),
           // },
-          {
-            path: "profile",
-            element: (
-              <RequireAuth>
-                <ProfilePage />
-              </RequireAuth>
-            ),
-          },
           {
             path: "forum",
             element: <ForumPage />,
@@ -110,6 +112,10 @@ export const router = createBrowserRouter([
           {
             path: "/students",
             element: <Students />,
+          },
+          {
+            path: "/studentHistory",
+            element: <StudentHistory />,
           },
         ],
       },

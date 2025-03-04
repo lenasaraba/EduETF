@@ -126,7 +126,7 @@ namespace API.Controllers
                 //pravo pristupa
                 if (role == "Student")
                 {
-                    bool isStudentEnrolled = theme.Course.UsersCourse.Any(uc => uc.User.Id == user.Id);
+                    bool isStudentEnrolled = theme.Course.UsersCourse.Any(uc => uc.User.Id == user.Id && uc.WithdrawDate==null);
 
                     if (!isStudentEnrolled)
                     {
@@ -136,7 +136,7 @@ namespace API.Controllers
 
                 if (role == "Profesor")
                 {
-                    bool isProfessorOfCourse = theme.Course.ProfessorsCourse.Any(pc => pc.User.Id == user.Id);
+                    bool isProfessorOfCourse = theme.Course.ProfessorsCourse.Any(pc => pc.User.Id == user.Id && pc.WithdrawDate==null);
 
                     if (!isProfessorOfCourse)
                     {

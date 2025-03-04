@@ -382,12 +382,40 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
             color: themeM.palette.primary.main,
           }}
         >
-          {themeF.course &&
+          {(user?.role=="Student" &&( themeF.course==null || (themeF.course &&
             themeF.course.usersCourse &&
             themeF.course.usersCourse.some(
               (uc) =>
-                uc.user?.username === user.username && uc.withdrawDate == null
-            ) && (
+                uc.user?.username === user?.username && uc.withdrawDate == null
+            )))) && (
+              <>
+                <MenuItem
+                  sx={{
+                    backgroundColor: themeM.palette.background.paper,
+                    color: themeM.palette.primary.main,
+                    "&:hover": {
+                      backgroundColor: themeM.palette.text.primary,
+                      color: themeM.palette.background.paper,
+                    },
+                    "&.Mui-selected, &[aria-selected='true']": {
+                      backgroundColor: themeM.palette.primary.main,
+                      color: "white",
+                      fontWeight: "bolder",
+                    },
+                  }}
+                  onClick={(event) => updateStatus(event, themeF)}
+                >
+                  Ažuriraj aktivnost
+                </MenuItem>
+                <Divider />
+              </>
+            )}
+            {(user?.role=="Profesor" &&( themeF.course==null || (themeF.course &&
+            themeF.course.professorsCourse &&
+            themeF.course.professorsCourse.some(
+              (pc) =>
+                pc.user?.username === user?.username && pc.withdrawDate == null
+            )))) && (
               <>
                 <MenuItem
                   sx={{
@@ -1135,10 +1163,10 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                               RowMenu(theme1)
                             ) : user && theme1.course ? (
                               theme1.course.usersCourse?.some(
-                                (uc) => uc.user.username === user.username
+                                (uc) => uc.user.username === user.username && uc.withdrawDate==null
                               ) ||
                               theme1.course.professorsCourse.some(
-                                (pc) => pc.user.username === user.username
+                                (pc) => pc.user.username === user.username && pc.withdrawDate==null
                               ) ? (
                                 <LockOpenIcon sx={{ fontSize: "13pt" }} />
                               ) : (

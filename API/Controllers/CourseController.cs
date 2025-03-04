@@ -28,7 +28,7 @@ namespace API.Controllers
             _context = context;
             _userManager = userManager;
             _mapper = mapper;
-            _roleManager = roleManager; 
+            _roleManager = roleManager;
         }
 
         public class EnrollRequest
@@ -36,7 +36,7 @@ namespace API.Controllers
             public int CourseId { get; set; }
         }
 
-         public class RemoveRequest
+        public class RemoveRequest
         {
             public int CourseId { get; set; }
 
@@ -61,6 +61,35 @@ namespace API.Controllers
             return courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
         }
 
+        [HttpGet("getMyCourses")]
+        public async Task<ActionResult<List<CourseDto>>> GetMyCourses([FromQuery] MyCoursesParams studentsParams)
+        {
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+
+            var courses = _context.Courses.Where(c => c.UsersCourse!.Any(uc => uc.UserId == user!.Id))
+            .Include(y => y.Year)
+            .Include(s => s.StudyProgram)
+            .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
+            .Include(c => c.UsersCourse).ThenInclude(uc => uc.User)
+            // .Include(t => t.Themes)
+            .AsQueryable();
+
+
+            if (!string.IsNullOrEmpty(studentsParams.SearchTerm))
+            {
+                courses = courses.Where(c =>
+                    c.Name.Contains(studentsParams.SearchTerm) ||
+                    c.Description.Contains(studentsParams.SearchTerm));
+            }
+
+
+
+            var coursesMy = await courses.ToListAsync();
+
+            return coursesMy.Select(c => _mapper.Map<CourseDto>(c)).ToList();
+        }
+
+
         [HttpGet("getAllCourses")]
         public async Task<IActionResult> GetCourses([FromQuery] CourseParams coursesParams)
         {
@@ -78,7 +107,7 @@ namespace API.Controllers
             {
                 var user = await _userManager.FindByNameAsync(User.Identity.Name);
 
-                query = _context.Courses.Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == user!.Id && pc.WithdrawDate==null) )
+                query = _context.Courses.Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == user!.Id && pc.WithdrawDate == null))
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
@@ -90,7 +119,7 @@ namespace API.Controllers
             {
                 var user = await _userManager.FindByNameAsync(User.Identity.Name);
 
-                query = _context.Courses.Where(c => c.UsersCourse!.Any(uc => uc.UserId == user!.Id && uc.WithdrawDate==null))
+                query = _context.Courses.Where(c => c.UsersCourse!.Any(uc => uc.UserId == user!.Id && uc.WithdrawDate == null))
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
@@ -130,16 +159,18 @@ namespace API.Controllers
         [HttpGet("getProfessorsCourses/{id}")]
         public async Task<IActionResult> getProfessorsCourses(int id)
         {
+            //VRACAJU SE SVI KURSEVI
             var courses = await _context.Courses
-            .Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == id && pc.WithdrawDate==null))
+            .Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == id))
             .Include(y => y.Year).Include(s => s.StudyProgram).Include(pc => pc.ProfessorsCourse).ThenInclude(u => u.User).Include(uc => uc.UsersCourse).ThenInclude(u => u.User).ToListAsync();
 
 
 
-            var coursesDto=courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
-            return Ok(new {
-                profId=id,
-                courses=coursesDto,
+            var coursesDto = courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
+            return Ok(new
+            {
+                profId = id,
+                courses = coursesDto,
             });
         }
 
@@ -176,7 +207,7 @@ namespace API.Controllers
             {
                 if (course.ProfessorsCourse != null)
                 {
-                    bool isProfessorOfCourse = course.ProfessorsCourse.Any(pc => pc.User.Id == user.Id && pc.WithdrawDate==null);
+                    bool isProfessorOfCourse = course.ProfessorsCourse.Any(pc => pc.User.Id == user.Id && pc.WithdrawDate == null);
                     if (!isProfessorOfCourse)
                     {
                         return Unauthorized(new { title = "Nemate pristup ovom kursu.", status = 401 }); // Profesor nije predavač na ovom kursu
@@ -188,7 +219,7 @@ namespace API.Controllers
                 if (course.UsersCourse != null)
                 {
 
-                    bool isStudentEnrolled = course.UsersCourse.Any(uc => uc.User.Id == user.Id && uc.WithdrawDate==null);
+                    bool isStudentEnrolled = course.UsersCourse.Any(uc => uc.User.Id == user.Id && uc.WithdrawDate == null);
                     if (!isStudentEnrolled)
                     {
                         return Unauthorized(new { title = "Niste upisani na ovaj kurs.", status = 401 }); // Student nije upisan na kurs
@@ -201,7 +232,7 @@ namespace API.Controllers
             return Ok(_mapper.Map<CourseDto>(course));
         }
 
-         [HttpGet("getStudents")]
+        [HttpGet("getStudents")]
         public async Task<ActionResult<List<UserDto>>> GetStudents([FromQuery] StudentsParams studentsParams)
         {
             int roleId = 2;
@@ -465,18 +496,17 @@ namespace API.Controllers
             return Ok(_mapper.Map<GetCourseMaterialDto>(material));
         }
 
-        [HttpGet("getCourseMaterialsByCourseId/{courseId}")]
-        public async Task<ActionResult<List<GetCourseMaterialDto>>> GetCourseMaterialsByCourseId(int courseId)
+        [HttpGet("getCourseMaterialsByCourseId")]
+        public async Task<ActionResult<List<GetCourseMaterialDto>>> GetCourseMaterialsByCourseId([FromQuery] int courseId, [FromQuery] string? query = "")
         {
-            var materials = await _context.CourseMaterials.Where(c => c.CourseId == courseId).Include(m => m.MaterialType).ToListAsync();
-
-
-            if (materials == null)
+            if (string.IsNullOrEmpty(query))
             {
-                return NotFound();
+                var materials = await _context.CourseMaterials.Where(c => c.CourseId == courseId).Include(m => m.MaterialType).ToListAsync();
+                return materials.Select(m => _mapper.Map<GetCourseMaterialDto>(m)).ToList();
             }
+            var materials1 = await _context.CourseMaterials.Where(c => c.CourseId == courseId && c.Title.ToLower().Contains(query.ToLower())).Include(m => m.MaterialType).ToListAsync();
 
-            return materials.Select(m => _mapper.Map<GetCourseMaterialDto>(m)).ToList();
+            return materials1.Select(m => _mapper.Map<GetCourseMaterialDto>(m)).ToList();
         }
 
 
@@ -499,7 +529,7 @@ namespace API.Controllers
 
             // Provera da li je student već upisan na kurs
             var existingEnrollment = await _context.UserCourses
-                .FirstOrDefaultAsync(uc => uc.UserId == student.Id && uc.CourseId == courseId && uc.WithdrawDate==null);
+                .FirstOrDefaultAsync(uc => uc.UserId == student.Id && uc.CourseId == courseId && uc.WithdrawDate == null);
 
             if (existingEnrollment != null)
                 return BadRequest("Student je već upisan na kurs.");
@@ -573,52 +603,52 @@ namespace API.Controllers
         //         withdrawDate=enrollment.WithdrawDate
         //     });
         // }
-public async Task<IActionResult> RemoveStudentFromCourse([FromBody] RemoveRequest request)
-{
-    int courseId = request.CourseId;
+        public async Task<IActionResult> RemoveStudentFromCourse([FromBody] RemoveRequest request)
+        {
+            int courseId = request.CourseId;
 
-    // Provera identiteta studenta
-    var student = await _userManager.FindByNameAsync(User.Identity.Name);
-    if (student == null)
-        return NotFound("Student nije pronađen");
+            // Provera identiteta studenta
+            var student = await _userManager.FindByNameAsync(User.Identity.Name);
+            if (student == null)
+                return NotFound("Student nije pronađen");
 
-    // Provera da li kurs postoji
-    var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId);
-    if (course == null)
-        return NotFound("Kurs nije pronađen");
+            // Provera da li kurs postoji
+            var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId);
+            if (course == null)
+                return NotFound("Kurs nije pronađen");
 
-    // Provera da li je student upisan na kurs
-    var enrollment = await _context.UserCourses
-        .FirstOrDefaultAsync(uc => uc.UserId == student.Id && uc.CourseId == courseId && uc.WithdrawDate == null);
+            // Provera da li je student upisan na kurs
+            var enrollment = await _context.UserCourses
+                .FirstOrDefaultAsync(uc => uc.UserId == student.Id && uc.CourseId == courseId && uc.WithdrawDate == null);
 
-    if (enrollment == null)
-        return BadRequest("Student nije upisan na kurs.");
+            if (enrollment == null)
+                return BadRequest("Student nije upisan na kurs.");
 
-    // Postavljanje datuma ispisa
-    enrollment.WithdrawDate = DateTime.UtcNow;
+            // Postavljanje datuma ispisa
+            enrollment.WithdrawDate = DateTime.UtcNow;
 
-    // Pronalaženje svih tema kursa koje je kreirao ovaj student
-   var studentThemes = await _context.Themes
-    .Where(t => t.Course != null && t.Course.Id == courseId && t.User!.Id == student.Id)
-    .ToListAsync();
-    // Ažuriranje statusa tema na "zatvoreno"
-    foreach (var theme in studentThemes)
-    {
-        theme.Active = false; // Pretpostavljam da se status teme čuva kao string
-    }
+            // Pronalaženje svih tema kursa koje je kreirao ovaj student
+            var studentThemes = await _context.Themes
+             .Where(t => t.Course != null && t.Course.Id == courseId && t.User!.Id == student.Id)
+             .ToListAsync();
+            // Ažuriranje statusa tema na "zatvoreno"
+            foreach (var theme in studentThemes)
+            {
+                theme.Active = false; // Pretpostavljam da se status teme čuva kao string
+            }
 
-    // Čuvanje promena u bazi
-    await _context.SaveChangesAsync();
+            // Čuvanje promena u bazi
+            await _context.SaveChangesAsync();
 
-    return Ok(new
-    {
-        Method = "RemoveStudentFromCourse",
-        Message = "Uspješno ste ispisani sa kursa, a sve vaše teme su zatvorene.",
-        studentId = student.Id,
-        courseId = course.Id,
-        withdrawDate = enrollment.WithdrawDate,
-    });
-}
+            return Ok(new
+            {
+                Method = "RemoveStudentFromCourse",
+                Message = "Uspješno ste ispisani sa kursa, a sve vaše teme su zatvorene.",
+                studentId = student.Id,
+                courseId = course.Id,
+                withdrawDate = enrollment.WithdrawDate,
+            });
+        }
 
     }
 }

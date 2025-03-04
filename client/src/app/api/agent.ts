@@ -138,14 +138,15 @@ const Course = {
     formData.append("weekNumber", weekNumber.toString());
     return requests.post("course/upload", formData);
   },
-  getMaterialsByCourseId: (id: number) =>
-    requests.get(`course/getCourseMaterialsByCourseId/${id}`),
+  getMaterialsByCourseId: (courseId: number, query:string) =>
+    requests.get(`course/getCourseMaterialsByCourseId`, {courseId, query}),
   enrollOnCourse: (courseId: number) =>
     requests.post("course/enroll", { courseId }),
   AllStudents: (params: URLSearchParams) =>
     requests.get("course/getStudents", params),
   removeStudentFromCourse: (courseId: number) =>
     requests.post("course/removeStudentFromCourse", { courseId }),
+  myCourses: (params: URLSearchParams) => requests.get("course/getMyCourses", params),
 };
 
 const Professor = {

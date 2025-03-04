@@ -26,12 +26,15 @@ export default function ProfessorList() {
     professors!.forEach((professor) => {
       dispatch(fetchProfessorCoursesAsync(professor.id));
     });
-    console.log("aaa");
+    // console.log("aaa");
   }, [professors]);
 
   const professorCourses = useAppSelector(
     (state) => state.course.professorCourses
   );
+
+  if (professorCourses && professorCourses[5])
+    professorCourses![5].forEach((p) => console.log(p));
 
   const statusProf = useAppSelector((state) => state.professor.status);
   const profCoursestatus = useAppSelector((state) => state.course.status);
@@ -68,7 +71,7 @@ export default function ProfessorList() {
             size="small"
             icon={<OpenInNewRounded />}
             component={Link}
-            to="/users/professors"
+            to="/professors"
             sx={{
               backgroundColor: "primary.dark",
               color: "#fff",
@@ -171,28 +174,78 @@ export default function ProfessorList() {
                   <Divider component="div" sx={{ my: 2 }} />
 
                   {professorCourses &&
-                  professorCourses[teacher.id] != undefined ? (
-                    <SlideCard courses={professorCourses[teacher.id]} />
-                  ) : (
-                    <Typography>Nema kurseva</Typography>
-                  )}
+  professorCourses[teacher.id] &&
+  professorCourses[teacher.id].filter((course) => {
+    const hasValidProfessor = course.professorsCourse.some((pc) => {
+      const conditionMet = pc.withdrawDate === null && pc.user.id === teacher.id;
+      
+      // console.log(
+      //   "Course ID:", course.id,
+      //   "| Professor ID:", pc.user.id,
+      //   "| Withdraw Date:", pc.withdrawDate,
+      //   "| Condition Met:", conditionMet
+      // );
+
+      return conditionMet;
+    });
+
+    // console.log("Filtered Course:", course.id, "| Included in SlideCard:", hasValidProfessor);
+    
+    return hasValidProfessor;
+  }).length > 0 ? (
+    <SlideCard
+      courses={professorCourses[teacher.id].filter((course) => {
+        const hasValidProfessor = course.professorsCourse.some((pc) => {
+          const conditionMet = pc.withdrawDate === null && pc.user.id === teacher.id;
+
+          // console.log(
+          //   "Course ID (Inside SlideCard Filter):", course.id,
+          //   "| Professor ID:", pc.user.id,
+          //   "| Withdraw Date:", pc.withdrawDate,
+          //   "| Condition Met:", conditionMet
+          // );
+
+          return conditionMet;
+        });
+        console.log("TEACHER "+teacher.email)
+        console.log("Filtered Course (For SlideCard):", course.id, "| Included:", hasValidProfessor);
+
+        return hasValidProfessor;
+      })}
+    />
+  ) : (
+    <Typography>Nema kurseva</Typography>
+  )
+}
+
 
                   <Divider component="div" sx={{ my: 2 }} />
 
-                  {professorCourses && professorCourses[teacher.id] ? (
+                  {professorCourses &&
+                  professorCourses[teacher.id] &&
+                  professorCourses[teacher.id].filter((course) =>
+                    course.professorsCourse.some(
+                      (pc) =>
+                        pc.withdrawDate === null && pc.user.id == teacher.id
+                    )
+                  ).length > 0 ? (
                     <SlideDots
                       programs={[
                         ...new Set(
-                          professorCourses[teacher.id]?.map((course) => {
-                            return course.studyProgram.name;
-                          })
+                          professorCourses[teacher.id]
+                            .filter((course) =>
+                              course.professorsCourse.some(
+                                (pc) =>
+                                  pc.withdrawDate === null &&
+                                  pc.user.id == teacher.id
+                              )
+                            )
+                            .map((course) => course.studyProgram.name)
                         ),
                       ]}
                     />
                   ) : (
-                    <Typography fontFamily="Raleway, sans-serif">
-                      Nema smjerova
-                    </Typography>
+                    <Typography>Nema smjerova</Typography>
                   )}
                 </Grid>
               ))}

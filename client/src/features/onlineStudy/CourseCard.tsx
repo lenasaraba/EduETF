@@ -158,13 +158,13 @@ export default function CourseCard({ course }: Props) {
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
     console.log(course?.professorsCourse);
-    if (course?.professorsCourse.length == 1) {
+    if (course?.professorsCourse.filter((p)=>p.withdrawDate==null).length == 1) {
       setIsLastProf(true);
       handleDeleteClick();
       // navigate("/courses?type=all");
     } else {
       removeProfFromCourse();
-      if (type == "my") dispatch(fetchCoursesAsync());
+      // if (type == "my"){console.log(type);
     }
   };
 
@@ -172,6 +172,9 @@ export default function CourseCard({ course }: Props) {
     try {
       await dispatch(removeProfessorFromCourse(course!.id));
       // navigate("/courses?type=all");
+      if(type=="my")
+        await dispatch(fetchCoursesAsync());
+
     } catch (error) {
       console.error("Greška prilikom uklanjanja profesora sa kursa:", error);
     } finally {

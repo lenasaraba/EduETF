@@ -1,17 +1,185 @@
-import Timeline from "@mui/lab/Timeline";
-import TimelineItem from "@mui/lab/TimelineItem";
-import TimelineSeparator from "@mui/lab/TimelineSeparator";
-import TimelineConnector from "@mui/lab/TimelineConnector";
-import TimelineContent from "@mui/lab/TimelineContent";
-import TimelineOppositeContent from "@mui/lab/TimelineOppositeContent";
-import TimelineDot from "@mui/lab/TimelineDot";
 import Typography from "@mui/material/Typography";
 import { Material } from "../../../app/models/course";
-import { Avatar, Box, IconButton } from "@mui/material";
+import { Box, Divider, IconButton, useTheme } from "@mui/material";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
-import DuoIcon from "@mui/icons-material/Duo";
+
 import DeleteIcon from "@mui/icons-material/Delete";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline"; // Play ikonica
+
+const MaterialComponent = ({
+  material,
+  showFile,
+  handleDelete,
+  isEditing,
+}: ComponentProps) => {
+  const theme = useTheme();
+
+  const renderContent = () => {
+    switch (material.materialType.name) {
+      case "Video":
+        return (
+          <Box
+            sx={{
+              width: "150px", // Fiksna širina
+              height: "100%",
+              background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.dark} 90%)`, // Gradijent pozadina
+              borderRadius: "8px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <PlayCircleOutlineIcon
+              sx={{
+                fontSize: 64,
+                color: "white",
+                opacity: 0.8,
+                "&:hover": {
+                  opacity: 1,
+                },
+              }}
+            />
+          </Box>
+        );
+      case "Slika":
+        return (
+          <img
+            src={`http://localhost:5000/${material.filePath}`}
+            alt={material.title}
+            style={{
+              width: "150px", // Fiksna širina
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: "8px",
+            }}
+          />
+        );
+      case "PDF":
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "150px", // Fiksna širina
+              height: "100%",
+              backgroundColor: theme.palette.primary.dark,
+              borderRadius: "8px",
+            }}
+          >
+            <PictureAsPdfIcon sx={{ fontSize: 48, color: "text.primary" }} />
+          </Box>
+        );
+      case "Dokument":
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "150px", // Fiksna širina
+              height: "100%",
+              backgroundColor: theme.palette.primary.dark,
+              borderRadius: "8px",
+            }}
+          >
+            <DescriptionIcon sx={{ fontSize: 48, color: "primary.light" }} />
+          </Box>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        // width: "100%",
+        height: "15vh",
+        borderRadius: "8px",
+        overflow: "hidden",
+        boxShadow: 2,
+        "&:hover": {
+          boxShadow: 6,
+          cursor: "pointer",
+        },
+        marginBottom: "16px", // Dodajemo marginu između elemenata
+        margin: 2,
+        boxSizing: "border-box",
+      }}
+      onClick={() => showFile(material)}
+    >
+      {renderContent()}
+      <Box
+        sx={{
+          flex: 1, // Omogućava da tekst zauzme preostali prostor
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          padding: "8px",
+          overflow: "hidden", // Sprečava prekoračenje teksta
+        }}
+      >
+        <Typography
+          variant="body2"
+          sx={{
+            // fontWeight: "bold",
+            whiteSpace: "normal", // Omogućava prelazak u novi red
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitLineClamp: 2, // Ograničava na 2 reda
+            WebkitBoxOrient: "vertical",
+          }}
+        >
+          {material.title}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            color: "text.secondary",
+            whiteSpace: "normal", // Omogućava prelazak u novi red
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitLineClamp: 2, // Ograničava na 2 reda
+            WebkitBoxOrient: "vertical",
+          }}
+        >
+          {new Date(material.creationDate).toLocaleDateString("sr-RS", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </Typography>
+      </Box>
+      {isEditing && (
+        <IconButton
+          sx={{
+            alignSelf: "center", // Centrira ikonicu za brisanje
+            color: "error.main",
+          }}
+          onClick={(e) => {
+            e.stopPropagation(); // Sprečava propagaciju klikova na roditeljski element
+            handleDelete(material);
+          }}
+        >
+          <DeleteIcon />
+        </IconButton>
+      )}
+    </Box>
+  );
+};
+
+interface ComponentProps {
+  material: Material;
+  showFile: (material: Material) => void;
+  handleDelete: (material: Material) => void;
+  isEditing: boolean;
+}
 
 interface Props {
   materials: Material[];
@@ -26,113 +194,27 @@ export default function CustomTimeline({
   handleDelete,
   isEditing,
 }: Props) {
-  const getFileIcon = (material: Material) => {
-    if (material.materialType.name == "Slika") {
-      return (
-        <Avatar
-          sx={{ width: 20, height: 20 }}
-          src={`http://localhost:5000//${material.filePath}`}
-        />
-      );
-    } else if (material.materialType.name == "PDF") {
-      return <PictureAsPdfIcon color="error" />;
-    } else if (material.materialType.name == "Dokument") {
-      return <DescriptionIcon color="primary" />;
-    } else if (material.materialType.name == "Video") {
-      return <DuoIcon sx={{ color: "primary.main" }} />;
-    }
-    return <DescriptionIcon />;
-  };
-
   return (
     <Box
       sx={{
         width: "95%",
-        maxHeight: "25vh",
-        overflowY: "auto",
         overflowX: "hidden",
         whiteSpace: "nowrap",
       }}
     >
-      <Timeline position="alternate">
-        {materials &&
-          materials.map((material, index) => (
-            <TimelineItem key={index}>
-              <TimelineOppositeContent
-                sx={{
-                  flex: 1,
-                  textAlign: "right",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  padding: 1.5,
-                }}
-                variant="body2"
-                color="text.secondary"
-              >
-                {new Date(material.creationDate).toLocaleDateString("sr-RS", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                })}
-              </TimelineOppositeContent>
-
-              <TimelineSeparator
-                sx={{ display: "flex", justifyContent: "center" }}
-              >
-                <TimelineConnector />
-                <TimelineDot
-                  sx={{
-                    backgroundColor: "transparent",
-                    boxShadow: (theme) =>
-                      `0px 2px 10px -2px ${theme.palette.text.primary}`,
-                  }}
-                >
-                  {getFileIcon(material)}
-                </TimelineDot>
-                <TimelineConnector />
-              </TimelineSeparator>
-
-              <TimelineContent
-                sx={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  overflow: "hidden",
-                  padding: 1.5,
-                }}
-              >
-                <Typography
-                  variant="body1"
-                  component="span"
-                  sx={{
-                    fontSize: "clamp(12px, 2vw, 16px)",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    "&:hover": {
-                      color: "primary.main",
-                      cursor: "pointer",
-                    },
-                  }}
-                  onClick={() => showFile(material)}
-                >
-                  {material.title}
-                </Typography>
-                {isEditing && (
-                  <IconButton
-                    onClick={() => handleDelete(material)}
-                    sx={{ color: "error.main" }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                )}
-              </TimelineContent>
-            </TimelineItem>
-          ))}
-      </Timeline>
+      {materials &&
+        materials.map((material, index) => (
+          <>
+            <MaterialComponent
+              key={index}
+              material={material}
+              showFile={showFile}
+              handleDelete={handleDelete}
+              isEditing={isEditing}
+            />
+            <Divider sx={{ width: "100%", borderWidth:"1px" }} />
+          </>
+        ))}
     </Box>
   );
 }

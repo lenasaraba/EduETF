@@ -151,7 +151,9 @@ export default function Theme() {
   );
   console.log(resultMessages);
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(0);
+ 
   useEffect(() => {
+    console.log(resultMessages);
     if (resultMessages && resultMessages.length > 0) {
       setCurrentResultIndex(0);
       scrollToMessage(resultMessages[0].id!);
@@ -160,6 +162,9 @@ export default function Theme() {
     }
     setSearchResults(resultMessages);
   }, [resultMessages]);
+
+
+
   const handleSearch = async (query: string) => {
     try {
       console.log(query);
@@ -167,7 +172,8 @@ export default function Theme() {
         await dispatch(
           searchMessagesAsync({ themeId: theme.id, query: query })
         );
-      console.log(resultMessages);
+      // console.log(resultMessages);
+      // console.log(messstatus);
       // if (resultMessages) {
       //   setSearchResults(resultMessages);
       //   setCurrentResultIndex(0);
@@ -183,33 +189,43 @@ export default function Theme() {
   const scrollToMessage = (messageId: number) => {
     setHighlightedMessage(messageId);
     const messageElement = document.getElementById(`message-${messageId}`);
-    // if (messageElement) {
-    //   messageElement.scrollIntoView({ behavior: "smooth", block: "start" });
-    // }
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   };
 
   const handleNextResult = () => {
     if (searchResults)
+    {
+      console.log(searchResults);
       if (currentResultIndex < searchResults.length - 1) {
         const nextIndex = currentResultIndex + 1;
         setCurrentResultIndex(nextIndex);
         if (searchResults[nextIndex].id)
           scrollToMessage(searchResults[nextIndex].id);
+      // console.log("1111")
       }
+    }
   };
 
   const handlePreviousResult = () => {
     if (searchResults)
+    {
+      console.log(searchResults);
+
       if (currentResultIndex > 0) {
         const prevIndex = currentResultIndex - 1;
         setCurrentResultIndex(prevIndex);
         if (searchResults[prevIndex].id)
           scrollToMessage(searchResults[prevIndex].id);
       }
+    }
   };
 
   const navigate = useNavigate();
   const status = useAppSelector((state) => state.theme.status);
+  const messstatus = useAppSelector((state) => state.message.status);
+
   const statusMessage = useAppSelector((state) => state.message.status);
 
   // const open = Boolean(anchorEl);
@@ -577,11 +593,36 @@ export default function Theme() {
                                   },
                                 }}
                               >
-                                {theme.course?.usersCourse.some(
+                                {(user.role=="Student" && (theme.course==null || theme.course?.usersCourse.some(
                                   (uc) =>
                                     uc.user?.username === user.username &&
                                     uc.withdrawDate == null
-                                ) && (
+                                )) )&& (
+                                  <Typography
+                                    onClick={(event) =>
+                                      updateStatus(event, theme)
+                                    }
+                                    variant="body2"
+                                    sx={{
+                                      paddingX: 2,
+                                      paddingY: 1,
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        color: "primary.light",
+                                      },
+                                      fontFamily: "Raleway, sans-serif",
+                                      color: "text.primary",
+                                      backgroundColor: "background.paper",
+                                    }}
+                                  >
+                                    {theme.active ? "Zaključaj" : "Otključaj"}
+                                  </Typography>
+                                )}
+                                {(user.role=="Profesor" && (theme.course==null || theme.course?.professorsCourse.some(
+                                  (pc) =>
+                                    pc.user?.username === user.username &&
+                                    pc.withdrawDate == null
+                                ) ))&& (
                                   <Typography
                                     onClick={(event) =>
                                       updateStatus(event, theme)
@@ -798,7 +839,7 @@ export default function Theme() {
                       {professor.user.firstName}&nbsp;
                       {professor.user.lastName}
                     </Typography> */}
-                        <Author authors={theme.course.professorsCourse} />
+                        <Author authors={theme.course.professorsCourse.filter((prof)=>prof.withdrawDate==null)} />
                       </Box>
                     </Box>
                     <Button
@@ -889,7 +930,7 @@ export default function Theme() {
                 }}
               >
                 <SearchBar onSearch={handleSearch} />
-                {searchResults.length > 0 && (
+                {searchResults && searchResults.length > 0 && (
                   <Box
                     sx={{
                       margin: 0,
@@ -963,7 +1004,7 @@ export default function Theme() {
                       flexDirection: "column",
                       justifyContent: "center",
                       alignItems: "center",
-                      height: "80vh",
+                      height: "70vh",
                       width: "100%",
                       margin: 0,
                       padding: 1,
@@ -982,7 +1023,7 @@ export default function Theme() {
                       flexDirection: "column",
                       justifyContent: "flex-end",
                       overflow: "auto",
-                      height: "80vh",
+                      height: "70vh",
                       width: "100%",
                       margin: 0,
                       padding: 1,
@@ -1244,6 +1285,8 @@ export default function Theme() {
                   onChange={(e) => setMessageContent(e.target.value)}
                 /> */}
                     <MentionsInput
+                      disabled={!theme.active}
+
                       className="ssky-mention-input"
                       value={messageContent}
                       onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -1290,8 +1333,8 @@ export default function Theme() {
                       }
                       sx={{
                         textTransform: "none",
-                        color: "primary.main",
-                        backgroundColor: "primary.dark",
+                        color: "text.primary",
+                        backgroundColor: "primary.main",
                         "&:hover": {
                           color: "primary.dark",
                           backgroundColor: "primary.main",

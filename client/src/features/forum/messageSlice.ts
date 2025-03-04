@@ -158,7 +158,7 @@ export const messageSlice = createSlice({
     });
 
     builder.addCase(searchMessagesAsync.fulfilled, (state, action) => {
-      //  state.status = "idle";
+      state.status = "fulfilledMessages";
       // state.messages![action.payload.themeId] = action.payload.messages;
       state.resultMessages = action.payload;
       console.log(state.resultMessages);

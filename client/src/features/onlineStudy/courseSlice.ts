@@ -13,7 +13,7 @@ import agent from "../../app/api/agent";
 import { RootState } from "../../app/store/configureStore";
 import { MetaData } from "../../app/models/pagination";
 import { router } from "../../app/router/Routes";
-import { StudentsParams } from "../../app/models/professor";
+import { MyCoursesParams, StudentsParams } from "../../app/models/professor";
 
 export interface CourseState {
   courses: Course[] | null;
@@ -21,7 +21,9 @@ export interface CourseState {
   currentCourse: Course | null;
   currentCourseMaterials: Material[] | null;
   materialsLoaded: boolean;
-  // myCourses: Course[] | null;
+  myCourses: Course[] | null;
+  myCoursesParams: MyCoursesParams;
+  myCoursesLoaded:boolean;
   professorCourses: Record<number, Course[]> | null;
   userCourses: Record<number, Course[]> | null;
   students: User[] | null;
@@ -44,7 +46,9 @@ export interface CourseState {
 
 const initialState: CourseState = {
   courses: null,
-  // myCourses: null,
+  myCourses: null,
+  myCoursesLoaded:false,
+  myCoursesParams:{},
   allCourses: null,
   currentCourse: null,
   currentCourseMaterials: null,
@@ -111,6 +115,13 @@ function getStudentsAxiosParams(studentsParams: StudentsParams) {
   return params;
 }
 
+function getMyCoursesAxiosParams(myCoursesParams: MyCoursesParams) {
+  const params = new URLSearchParams();
+  if (myCoursesParams.searchTerm)
+    params.append("searchTerm", myCoursesParams.searchTerm.toString());
+  return params;
+}
+
 export const fetchCoursesAsync = createAsyncThunk<
   { coursesDto: Course[]; metaData: MetaData }, // Tip povratne vrednosti: objekat sa kursevima i meta podacima
   void, // Parametri koje šaljemo (i dalje undefined, pa je tip void)
@@ -158,6 +169,26 @@ export const fetchCoursesListAsync = createAsyncThunk<
   }
 });
 
+export const fetchMyCoursesAsync = createAsyncThunk<
+  Course[],
+  void,
+  { state: RootState }
+>("course/fetchMyCoursesAsync", async (_, thunkAPI) => {
+  const params = getMyCoursesAxiosParams(thunkAPI.getState().course.myCoursesParams);
+
+  try {
+    const courses = await agent.Course.myCourses(params);
+    console.log(courses);
+    //thunkAPI.dispatch(setAllCourses(courses));
+    //thunkAPI.dispatch(setMetaData(courses.metaData));
+    return courses;
+  } catch (error: any) {
+    console.log(error.data);
+    return thunkAPI.rejectWithValue({ error: error.data });
+  }
+});
+
+
 export const fetchCourseAsync = createAsyncThunk<Course, number>(
   "course/fetchCourseAsync",
   async (id, thunkAPI) => {
@@ -202,12 +233,7 @@ export const fetchProfessorCoursesAsync = createAsyncThunk<
 >("course/fetchProfessorCoursesAsync", async (id, thunkAPI) => {
   try {
     const professorCourses = await agent.Course.getProfessorCourses(id);
-    // thunkAPI.dispatch(
-    //   setProfessorCourses({
-    //     professorId: id,
-    //     courses: professorCourses,
-    //   })
-    // );
+    
     return professorCourses;
   } catch (error: any) {
     console.log(error.data);
@@ -412,12 +438,17 @@ export const uploadFile = createAsyncThunk(
   }
 );
 
+interface MaterialRequest {
+  courseId: number;
+  query: string;
+}
+
 export const fetchCurrentCourseMaterialAsync = createAsyncThunk<
   Material[],
-  number
->("course/fetchCurrentCourseMaterialAsync", async (id, thunkAPI) => {
+  MaterialRequest
+>("course/fetchCurrentCourseMaterialAsync", async (query, thunkAPI) => {
   try {
-    const materials = await agent.Course.getMaterialsByCourseId(id);
+    const materials = await agent.Course.getMaterialsByCourseId(query.courseId, query.query);
     return materials;
   } catch (error: any) {
     console.log(error.data);
@@ -448,6 +479,16 @@ export const courseSlice = createSlice({
     resetStudentsParams: (state) => {
       state.studentsParams = {};
     },
+    setMyCoursesParams: (state, action) => {
+      state.myCoursesLoaded = false;
+      state.myCoursesParams = {
+        ...state.myCoursesParams,
+        ...action.payload,
+      };
+    },
+    resetMyCoursesParams: (state) => {
+      state.myCoursesParams = {};
+    },
     setPageNumber: (state, action) => {
       state.pagecoursesLoaded = false;
       state.coursesParams = { ...state.coursesParams, ...action.payload };
@@ -476,6 +517,8 @@ export const courseSlice = createSlice({
       console.log(action.payload);
       state.currentCourse = action.payload;
     });
+
+
     builder.addCase(fetchCoursesListAsync.pending, (state) => {
       state.status = "pendingFetchCoursesList";
       state.allcoursesLoaded = false;
@@ -488,6 +531,22 @@ export const courseSlice = createSlice({
     builder.addCase(fetchCoursesListAsync.rejected, (state) => {
       state.status = "idle";
     });
+
+    builder.addCase(fetchMyCoursesAsync.pending, (state) => {
+      state.status = "pendingFetchMyCourses";
+      state.myCoursesLoaded = false;
+    });
+    builder.addCase(fetchMyCoursesAsync.fulfilled, (state, action) => {
+      state.myCourses = action.payload;
+      state.status = "fulfilledMyCourses";
+      state.myCoursesLoaded = true;
+    });
+    builder.addCase(fetchMyCoursesAsync.rejected, (state) => {
+      state.status = "idle";
+    });
+
+
+
     builder.addCase(fetchCourseAsync.pending, (state) => {
       state.currentCourse = null;
       state.status = "pendingFetchCourse";
@@ -632,7 +691,7 @@ export const courseSlice = createSlice({
     });
     builder.addCase(uploadFile.pending, (state) => {
       state.status = "pendingUploadMaterial";
-      state.materialsLoaded = false;
+      // state.materialsLoaded = false;
     });
     builder.addCase(uploadFile.fulfilled, (state, action) => {
       state.status = "idle";
@@ -642,7 +701,7 @@ export const courseSlice = createSlice({
       if (action.payload.week > state.currentCourse!.weekCount)
         state.currentCourse!.weekCount = action.payload.week;
       else {
-        state.materialsLoaded = true;
+        // state.materialsLoaded = true;
       }
     });
     builder.addCase(uploadFile.rejected, (state) => {
@@ -703,22 +762,45 @@ export const courseSlice = createSlice({
         console.log(action.payload);
 
         // Proveri da li professorCourses postoji za datog profesora
-        if (
-          state.professorCourses &&
-          state.professorCourses[action.payload.professorId]
-        ) {
-          state.professorCourses[action.payload.professorId] =
-            state.professorCourses[action.payload.professorId].filter(
-              (pc) => pc.id !== action.payload.courseId
+        // if (
+        //   state.professorCourses &&
+        //   state.professorCourses[action.payload.professorId]
+        // ) {
+        //   state.professorCourses[action.payload.professorId] =
+        //     state.professorCourses[action.payload.professorId].filter(
+        //       (pc) => pc.id !== action.payload.courseId
+        //     );
+        // }
+
+        if (state.professorCourses && state.professorCourses[action.payload.professorId]) {
+          const professorCourses = state.professorCourses[action.payload.professorId];
+          console.log(professorCourses);
+          console.log(action.payload)
+          const course = professorCourses.find((pc) => pc.id === action.payload.courseId);
+          if (course) {
+            console.log(course);
+            const profCourse = course.professorsCourse.find(
+              (professor) => (professor.user.id === action.payload.professorId && professor.withdrawDate==null)
             );
+            console.log(profCourse);
+            if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
+            }
         }
 
         // Proveri da li currentCourse i professorsCourse postoje pre nego što primeniš filter
-        if (state.currentCourse?.professorsCourse) {
-          state.currentCourse.professorsCourse =
-            state.currentCourse.professorsCourse.filter(
-              (pc) => pc.courseId !== action.payload.courseId
-            );
+        // if (state.currentCourse?.professorsCourse) {
+        //   state.currentCourse.professorsCourse =
+        //     state.currentCourse.professorsCourse.filter(
+        //       (pc) => pc.courseId !== action.payload.courseId
+        //     );
+        // }
+
+        if(state.currentCourse?.professorsCourse){
+          const profCourse = state.currentCourse.professorsCourse.find(
+            (professor) => (professor.user.id === action.payload.professorId && professor.withdrawDate==null)
+          );
+          if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
+        
         }
 
         if (state.courses && state.courses.length > 0) {
@@ -726,9 +808,14 @@ export const courseSlice = createSlice({
             (course) => course.id === action.payload.courseId
           );
           if (course) {
-            course.professorsCourse = course.professorsCourse.filter(
-              (professor) => professor.user.id !== action.payload.professorId
+            const profCourse = course.professorsCourse.find(
+              (professor) => (professor.user.id === action.payload.professorId  && professor.withdrawDate==null)
             );
+            if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
+         
+            // course.professorsCourse = course.professorsCourse.filter(
+            //   (professor) => professor.user.id !== action.payload.professorId
+            // );
           }
         }
 
@@ -737,9 +824,14 @@ export const courseSlice = createSlice({
             (course) => course.id === action.payload.courseId
           );
           if (course) {
-            course.professorsCourse = course.professorsCourse.filter(
-              (professor) => professor.user.id !== action.payload.professorId
-            );
+             const profCourse = course.professorsCourse.find(
+            (professor) => (professor.user.id === action.payload.professorId  && professor.withdrawDate==null)
+          );
+          if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
+       
+            // course.professorsCourse = course.professorsCourse.filter(
+            //   (professor) => professor.user.id !== action.payload.professorId
+            // );
           }
         }
 
@@ -826,4 +918,6 @@ export const {
   setMetaData,
   setStudentsParams,
   resetStudentsParams,
+  setMyCoursesParams,
+  resetMyCoursesParams,
 } = courseSlice.actions;

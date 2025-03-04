@@ -95,6 +95,7 @@ export default function MainContent() {
     useState(false);
 
   const handleRemoveProfClick = () => {
+    console.log(courseSelected);
     setOpenDialogRemoveProfessor(true);
     setAnchorEl(null);
   };
@@ -106,8 +107,9 @@ export default function MainContent() {
   const [isLastProf, setIsLastProf] = useState(false);
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
-    // console.log(courseSelected?.professorsCourse);
-    if (courseSelected?.professorsCourse.length == 1) {
+    console.log(courseSelected);
+    console.log(courseSelected?.professorsCourse);
+    if (courseSelected?.professorsCourse.filter((p)=>p.withdrawDate==null).length == 1) {
       setIsLastProf(true);
       handleDeleteClick();
       setOpenDialogRemoveProfessor(false);

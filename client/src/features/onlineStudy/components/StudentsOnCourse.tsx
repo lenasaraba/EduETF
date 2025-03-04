@@ -21,7 +21,7 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
       sx={{
         // height: "50vh", // Ograničena visina od 50vh
         width: "100%", // Širina se prilagođava roditeljskoj komponenti (xs={4})
-        overflow: "hidden", // Sprečava prekomerno skrolovanje
+        // overflow: "hidden", // Sprečava prekomerno skrolovanje
         display: "flex",
         flexDirection: "column",
       }}
@@ -30,7 +30,7 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
         <Box
           sx={{
             // overflowY: "auto", // Omogućava vertikalno skrolovanje unutar okvira ako je potrebno
-            padding: 2,
+            paddingX: {xs:0, md:2},
             paddingY: { xs: 2, md: 0 },
             // paddingRight:0,
             // overflowX:"visible",
@@ -52,96 +52,112 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
             // console.log(withdrawDate);
             return (
               <Box
-                key={id}
+              key={id}
+              sx={{
+                backgroundColor: theme.palette.background.paper,
+                boxShadow: theme.shadows[6],
+                borderRadius: 3,
+                padding: { xs: 1, sm: 2 },
+                flexGrow: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: { xs: 0.5, sm: 1 },
+                flexDirection: { xs: "column", sm: "row" }, // Na malim ekranima kolona, na većim red
+                justifyContent: {
+                  xs: "center",
+                  sm: "space-between",
+                },
+                height: "auto",
+                transition: "all 0.3s ease-in-out",
+                "&:hover": {
+                  transform: "scale(1.03)",
+                },
+                overflow: "hidden", // Sprečava horizontalni skrol
+              }}
+            >
+              {/* Avatar - Dinamički smanjen */}
+              <Avatar
                 sx={{
-                  backgroundColor: theme.palette.background.paper,
-                  boxShadow: theme.shadows[6],
-                  borderRadius: 3,
-                  padding: { xs: 1, sm: 2 },
-                  flexGrow: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: { xs: 0.5, sm: 1 },
-                  flexDirection: { xs: "column", sm: "column", md: "row" },
-                  justifyContent: {
-                    xs: "center",
-                    sm: "center",
-                    md: "space-between",
-                  },
-                  height: "auto",
-                  transition: "all 0.3s ease-in-out",
-                  "&:hover": {
-                    transform: "scale(1.03)",
-                  },
+                  width: { xs: `calc(30px + 2vw)`, sm: 45 }, // Dinamička širina
+                  height: { xs: `calc(30px + 2vw)`, sm: 45 }, // Dinamička visina
+                  fontSize: { xs: `calc(0.9rem + 0.5vw)`, sm: "1.2rem" }, // Dinamički font
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.common.white,
+                  flexShrink: 0, // Sprečava smanjivanje avatara ispod određene veličine
                 }}
               >
-                {/* Avatar - Smanjen na malim ekranima */}
-                <Avatar
+                {user.firstName.charAt(0).toUpperCase()}
+              </Avatar>
+            
+              {/* Glavni podaci o studentu */}
+              <Box
+                sx={{
+                  flex: 1,
+                  textAlign: { xs: "center", sm: "left" },
+                  minWidth: 0, // Sprečava prekoračenje teksta
+                  overflow: "hidden", // Sprečava horizontalni skrol
+                }}
+              >
+                <Typography
+                  variant="body1"
                   sx={{
-                    width: { xs: 30, sm: 45 },
-                    height: { xs: 30, sm: 45 },
-                    fontSize: { xs: "0.9rem", sm: "1.2rem" },
-                    backgroundColor: theme.palette.primary.main,
-                    color: theme.palette.common.white,
+                    fontWeight: 600,
+                    color: theme.palette.text.primary,
+                    fontSize: { xs: `calc(0.8rem + 0.5vw)`, sm: "1rem" }, // Dinamički font
+                    whiteSpace: "nowrap", // Sprečava prelazak u novi red
+                    overflow: "hidden", // Skriva tekst koji prelazi
+                    textOverflow: "ellipsis", // Dodaje "..." ako tekst prelazi
                   }}
                 >
-                  {user.firstName.charAt(0).toUpperCase()}
-                </Avatar>
-
-                {/* Glavni podaci o studentu */}
-                <Box
-                  sx={{
-                    flex: 1,
-                    textAlign: { xs: "center", sm: "left", md: "left" },
-                  }}
-                >
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 600,
-                      color: theme.palette.text.primary,
-                      fontSize: { xs: "0.8rem", sm: "1rem", md: "1rem" },
-                    }}
-                  >
-                    {user.firstName} {user.lastName}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                      fontSize: { xs: "0.7rem", sm: "0.875rem", md: "0.95rem" },
-                    }}
-                  >
-                    {user.email}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{
-                      fontSize: { xs: "0.6rem", sm: "0.75rem", md: "0.8rem" },
-                    }}
-                  >
-                    {formattedEnrollDate} - {formattedWithdrawDate}
-                  </Typography>
-                </Box>
-
-                {/* Status - Premešten ispod na malim ekranima */}
+                  {user.firstName} {user.lastName}
+                </Typography>
                 <Typography
                   variant="body2"
-                  color="primary"
+                  color="text.secondary"
                   sx={{
-                    fontWeight: 500,
-                    fontSize: { xs: "0.7rem", sm: "0.875rem", md: "0.9rem" },
-                    textAlign: "center",
-                    mt: { xs: 0.5, sm: 0 }, // Dodat mali razmak na XS ekranu
+                    fontSize: { xs: `calc(0.7rem + 0.5vw)`, sm: "0.875rem" }, // Dinamički font
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
-                  {withdrawDate !== "0001-01-01T00:00:00" &&
-                  withdrawDate !== null
-                    ? "Ispisan"
-                    : "Upisan"}
+                  {user.email}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    fontSize: { xs: `calc(0.6rem + 0.5vw)`, sm: "0.75rem" }, // Dinamički font
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {formattedEnrollDate} - {formattedWithdrawDate}
                 </Typography>
               </Box>
+            
+              {/* Status - Dinamički smanjen i prebačen u novi red na malim ekranima */}
+              <Typography
+                variant="body2"
+                color="primary"
+                sx={{
+                  fontWeight: 500,
+                  fontSize: { xs: `calc(0.7rem + 0.5vw)`, sm: "0.875rem" }, // Dinamički font
+                  textAlign: "center",
+                  mt: { xs: 0.5, sm: 0 }, // Dodat mali razmak na XS ekranu
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  flexShrink: 1, // Sprečava smanjivanje ispod određene veličine
+                  order: { xs: 1, sm: 0 }, // Na malim ekranima prebacuje status ispod
+                }}
+              >
+                {withdrawDate !== "0001-01-01T00:00:00" && withdrawDate !== null
+                  ? "Ispisan"
+                  : "Upisan"}
+              </Typography>
+            </Box>
             );
           })}
         </Box>

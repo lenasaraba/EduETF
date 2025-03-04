@@ -39,7 +39,6 @@ interface ProfessorsTableProps {
   themeM: Theme; // Define the 'theme' prop type (tema izgled)
 }
 export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
-  //---------------PROMIJENITI ROWSKELETON
 
   const [currentColor, setCurrentColor] = useState<string>("");
   const [yearValue, setYearValue] = useState<string>("");

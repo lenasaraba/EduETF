@@ -79,7 +79,7 @@ namespace API.Controllers
             {
                 if (professorsParams.Year != "Sve")
                     query = query.Where(p =>
-                        p.ProfessorCourses.Any(pc => pc.Course.Year.Name == professorsParams.Year));
+                        p.ProfessorCourses.Any(pc =>pc.WithdrawDate==null && pc.Course.Year.Name == professorsParams.Year));
             }
 
             // Filtriranje prema programima
@@ -87,7 +87,7 @@ namespace API.Controllers
             {
                 if (professorsParams.Program != "Sve")
                     query = query.Where(p =>
-                        p.ProfessorCourses.Any(pc => pc.Course.StudyProgram.Name == professorsParams.Program));
+                        p.ProfessorCourses.Any(pc =>pc.WithdrawDate==null && pc.Course.StudyProgram.Name == professorsParams.Program));
             }
 
 
@@ -117,14 +117,14 @@ namespace API.Controllers
         public async Task<ActionResult> GetProfessorYearsPrograms(int id)
         {
             var years = await _context.ProfessorCourses
-                .Where(pc => pc.UserId == id) // Filtriranje po ID-u profesora
+                .Where(pc => pc.UserId == id && pc.WithdrawDate==null) // Filtriranje po ID-u profesora
                 .Select(pc => pc.Course!.Year) // Dohvatanje godina iz povezanog kursa
                 .Distinct()
                 .ToListAsync();
 
 
             var programs = await _context.ProfessorCourses
-                .Where(pc => pc.UserId == id) // Filtriranje po ID-u profesora
+                .Where(pc => pc.UserId == id && pc.WithdrawDate==null) // Filtriranje po ID-u profesora
                 .Select(pc => pc.Course!.StudyProgram) // Dohvatanje programa iz povezanog kursa
                 .Distinct()
                 .ToListAsync();
@@ -168,7 +168,7 @@ namespace API.Controllers
 
             // Provera da li je student već upisan na kurs
             var existingEnrollment = await _context.ProfessorCourses
-                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId);
+                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId && pc.WithdrawDate==null);
 
             if (existingEnrollment != null)
                 return BadRequest("Profesor je već dodat na kurs.");
@@ -224,7 +224,7 @@ namespace API.Controllers
 
             // Provera da li je profesor upisan na kurs
             var enrollment = await _context.ProfessorCourses
-                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId);
+                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId && pc.WithdrawDate==null);
 
             if (enrollment == null)
                 return BadRequest("Profesor nije upisan na kurs.");

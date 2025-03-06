@@ -73,6 +73,29 @@ export const createMessage = createAsyncThunk<Message, Message>(
   }
 );
 
+export const uploadFile = createAsyncThunk(
+  "message/uploadFile",
+  async (
+    {
+      file,
+      themeId,
+    }: {
+      file: File;
+      themeId: number;
+    },
+    thunkAPI
+  ) => {
+    try {
+      // Koristi agent za slanje 'FormData' sa fajlom
+      const response = await agent.Message.uploadMessageMaterial(file, themeId);
+      console.log(response);
+      return response;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
+  }
+);
+
 export const deleteMessageAsync = createAsyncThunk<
   number,
   number,

@@ -106,6 +106,47 @@ namespace API.Migrations
                     b.ToTable("CourseMaterials");
                 });
 
+            modelBuilder.Entity("API.Entities.Form", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("MessageId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("MultipleAnswer")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Topic")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("MessageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Form");
+                });
+
             modelBuilder.Entity("API.Entities.MaterialType", b =>
                 {
                     b.Property<int>("Id")
@@ -187,6 +228,65 @@ namespace API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("API.Entities.MessageMaterial", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MaterialTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MessageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaterialTypeId");
+
+                    b.HasIndex("MessageId");
+
+                    b.ToTable("MessageMaterial");
+                });
+
+            modelBuilder.Entity("API.Entities.Option", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FormId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormId");
+
+                    b.ToTable("Option");
                 });
 
             modelBuilder.Entity("API.Entities.ProfessorCourse", b =>
@@ -450,6 +550,32 @@ namespace API.Migrations
                     b.ToTable("UserCourse");
                 });
 
+            modelBuilder.Entity("API.Entities.UserOption", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AnswerDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OptionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OptionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserOption");
+                });
+
             modelBuilder.Entity("API.Entities.Year", b =>
                 {
                     b.Property<int>("Id")
@@ -638,6 +764,27 @@ namespace API.Migrations
                     b.Navigation("MaterialType");
                 });
 
+            modelBuilder.Entity("API.Entities.Form", b =>
+                {
+                    b.HasOne("API.Entities.Course", "Course")
+                        .WithMany("Forms")
+                        .HasForeignKey("CourseId");
+
+                    b.HasOne("API.Entities.Message", "Message")
+                        .WithMany("Forms")
+                        .HasForeignKey("MessageId");
+
+                    b.HasOne("API.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Message");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("API.Entities.Message", b =>
                 {
                     b.HasOne("API.Entities.Theme", "Theme")
@@ -654,6 +801,36 @@ namespace API.Migrations
                     b.Navigation("Theme");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("API.Entities.MessageMaterial", b =>
+                {
+                    b.HasOne("API.Entities.MaterialType", "MaterialType")
+                        .WithMany()
+                        .HasForeignKey("MaterialTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.Message", "Message")
+                        .WithMany("Materials")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MaterialType");
+
+                    b.Navigation("Message");
+                });
+
+            modelBuilder.Entity("API.Entities.Option", b =>
+                {
+                    b.HasOne("API.Entities.Form", "Form")
+                        .WithMany("Options")
+                        .HasForeignKey("FormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Form");
                 });
 
             modelBuilder.Entity("API.Entities.ProfessorCourse", b =>
@@ -711,6 +888,25 @@ namespace API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("API.Entities.UserOption", b =>
+                {
+                    b.HasOne("API.Entities.Option", "Option")
+                        .WithMany("UsersOption")
+                        .HasForeignKey("OptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Option");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("API.Entities.Role", null)
@@ -764,6 +960,8 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Entities.Course", b =>
                 {
+                    b.Navigation("Forms");
+
                     b.Navigation("Materials");
 
                     b.Navigation("ProfessorsCourse");
@@ -771,6 +969,23 @@ namespace API.Migrations
                     b.Navigation("Themes");
 
                     b.Navigation("UsersCourse");
+                });
+
+            modelBuilder.Entity("API.Entities.Form", b =>
+                {
+                    b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("API.Entities.Message", b =>
+                {
+                    b.Navigation("Forms");
+
+                    b.Navigation("Materials");
+                });
+
+            modelBuilder.Entity("API.Entities.Option", b =>
+                {
+                    b.Navigation("UsersOption");
                 });
 
             modelBuilder.Entity("API.Entities.Theme", b =>

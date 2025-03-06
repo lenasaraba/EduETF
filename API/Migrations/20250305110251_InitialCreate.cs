@@ -236,7 +236,7 @@ namespace API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CourseMaterial",
+                name: "CourseMaterials",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -252,15 +252,15 @@ namespace API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CourseMaterial", x => x.Id);
+                    table.PrimaryKey("PK_CourseMaterials", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CourseMaterial_Courses_CourseId",
+                        name: "FK_CourseMaterials_Courses_CourseId",
                         column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CourseMaterial_MaterialTypes_MaterialTypeId",
+                        name: "FK_CourseMaterials_MaterialTypes_MaterialTypeId",
                         column: x => x.MaterialTypeId,
                         principalTable: "MaterialTypes",
                         principalColumn: "Id",
@@ -381,6 +381,117 @@ namespace API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Form",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Topic = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UserId = table.Column<int>(type: "int", nullable: true),
+                    MultipleAnswer = table.Column<bool>(type: "bit", nullable: false),
+                    CourseId = table.Column<int>(type: "int", nullable: true),
+                    MessageId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Form", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Form_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Form_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Form_Messages_MessageId",
+                        column: x => x.MessageId,
+                        principalTable: "Messages",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MessageMaterial",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MessageId = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FilePath = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Url = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MaterialTypeId = table.Column<int>(type: "int", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MessageMaterial", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MessageMaterial_MaterialTypes_MaterialTypeId",
+                        column: x => x.MaterialTypeId,
+                        principalTable: "MaterialTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_MessageMaterial_Messages_MessageId",
+                        column: x => x.MessageId,
+                        principalTable: "Messages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Option",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FormId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Option", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Option_Form_FormId",
+                        column: x => x.FormId,
+                        principalTable: "Form",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserOption",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    OptionId = table.Column<int>(type: "int", nullable: false),
+                    AnswerDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserOption", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserOption_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserOption_Option_OptionId",
+                        column: x => x.OptionId,
+                        principalTable: "Option",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
@@ -464,13 +575,13 @@ namespace API.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CourseMaterial_CourseId",
-                table: "CourseMaterial",
+                name: "IX_CourseMaterials_CourseId",
+                table: "CourseMaterials",
                 column: "CourseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CourseMaterial_MaterialTypeId",
-                table: "CourseMaterial",
+                name: "IX_CourseMaterials_MaterialTypeId",
+                table: "CourseMaterials",
                 column: "MaterialTypeId");
 
             migrationBuilder.CreateIndex(
@@ -484,6 +595,31 @@ namespace API.Migrations
                 column: "YearId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Form_CourseId",
+                table: "Form",
+                column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Form_MessageId",
+                table: "Form",
+                column: "MessageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Form_UserId",
+                table: "Form",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MessageMaterial_MaterialTypeId",
+                table: "MessageMaterial",
+                column: "MaterialTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MessageMaterial_MessageId",
+                table: "MessageMaterial",
+                column: "MessageId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Messages_ThemeId",
                 table: "Messages",
                 column: "ThemeId");
@@ -492,6 +628,11 @@ namespace API.Migrations
                 name: "IX_Messages_UserId",
                 table: "Messages",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Option_FormId",
+                table: "Option",
+                column: "FormId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProfessorCourse_CourseId",
@@ -522,6 +663,16 @@ namespace API.Migrations
                 name: "IX_UserCourse_UserId",
                 table: "UserCourse",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserOption_OptionId",
+                table: "UserOption",
+                column: "OptionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserOption_UserId",
+                table: "UserOption",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -543,10 +694,10 @@ namespace API.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "CourseMaterial");
+                name: "CourseMaterials");
 
             migrationBuilder.DropTable(
-                name: "Messages");
+                name: "MessageMaterial");
 
             migrationBuilder.DropTable(
                 name: "ProfessorCourse");
@@ -555,10 +706,22 @@ namespace API.Migrations
                 name: "UserCourse");
 
             migrationBuilder.DropTable(
+                name: "UserOption");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "MaterialTypes");
+
+            migrationBuilder.DropTable(
+                name: "Option");
+
+            migrationBuilder.DropTable(
+                name: "Form");
+
+            migrationBuilder.DropTable(
+                name: "Messages");
 
             migrationBuilder.DropTable(
                 name: "Themes");

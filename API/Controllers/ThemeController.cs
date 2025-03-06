@@ -263,6 +263,19 @@ namespace API.Controllers
                 message.Theme = theme;
                 message.ThemeId = newMessage.ThemeId;
             }
+            if (newMessage.Materials != null)
+    {
+        message.Materials = newMessage.Materials
+            .Select(m => new MessageMaterial
+            {
+                Title = m.Title,
+                FilePath = m.FilePath,
+                Url = m.Url,
+                MaterialTypeId = m.MaterialTypeId,
+                CreationDate = m.CreationDate,
+                MaterialType = _context.MaterialTypes.FirstOrDefault(mt => mt.Id == m.MaterialTypeId) // Sinhrono preuzimanje
+            }).ToList();
+    }
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
 
@@ -281,10 +294,42 @@ namespace API.Controllers
             return CreatedAtAction(nameof(GetMessageById), new { id = message.Id }, response);
         }
 
+
+        [HttpPost("uploadFile")]
+        public async Task<IActionResult> UploadMessageFile(IFormFile file)
+        {
+            var themeId = int.Parse(Request.Form["themeId"]);
+            // var weekNumber = int.Parse(Request.Form["weekNumber"]);
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadsFolder); // Kreira folder ako ne postoji
+
+            var fileExtension = Path.GetExtension(file.FileName);
+
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+            var uniqueFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{themeId}_{timestamp}{fileExtension}";
+
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Vraćamo relativnu putanju fajla (bez root putanje)
+            return Ok(new { filePath = $"uploads/{uniqueFileName}" });
+        }
+
+
+
         [HttpGet("GetMessageById/{id}")]
         public async Task<ActionResult<GetMessageDto>> GetMessageById(int id)
         {
-            var message = await _context.Messages.Include(u => u.User).Include(t => t.Theme).FirstOrDefaultAsync(m => m.Id == id);
+            var message = await _context.Messages.Include(u => u.User).Include(t => t.Theme).Include(m=>m.Materials).ThenInclude(mt=>mt.MaterialType).FirstOrDefaultAsync(m => m.Id == id);
             if (message == null)
             {
                 return NotFound();
@@ -298,7 +343,7 @@ namespace API.Controllers
         [HttpGet("GetAllMessages/{id}")]
         public async Task<ActionResult<List<GetMessageDto>>> GetAllMessages(int id)
         {
-            var messages = await _context.Messages.Where(m => m.ThemeId == id).Include(u => u.User).Include(t => t.Theme).ToListAsync();
+            var messages = await _context.Messages.Where(m => m.ThemeId == id).Include(u => u.User).Include(t => t.Theme).Include(m=>m.Materials).ThenInclude(mt=>mt.MaterialType).ToListAsync();
 
             return messages.Select(c => _mapper.Map<GetMessageDto>(c)).ToList();
         }
@@ -332,11 +377,25 @@ namespace API.Controllers
         [HttpDelete("DeleteMessage/{id}")]
         public async Task<IActionResult> DeleteMessage(int id)
         {
-            var message = await _context.Messages.FindAsync(id);
+            var message = await _context.Messages.Include(m=>m.Materials).FirstOrDefaultAsync(m=>m.Id==id);
 
             if (message == null)
             {
                 return NotFound(new { Message = "Poruka nije pronađena." });
+            }
+
+            if(message.Materials?.Count>0)
+            {
+                foreach (var material in message.Materials)
+                {    if (!string.IsNullOrEmpty(material.FilePath))
+                    {
+                        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", material.FilePath);
+                        if (System.IO.File.Exists(filePath))
+                        {
+                            System.IO.File.Delete(filePath);
+                        }
+                    }                    
+                }            
             }
 
             _context.Messages.Remove(message);
@@ -354,19 +413,23 @@ namespace API.Controllers
         }
 
         [HttpGet("search")]
-public async Task<ActionResult<List<GetMessageDto>>> SearchMessages([FromQuery] int themeId, [FromQuery] string? query = "")
-{
-    if (string.IsNullOrEmpty(query))
-    {
-        return Ok(new List<GetMessageDto>()); // Vrati prazan niz umesto 404
-    }
+        public async Task<ActionResult<List<GetMessageDto>>> SearchMessages([FromQuery] int themeId, [FromQuery] string? query = "")
+            {
+                if (string.IsNullOrEmpty(query))
+                {
+                    return Ok(new List<GetMessageDto>()); // Vrati prazan niz umesto 404
+                }
 
-    var results = await _context.Messages
-        .Where(m => m.ThemeId == themeId && m.Content.ToLower().Contains(query.ToLower()))
-        .ToListAsync();
+                var results = await _context.Messages
+                    .Where(m => m.ThemeId == themeId &&
+                        (m.Content.ToLower().Contains(query.ToLower()) || 
+                        (m.Materials != null && m.Materials.Any(mat => mat.Title.ToLower().Contains(query.ToLower())))))
+                    .ToListAsync();
 
-    return Ok(results.Select(c => _mapper.Map<GetMessageDto>(c)).ToList());
-}
+
+
+                return Ok(results.Select(c => _mapper.Map<GetMessageDto>(c)).ToList());
+        }
 
 
         //  public class MessageRequest

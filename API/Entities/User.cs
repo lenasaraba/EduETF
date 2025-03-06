@@ -14,6 +14,5 @@ namespace API.Entities
         public List<UserCourse>? UserCourses { get; set; }
         public List<ProfessorCourse>? ProfessorCourses { get; set; }
 
-
     }
 }

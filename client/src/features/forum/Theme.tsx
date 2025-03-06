@@ -3,6 +3,11 @@ import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import NotFound from "../../app/errors/NotFound";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { MentionsInput, Mention } from "react-mentions";
+import SpeedDial from "@mui/material/SpeedDial";
+import SpeedDialIcon from "@mui/material/SpeedDialIcon";
+import SpeedDialAction from "@mui/material/SpeedDialAction";
+import DescriptionIcon from "@mui/icons-material/Description";
+import PermMediaIcon from "@mui/icons-material/PermMedia";
 import {
   Avatar,
   Box,
@@ -18,6 +23,7 @@ import {
   DialogTitle,
   Divider,
   Grid,
+  IconButton,
   Input,
   Popover,
   Stack,
@@ -29,6 +35,7 @@ import {
   deleteMessageAsync,
   fetchMessagesAsync,
   searchMessagesAsync,
+  uploadFile,
 } from "./messageSlice";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -44,15 +51,22 @@ import React from "react";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import ChatTwoToneIcon from "@mui/icons-material/ChatTwoTone";
 import LoadingComponent from "../../app/layout/LoadingComponent";
-import { Message } from "../../app/models/theme";
+import { Message, MessageMaterial } from "../../app/models/theme";
 import { Theme as ThemeMod } from "../../app/models/theme";
 
 import "./themeStyle.css";
 import Unauthorized from "../../app/errors/Unauthorized";
 import { LoadingButton } from "@mui/lab";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import SummarizeIcon from "@mui/icons-material/Summarize";
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import CloseIcon from "@mui/icons-material/Close";
+import CustomTimeline from "../onlineStudy/components/CustomTimeline";
+import CustomMessageMaterial from "./components/CustomMessageMaterial";
+
 interface SearchBarProps {
   onSearch: (query: string) => void;
 }
@@ -151,7 +165,7 @@ export default function Theme() {
   );
   console.log(resultMessages);
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(0);
- 
+
   useEffect(() => {
     console.log(resultMessages);
     if (resultMessages && resultMessages.length > 0) {
@@ -162,8 +176,6 @@ export default function Theme() {
     }
     setSearchResults(resultMessages);
   }, [resultMessages]);
-
-
 
   const handleSearch = async (query: string) => {
     try {
@@ -195,22 +207,20 @@ export default function Theme() {
   };
 
   const handleNextResult = () => {
-    if (searchResults)
-    {
+    if (searchResults) {
       console.log(searchResults);
       if (currentResultIndex < searchResults.length - 1) {
         const nextIndex = currentResultIndex + 1;
         setCurrentResultIndex(nextIndex);
         if (searchResults[nextIndex].id)
           scrollToMessage(searchResults[nextIndex].id);
-      // console.log("1111")
+        // console.log("1111")
       }
     }
   };
 
   const handlePreviousResult = () => {
-    if (searchResults)
-    {
+    if (searchResults) {
       console.log(searchResults);
 
       if (currentResultIndex > 0) {
@@ -320,7 +330,10 @@ export default function Theme() {
   const idMenu = open ? "simple-popover" : undefined;
   const [loadingStatus, setLoadingStatus] = React.useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-
+  const [showMaterials, setShowMaterials] = useState(false); // Stanje za prikaz/sakrivanje grida sa studentima
+  const toggleMaterials = () => {
+    setShowMaterials(!showMaterials); // Promeni stanje prikaza
+  };
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget); // Postavlja element na koji je kliknuto
     console.log(anchorEl);
@@ -371,6 +384,7 @@ export default function Theme() {
   const handleClose = () => {
     setAnchorEl(null); // Zatvara Popover
   };
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]); // Prazan niz na početku
 
   if (id == undefined) return <NotFound />;
 
@@ -388,6 +402,45 @@ export default function Theme() {
     return <LoadingComponent message="Učitavanje teme..." />;
   }
 
+  const handleFileAttach = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.docx,image/*,video/*"; // Dozvoljeni tipovi fajlova
+    input.multiple = true; // Omogućiti više fajlova
+
+    input.onchange = (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      if (target.files && target.files.length > 0) {
+        const filesArray = Array.from(target.files);
+        setSelectedFiles((prevFiles) => [...prevFiles, ...filesArray]);
+      }
+    };
+
+    input.click();
+  };
+
+  const actions = [
+    {
+      icon: <AttachFileIcon />,
+      name: "Dodaj fajl",
+      action: handleFileAttach,
+    },
+    { icon: <SummarizeIcon />, name: "Anketa", action: () => alert("Anketa!") },
+  ];
+
+  const getMaterialType = (file: File) => {
+    if (file.type.startsWith("image/")) {
+      return 5;
+    } else if (file.type === "application/pdf") {
+      return 2;
+    } else if (file.name.endsWith(".docx")) {
+      return 4;
+    } else if (file.type.startsWith("video/")) {
+      return 1; // Video
+    }
+    return 0;
+  };
+  console.log(showMaterials);
   return (
     <>
       {id === undefined ? (
@@ -593,56 +646,60 @@ export default function Theme() {
                                   },
                                 }}
                               >
-                                {(user.role=="Student" && (theme.course==null || theme.course?.usersCourse.some(
-                                  (uc) =>
-                                    uc.user?.username === user.username &&
-                                    uc.withdrawDate == null
-                                )) )&& (
-                                  <Typography
-                                    onClick={(event) =>
-                                      updateStatus(event, theme)
-                                    }
-                                    variant="body2"
-                                    sx={{
-                                      paddingX: 2,
-                                      paddingY: 1,
-                                      "&:hover": {
-                                        cursor: "pointer",
-                                        color: "primary.light",
-                                      },
-                                      fontFamily: "Raleway, sans-serif",
-                                      color: "text.primary",
-                                      backgroundColor: "background.paper",
-                                    }}
-                                  >
-                                    {theme.active ? "Zaključaj" : "Otključaj"}
-                                  </Typography>
-                                )}
-                                {(user.role=="Profesor" && (theme.course==null || theme.course?.professorsCourse.some(
-                                  (pc) =>
-                                    pc.user?.username === user.username &&
-                                    pc.withdrawDate == null
-                                ) ))&& (
-                                  <Typography
-                                    onClick={(event) =>
-                                      updateStatus(event, theme)
-                                    }
-                                    variant="body2"
-                                    sx={{
-                                      paddingX: 2,
-                                      paddingY: 1,
-                                      "&:hover": {
-                                        cursor: "pointer",
-                                        color: "primary.light",
-                                      },
-                                      fontFamily: "Raleway, sans-serif",
-                                      color: "text.primary",
-                                      backgroundColor: "background.paper",
-                                    }}
-                                  >
-                                    {theme.active ? "Zaključaj" : "Otključaj"}
-                                  </Typography>
-                                )}
+                                {user.role == "Student" &&
+                                  (theme.course == null ||
+                                    theme.course?.usersCourse.some(
+                                      (uc) =>
+                                        uc.user?.username === user.username &&
+                                        uc.withdrawDate == null
+                                    )) && (
+                                    <Typography
+                                      onClick={(event) =>
+                                        updateStatus(event, theme)
+                                      }
+                                      variant="body2"
+                                      sx={{
+                                        paddingX: 2,
+                                        paddingY: 1,
+                                        "&:hover": {
+                                          cursor: "pointer",
+                                          color: "primary.light",
+                                        },
+                                        fontFamily: "Raleway, sans-serif",
+                                        color: "text.primary",
+                                        backgroundColor: "background.paper",
+                                      }}
+                                    >
+                                      {theme.active ? "Zaključaj" : "Otključaj"}
+                                    </Typography>
+                                  )}
+                                {user.role == "Profesor" &&
+                                  (theme.course == null ||
+                                    theme.course?.professorsCourse.some(
+                                      (pc) =>
+                                        pc.user?.username === user.username &&
+                                        pc.withdrawDate == null
+                                    )) && (
+                                    <Typography
+                                      onClick={(event) =>
+                                        updateStatus(event, theme)
+                                      }
+                                      variant="body2"
+                                      sx={{
+                                        paddingX: 2,
+                                        paddingY: 1,
+                                        "&:hover": {
+                                          cursor: "pointer",
+                                          color: "primary.light",
+                                        },
+                                        fontFamily: "Raleway, sans-serif",
+                                        color: "text.primary",
+                                        backgroundColor: "background.paper",
+                                      }}
+                                    >
+                                      {theme.active ? "Zaključaj" : "Otključaj"}
+                                    </Typography>
+                                  )}
                                 <Typography
                                   onClick={handleDeleteClick} // Otvara dijalog
                                   variant="body2"
@@ -839,7 +896,11 @@ export default function Theme() {
                       {professor.user.firstName}&nbsp;
                       {professor.user.lastName}
                     </Typography> */}
-                        <Author authors={theme.course.professorsCourse.filter((prof)=>prof.withdrawDate==null)} />
+                        <Author
+                          authors={theme.course.professorsCourse.filter(
+                            (prof) => prof.withdrawDate == null
+                          )}
+                        />
                       </Box>
                     </Box>
                     <Button
@@ -978,11 +1039,32 @@ export default function Theme() {
                     </Box>
                   </Box>
                 )}
+                <IconButton
+                  title={
+                    showMaterials
+                      ? "Sakrij sve materijale"
+                      : "Prikaži sve materijale"
+                  }
+                  onClick={toggleMaterials}
+                  sx={{
+                    backdropFilter: "blur(40px)",
+                    color: "primary.dark",
+                    // borderRadius:0,
+                    // paddingX:2,
+                  }}
+                  disabled={!messagesLoaded}
+                >
+                  <PermMediaIcon
+                    sx={{ color: "primary.dark" }}
+                    fontSize="medium"
+                  />
+                </IconButton>
               </Box>
 
               <Grid
                 item
                 xs={12}
+                md={showMaterials ? 8 : 12} // Dinamička širina u zavisnosti od prikaza studenta
                 sx={{
                   boxSizing: "border-box",
                   border: "1px solid",
@@ -994,6 +1076,8 @@ export default function Theme() {
                   margin: 0,
 
                   padding: 0,
+                  // minWidth: "700px",
+
                   mb: 2,
                 }}
               >
@@ -1016,40 +1100,19 @@ export default function Theme() {
                     />
                   </Box>
                 ) : (
-                  <Box
-                    sx={{
-                      // margin: "0 16px",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "flex-end",
-                      overflow: "auto",
-                      height: "70vh",
-                      width: "100%",
-                      margin: 0,
-                      padding: 1,
-
-                      "&::-webkit-scrollbar": {
-                        width: "8px",
-                      },
-                      "&::-webkit-scrollbar-thumb": {
-                        backgroundColor: "primary.main", // Boja skrola
-                        borderRadius: "8px",
-                      },
-                      "&::-webkit-scrollbar-thumb:hover": {
-                        backgroundColor: "primary.dark", // Boja hvataljke na hover
-                      },
-                      "&::-webkit-scrollbar-track": {
-                        backgroundColor: "transparent", // Prozirna pozadina skrola
-                      },
-                    }}
-                  >
+                  <>
                     <Box
                       sx={{
-                        // listStyleType: "none",
-                        //padding: 5, // Širi prozor za poruke
-                        padding: 0,
-                        px: 2,
+                        // margin: "0 16px",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-end",
                         overflow: "auto",
+                        height: "70vh",
+                        width: "100%",
+                        margin: 0,
+                        padding: 1,
+
                         "&::-webkit-scrollbar": {
                           width: "8px",
                         },
@@ -1058,251 +1121,396 @@ export default function Theme() {
                           borderRadius: "8px",
                         },
                         "&::-webkit-scrollbar-thumb:hover": {
-                          backgroundColor: "primary.light", // Boja hvataljke na hover
+                          backgroundColor: "primary.dark", // Boja hvataljke na hover
                         },
                         "&::-webkit-scrollbar-track": {
                           backgroundColor: "transparent", // Prozirna pozadina skrola
                         },
                       }}
                     >
-                      {messages && messages.length > 0 ? (
-                        messages.map((message, index) => (
-                          <Box
-                            key={index} // Dodaj ključ da izbegneš React grešku
-                            id={`message-${message.id}`}
-                            sx={{
-                              marginTop: 2,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent:
-                                message.user?.email === user?.email
-                                  ? "flex-end"
-                                  : "flex-start", // Poravnanje poruka
-                              marginBottom: 2,
-                              // backgroundColor:
-                              //   highlightedMessage === message.id
-                              //     ? "#f0f8ff"
-                              //     : "#fff",
-                            }}
-                          >
+                      <Box
+                        sx={{
+                          // listStyleType: "none",
+                          //padding: 5, // Širi prozor za poruke
+                          padding: 0,
+                          px: 2,
+                          overflow: "auto",
+                          "&::-webkit-scrollbar": {
+                            width: "8px",
+                          },
+                          "&::-webkit-scrollbar-thumb": {
+                            backgroundColor: "primary.main", // Boja skrola
+                            borderRadius: "8px",
+                          },
+                          "&::-webkit-scrollbar-thumb:hover": {
+                            backgroundColor: "primary.light", // Boja hvataljke na hover
+                          },
+                          "&::-webkit-scrollbar-track": {
+                            backgroundColor: "transparent", // Prozirna pozadina skrola
+                          },
+                        }}
+                      >
+                        {messages && messages.length > 0 ? (
+                          messages.map((message, index) => (
                             <Box
+                              key={index} // Dodaj ključ da izbegneš React grešku
+                              id={`message-${message.id}`}
                               sx={{
-                                backgroundColor:
-                                  // highlightedMessage === message.id
-                                  //   ? "background.paper" // Svetlija nijansa primarne boje za highlight
-                                  //   :
+                                marginTop: 2,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent:
                                   message.user?.email === user?.email
-                                    ? "common.background"
-                                    : "common.onBackground",
-                                padding: 2,
-                                borderRadius: 2,
-                                maxWidth: "70%",
-                                border: "2px solid",
-                                borderColor:
-                                  highlightedMessage === message.id
-                                    ? "text.primary"
-                                    : "transparent",
-                                boxShadow: (theme) =>
-                                  highlightedMessage === message.id
-                                    ? ` 0px 0px 15px 2px ${theme.palette.text.primary}`
-                                    : "none",
-                                transition: "all 0.2s ease-in-out", // Glatka animacija promene stanja
+                                    ? "flex-end"
+                                    : "flex-start", // Poravnanje poruka
+                                marginBottom: 2,
+                                // backgroundColor:
+                                //   highlightedMessage === message.id
+                                //     ? "#f0f8ff"
+                                //     : "#fff",
                               }}
                             >
-                              <Stack direction="row" alignItems="center">
-                                {/* {message.user.email !== user?.email && ( // Avatar samo za druge korisnike */}
-                                <Avatar
-                                  sx={{
-                                    marginRight: 2,
-                                    backgroundColor: "common.backgroundChannel",
-                                  }}
-                                />
-                                {/* )} */}
-                                <Box sx={{ width: "100vw" }}>
-                                  <Typography
-                                    variant="subtitle1"
-                                    fontWeight={
-                                      message.user?.email === user?.email
-                                        ? "bold"
-                                        : "normal"
-                                    }
-                                    sx={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "center",
-                                      color: "common.white",
-                                    }}
-                                  >
-                                    <span>
-                                      {message.user ? (
-                                        `${message.user?.firstName} ${message.user?.lastName}`
-                                      ) : (
-                                        <span style={{ fontStyle: "italic" }}>
-                                          [Obrisan korisnik]
-                                        </span>
-                                      )}
-                                      {theme.user?.email ===
-                                        message.user?.email && (
-                                        <span
-                                          style={{
-                                            color: "primary.main",
-                                            marginLeft: "8px",
-                                          }}
-                                        >
-                                          &#9733;{" "}
-                                          <Typography
-                                            variant="button"
-                                            fontSize={10}
-                                            component="span"
+                              <Box
+                                sx={{
+                                  backgroundColor:
+                                    // highlightedMessage === message.id
+                                    //   ? "background.paper" // Svetlija nijansa primarne boje za highlight
+                                    //   :
+                                    message.user?.email === user?.email
+                                      ? "common.background"
+                                      : "common.onBackground",
+                                  padding: 2,
+                                  borderRadius: 2,
+                                  maxWidth: "70%",
+                                  border: "2px solid",
+                                  borderColor:
+                                    highlightedMessage === message.id
+                                      ? "text.primary"
+                                      : "transparent",
+                                  boxShadow: (theme) =>
+                                    highlightedMessage === message.id
+                                      ? ` 0px 0px 15px 2px ${theme.palette.text.primary}`
+                                      : "none",
+                                  transition: "all 0.2s ease-in-out", // Glatka animacija promene stanja
+                                }}
+                              >
+                                <Stack direction="row" alignItems="flex-start">
+                                  <Box sx={{ margin: 0, padding: 0 }}>
+                                    <Avatar
+                                      sx={{
+                                        marginRight: 2,
+                                        backgroundColor:
+                                          "common.backgroundChannel",
+                                      }}
+                                    />
+                                  </Box>
+                                  <Box sx={{ width: "100vw" }}>
+                                    <Typography
+                                      variant="subtitle1"
+                                      fontWeight={
+                                        message.user?.email === user?.email
+                                          ? "bold"
+                                          : "normal"
+                                      }
+                                      sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        color: "common.white",
+                                      }}
+                                    >
+                                      <span>
+                                        {message.user ? (
+                                          `${message.user?.firstName} ${message.user?.lastName}`
+                                        ) : (
+                                          <span style={{ fontStyle: "italic" }}>
+                                            [Obrisan korisnik]
+                                          </span>
+                                        )}
+                                        {theme.user?.email ===
+                                          message.user?.email && (
+                                          <span
+                                            style={{
+                                              color: "primary.main",
+                                              marginLeft: "8px",
+                                            }}
                                           >
-                                            autor
-                                          </Typography>
-                                        </span>
-                                      )}
-                                    </span>
-
-                                    <span
-                                      style={{
-                                        fontSize: "12px",
-                                        color: "common.black",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        alignItems: "flex-end",
-                                      }}
-                                    >
-                                      <Typography variant="caption">
-                                        {new Date(
-                                          message.creationDate
-                                        ).toLocaleTimeString("sr-RS", {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                          second: "2-digit",
-                                        })}{" "}
-                                        {new Date(
-                                          message.creationDate
-                                        ).toLocaleDateString("sr-RS", {
-                                          day: "2-digit",
-                                          month: "2-digit",
-                                          year: "numeric",
-                                        })}
-                                      </Typography>
-                                    </span>
-                                  </Typography>
-                                  <Typography
-                                    variant="body2"
-                                    color="text.primary"
-                                    sx={{ textAlign: "left" }}
-                                  >
-                                    {message.content}
-                                  </Typography>
-                                  {user && user.email == message.user?.email ? (
-                                    <div
-                                      style={{
-                                        display: "flex",
-                                        justifyContent: "flex-end",
-                                      }}
-                                    >
-                                      <Box
-                                        aria-describedby={idMenu}
-                                        // variant="contained"
-                                        onClick={() =>
-                                          handleDeleteMessage(message)
-                                        }
-                                        sx={{
+                                            &#9733;{" "}
+                                            <Typography
+                                              variant="button"
+                                              fontSize={10}
+                                              component="span"
+                                            >
+                                              autor
+                                            </Typography>
+                                          </span>
+                                        )}
+                                      </span>
+                                      <span
+                                        style={{
+                                          fontSize: "12px",
+                                          color: "common.black",
                                           display: "flex",
-                                          width: "fit-content",
-                                          borderRadius: "20pt",
-                                          padding: 0,
-                                          color: "text.disabled",
-                                          "&:hover": {
-                                            cursor: "pointer",
-                                            color: "text.primary",
-                                          },
+                                          flexDirection: "column",
+                                          alignItems: "flex-end",
                                         }}
                                       >
-                                        <DeleteOutlineOutlinedIcon
-                                          sx={{ fontSize: "16pt" }}
-                                        />
-                                      </Box>
-                                    </div>
-                                  ) : (
-                                    ""
-                                  )}
-                                </Box>
-                              </Stack>
-                            </Box>
-                          </Box>
-                        ))
-                      ) : (
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            mb: 2,
-                            textAlign: "center",
-                            fontSize: "12pt",
-                            fontFamily: "Raleway, sans-serif",
-                          }}
-                        >
-                          {theme.active
-                            ? user
-                              ? "Započnite razgovor."
-                              : "Prijavite se da započnete razgovor."
-                            : "Zatvorena tema"}
-                        </Typography>
-                      )}
-                      <div ref={bottomOfPageRef}></div>
-                    </Box>
-                  </Box>
-                )}
+                                        <Typography variant="caption">
+                                          {new Date(
+                                            message.creationDate
+                                          ).toLocaleTimeString("sr-RS", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            second: "2-digit",
+                                          })}{" "}
+                                          {new Date(
+                                            message.creationDate
+                                          ).toLocaleDateString("sr-RS", {
+                                            day: "2-digit",
+                                            month: "2-digit",
+                                            year: "numeric",
+                                          })}
+                                        </Typography>
+                                      </span>
+                                    </Typography>
 
+                                    {/* Sadržaj poruke */}
+                                    <Typography
+                                      variant="body2"
+                                      color="text.primary"
+                                      sx={{ textAlign: "left" }}
+                                    >
+                                      {message.content}
+                                    </Typography>
+
+                                    {/* Pregled materijala (ako postoje) */}
+                                    {message.materials &&
+                                      message.materials.length > 0 && (
+                                        <Box
+                                          sx={{
+                                            marginTop: 1,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                          }}
+                                        >
+                                          {message.materials.map(
+                                            (material, index) => {
+                                              const fileExtension =
+                                                material.filePath
+                                                  .split(".")
+                                                  .pop()
+                                                  .toLowerCase();
+
+                                              if (
+                                                [
+                                                  "jpg",
+                                                  "jpeg",
+                                                  "png",
+                                                  "gif",
+                                                ].includes(fileExtension)
+                                              ) {
+                                                return (
+                                                  <Box
+                                                    sx={{
+                                                      margin: 0,
+                                                      padding: 0,
+                                                      display: "flex",
+                                                      flexDirection: "column",
+                                                      alignItems: "center",
+                                                    }}
+                                                  >
+                                                    <a
+                                                      href={`http://localhost:5000//${material.filePath}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      style={{
+                                                        textDecoration: "none",
+                                                        color: "primary.main",
+                                                      }}
+                                                      key={index}
+                                                    >
+                                                      <img
+                                                        src={`http://localhost:5000//${material.filePath}`}
+                                                        alt="Materijal"
+                                                        style={{
+                                                          maxWidth: "100%",
+                                                          maxHeight: "200px",
+                                                          marginTop: "5px",
+                                                          borderRadius: "8px",
+                                                        }}
+                                                      />
+                                                    </a>
+                                                    <Typography variant="body2">
+                                                      {material.title}
+                                                    </Typography>
+                                                  </Box>
+                                                );
+                                              } else if (
+                                                ["mp4", "webm", "ogg"].includes(
+                                                  fileExtension
+                                                )
+                                              ) {
+                                                return (
+                                                  <Box
+                                                    sx={{
+                                                      margin: 0,
+                                                      padding: 0,
+                                                      display: "flex",
+                                                      flexDirection: "column",
+                                                      alignItems: "center",
+                                                    }}
+                                                  >
+                                                    <video
+                                                      key={index}
+                                                      controls
+                                                      style={{
+                                                        maxWidth: "100%",
+                                                        maxHeight: "200px",
+                                                        marginTop: "5px",
+                                                        borderRadius: "8px",
+                                                      }}
+                                                      src={`http://localhost:5000//${material.filePath}`}
+                                                    />
+                                                    <Typography variant="body2">
+                                                      {material.title}
+                                                    </Typography>
+                                                  </Box>
+                                                );
+                                              } else if (
+                                                ["pdf", "docx", "doc"].includes(
+                                                  fileExtension
+                                                )
+                                              ) {
+                                                return (
+                                                  <Box
+                                                    key={index}
+                                                    sx={{
+                                                      marginTop: "5px",
+                                                      display: "flex",
+                                                      alignItems: "center",
+                                                      width: "100%",
+                                                      justifyContent:
+                                                        "flex-start",
+                                                    }}
+                                                  >
+                                                    <DescriptionIcon fontSize="medium" />
+
+                                                    <a
+                                                      href={`http://localhost:5000//${material.filePath}`}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      style={{
+                                                        textDecoration: "none",
+                                                        color: "primary.main",
+                                                      }}
+                                                    >
+                                                      {material.title ||
+                                                        "Dokument"}{" "}
+                                                      (
+                                                      {fileExtension.toUpperCase()}
+                                                      )
+                                                    </a>
+                                                  </Box>
+                                                );
+                                              }
+                                              return null;
+                                            }
+                                          )}
+                                        </Box>
+                                      )}
+
+                                    {/* Dugme za brisanje (samo ako je korisnik vlasnik poruke) */}
+                                    {user &&
+                                      user.email === message.user?.email && (
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            justifyContent: "flex-end",
+                                          }}
+                                        >
+                                          <Box
+                                            aria-describedby={idMenu}
+                                            onClick={() =>
+                                              handleDeleteMessage(message)
+                                            }
+                                            sx={{
+                                              display: "flex",
+                                              width: "fit-content",
+                                              borderRadius: "20pt",
+                                              padding: 0,
+                                              color: "text.disabled",
+                                              "&:hover": {
+                                                cursor: "pointer",
+                                                color: "text.primary",
+                                              },
+                                            }}
+                                          >
+                                            <DeleteOutlineOutlinedIcon
+                                              sx={{ fontSize: "16pt" }}
+                                            />
+                                          </Box>
+                                        </div>
+                                      )}
+                                  </Box>
+                                </Stack>
+                              </Box>
+                            </Box>
+                          ))
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              mb: 2,
+                              textAlign: "center",
+                              fontSize: "12pt",
+                              fontFamily: "Raleway, sans-serif",
+                            }}
+                          >
+                            {theme.active
+                              ? user
+                                ? "Započnite razgovor."
+                                : "Prijavite se da započnete razgovor."
+                              : "Zatvorena tema"}
+                          </Typography>
+                        )}
+                        <div ref={bottomOfPageRef}></div>
+                      </Box>
+                    </Box>
+                  </>
+                )}
                 {user && (
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      marginTop: "auto", // Gura input na dno
+                      justifyContent: "space-between",
+                      gap: 1,
                       padding: 2,
-                      // position: "sticky", // Dodajte ovo za "zalijepljeni" efekat
-                      bottom: 0, // Zalijepite dno
                       width: "100%",
                       backgroundColor: "background.paper",
                       borderRadius: "0 0 20px 20px",
-                      justifyContent: "space-around",
+                      height: "60px ",
+                      position: "relative",
                     }}
                   >
-                    {/* <TextField
-                  fullWidth
-                  disabled={!theme.active}
-                  placeholder={
-                    theme.active
-                      ? "Unesite poruku..."
-                      : "Nije moguće slati poruke na zatvorenoj temi"
-                  }
-                  variant="outlined"
-                  size="small"
-                  sx={{ marginRight: 2 }}
-                  value={messageContent}
-                  onChange={(e) => setMessageContent(e.target.value)}
-                /> */}
+                    {/* Input za tekst poruke */}
                     <MentionsInput
                       disabled={!theme.active}
-
                       className="ssky-mention-input"
                       value={messageContent}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                        let newValue = e.target.value;
+                      onChange={(
+                        event: React.ChangeEvent<HTMLTextAreaElement>
+                      ) => {
+                        let newValue = event.target.value;
                         const regex = /@\[([a-zA-Z0-9_]+)\]\(\d+\)/g;
                         newValue = newValue.replace(regex, "@$1");
-                        console.log(newValue);
                         setMessageContent(newValue);
                       }}
                       style={{
-                        width: "92%",
-                        maxWidth: "92%",
+                        flexGrow: 1,
                         minHeight: "40px",
-                        padding: "10px", // Veći padding gura placeholder dole
-                        display: "block",
-                        lineHeight: "20px", // Podesi prema minHeight da placeholder bude centriran
+                        padding: "10px",
+                        lineHeight: "20px",
                       }}
                       placeholder={
                         theme.active
@@ -1314,62 +1522,310 @@ export default function Theme() {
                         trigger="@"
                         data={mentionUsers}
                         displayTransform={(id: string, display: string) =>
-                          "@" + display.toString()
-                        }
-                        style={
-                          {
-                            // margin:"200px",
-                          }
+                          "@" + display
                         }
                       />
                     </MentionsInput>
 
-                    <LoadingButton
-                      loading={statusMessage == "pendingCreateMessage"}
-                      variant="contained"
-                      disabled={!theme.active || messageContent == ""}
-                      loadingIndicator={
-                        <CircularProgress size={24} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
-                      }
-                      sx={{
-                        textTransform: "none",
-                        color: "text.primary",
-                        backgroundColor: "primary.main",
-                        "&:hover": {
-                          color: "primary.dark",
-                          backgroundColor: "primary.main",
-                        },
-                      }}
-                      onClick={() => {
-                        const localDate = new Date();
-                        const offset = localDate.getTimezoneOffset();
+                    {/* Dugme + (SpeedDial) */}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <div
+                        style={{
+                          position: "relative",
+                          height: "40px",
+                          width: "50px",
+                        }}
+                      >
+                        <SpeedDial
+                          ariaLabel="Opcije"
+                          icon={<SpeedDialIcon />}
+                          sx={{
+                            position: "absolute", // Sprečava da zauzima previše visine
+                            zIndex: 1,
+                            bottom: 0,
+                            ".MuiSpeedDial-fab": {
+                              height: "38px",
+                              width: "38px",
+                              color: "text.primary",
+                            },
+                            ".MuiSpeedDial-root": {
+                              height: "40px",
+                              width: "40px",
+                            },
+                          }}
+                        >
+                          {actions.map((action) => (
+                            <SpeedDialAction
+                              key={action.name}
+                              icon={action.icon}
+                              tooltipTitle={action.name}
+                              onClick={action.action}
+                            />
+                          ))}
+                        </SpeedDial>
+                      </div>
 
-                        const adjustedDate = new Date(
-                          localDate.getTime() - offset * 60000
-                        );
-
-                        const newMessage = {
-                          content: messageContent,
-                          themeId: theme.id,
-                          creationDate: adjustedDate.toISOString(),
-                          user: user!,
-                        };
-                        dispatch(createMessage(newMessage));
-                        //PROVJERITI STO NE RADI
-                        if (bottomOfPageRef.current) {
-                          bottomOfPageRef.current.scrollIntoView({
-                            behavior: "instant",
-                            block: "start",
-                          });
+                      {/* Dugme za slanje */}
+                      <LoadingButton
+                        loading={statusMessage == "pendingCreateMessage"}
+                        variant="contained"
+                        disabled={
+                          !theme.active ||
+                          (messageContent === "" && selectedFiles.length == 0)
                         }
-                        setMessageContent("");
-                      }}
-                    >
-                      Pošalji
-                    </LoadingButton>
+                        loadingIndicator={
+                          <CircularProgress size={24} sx={{ color: "white" }} />
+                        }
+                        sx={{
+                          textTransform: "none",
+                          color: "text.primary",
+                          backgroundColor: "primary.main",
+                          minWidth: "80px",
+                          "&:hover": {
+                            color: "primary.dark",
+                            backgroundColor: "primary.main",
+                          },
+                        }}
+                        onClick={async () => {
+                          try {
+                            const localDate = new Date();
+                            const offset = localDate.getTimezoneOffset();
+                            const adjustedDate = new Date(
+                              localDate.getTime() - offset * 60000
+                            );
+
+                            const newMessage: Message = {
+                              content: messageContent ? messageContent : "",
+                              themeId: theme.id,
+                              creationDate: adjustedDate.toISOString(),
+                              user: user!,
+                              materials: [],
+                            };
+
+                            // Ako ima fajlova, uploaduj ih i dodaj u niz materijala
+                            if (selectedFiles && selectedFiles.length > 0) {
+                              // const uploadedMaterials: MessageMaterial[] = [];
+
+                              // Kreiramo niz `Promise`-a za upload svih fajlova
+                              const uploadPromises = selectedFiles.map(
+                                async (file) => {
+                                  console.log(file, theme.id);
+                                  const response = await dispatch(
+                                    uploadFile({ file, themeId: theme.id })
+                                  ).unwrap();
+                                  console.log("Upload response:", response);
+
+                                  return {
+                                    title: file.name,
+                                    filePath: response.filePath, // Pretpostavka da response vraća filePath
+                                    url: file.name, // Pretpostavka da response vraća url
+                                    materialTypeId: getMaterialType(file),
+                                    creationDate: adjustedDate.toISOString(),
+                                  };
+                                }
+                              );
+
+                              // Sačekaj da se svi fajlovi uploaduju
+                              newMessage.materials =
+                                await Promise.all(uploadPromises);
+                            }
+
+                            // Pošalji poruku nakon što su fajlovi uploadovani
+                            await dispatch(createMessage(newMessage)).unwrap();
+
+                            // Skrolovanje do dna
+                            if (bottomOfPageRef.current) {
+                              bottomOfPageRef.current.scrollIntoView({
+                                behavior: "instant",
+                                block: "start",
+                              });
+                            }
+
+                            // Resetovanje input polja
+                            setMessageContent("");
+                            setSelectedFiles([]);
+                          } catch (error) {
+                            console.error("Greška pri slanju poruke:", error);
+                          }
+                        }}
+                      >
+                        Pošalji
+                      </LoadingButton>
+                    </Box>
                   </Box>
                 )}
+                {/* Prikaz svih odabranih fajlova */}
+                {selectedFiles.length > 0 && (
+                  <Grid
+                    container
+                    sx={{ marginTop: 1, display: "flex", flexDirection: "row" }}
+                  >
+                    {selectedFiles.map((file, index) => (
+                      <Grid
+                        item
+                        md={3.8}
+                        key={index}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          margin: 1,
+                          padding: "5px 10px",
+                          backgroundColor: "background.paper",
+                          borderRadius: "8px",
+                          maxWidth: "300px",
+                        }}
+                      >
+                        {/* Ikonica fajla */}
+                        <InsertDriveFileIcon sx={{ color: "primary.main" }} />
+
+                        {/* Ime fajla */}
+                        <Typography
+                          variant="body2"
+                          sx={{ flexGrow: 1, wordBreak: "break-word" }}
+                        >
+                          {file.name}
+                        </Typography>
+
+                        {/* Dugme za brisanje fajla */}
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setSelectedFiles(
+                              (prevFiles) =>
+                                prevFiles.filter((_, i) => i !== index) // Brišemo fajl sa liste
+                            );
+                          }}
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
               </Grid>
+              {showMaterials && (
+                <Grid
+                  item
+                  xs={12}
+                  md={4}
+                  sx={{
+                    // height: { xs: "auto", md: "100%" },
+                    width: "100%",
+                    padding: 1,
+                    borderRadius: 3,
+                    marginTop: { xs: 0, md: 0 }, // Uklonili smo marginu na malim ekranima
+                    order: 2,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: "100%",
+                      // height: "100%",
+                      padding: 0,
+                      borderRadius: 3,
+                      overflowY: "auto",
+                    }}
+                  >
+                    {messages &&
+                      messages.map((message, messageIndex) =>
+                        message.materials && message.materials.length > 0 ? (
+                          <Box
+                            key={messageIndex}
+                            sx={{
+                              marginBottom: 3,
+                            }}
+                          >
+                            <CustomMessageMaterial
+                              materials={message.materials}
+                            />
+                            {/* {message.materials.map((material, index) => {
+                              if (material.materialType.id === 4) {
+                                return (
+                                  <Box
+                                    key={index}
+                                    sx={{
+                                      marginBottom: 2,
+                                    }}
+                                  >
+                                    <a href={material.url} download>
+                                      <img
+                                        src="/path/to/docx-icon.png"
+                                        alt="DOCX Icon"
+                                        style={{ width: 50, height: 50 }}
+                                      />
+                                      <Typography variant="body1">
+                                        {material.title}
+                                      </Typography>
+                                    </a>
+                                  </Box>
+                                );
+                              } else if (material.materialType.id === 2) {
+                                return (
+                                  <Box
+                                    key={index}
+                                    sx={{
+                                      marginBottom: 2,
+                                    }}
+                                  >
+                                    <a href={material.url} download>
+                                      <img
+                                        src="/path/to/pdf-icon.png"
+                                        alt="PDF Icon"
+                                        style={{ width: 50, height: 50 }}
+                                      />
+                                      <Typography variant="body1">
+                                        {material.title}
+                                      </Typography>
+                                    </a>
+                                  </Box>
+                                );
+                              } else if (material.materialType.id === 5) {
+                                return (
+                                  <Box
+                                    key={index}
+                                    sx={{
+                                      marginBottom: 2,
+                                    }}
+                                  >
+                                    <img
+                                      src={`http://localhost:5000//${material.filePath}`}
+                                      alt={material.title}
+                                      style={{
+                                        maxWidth: "100%",
+                                        borderRadius: 8,
+                                      }}
+                                    />
+                                  </Box>
+                                );
+                              } else if (material.materialType.id === 1) {
+                                return (
+                                  <Box
+                                    key={index}
+                                    sx={{
+                                      marginBottom: 2,
+                                    }}
+                                  >
+                                    <video
+                                      controls
+                                      style={{
+                                        maxWidth: "100%",
+                                        borderRadius: 8,
+                                      }}
+                                      src={`http://localhost:5000//${material.filePath}`}
+                                    />
+                                  </Box>
+                                );
+                              } else {
+                                return null;
+                              }
+                            })} */}
+                          </Box>
+                        ) : null
+                      )}
+                  </Box>
+                </Grid>
+              )}
             </Grid>
           </Grid>
           <Dialog

@@ -242,7 +242,11 @@ export default function ProfessorInfo() {
     //   setOpenDialogRemoveProfessor(false);
     // }
 
-    if (courseToRemoveProfFrom?.professorsCourse.length == 1) {
+    if (
+      courseToRemoveProfFrom?.professorsCourse.filter(
+        (p) => p.withdrawDate == null
+      ).length == 1
+    ) {
       setIsLastProf(true);
       setOpenDialogRemoveProfessor(false);
       handleDeleteClick("course", courseToRemoveProfFrom);

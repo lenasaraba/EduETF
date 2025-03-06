@@ -138,15 +138,16 @@ const Course = {
     formData.append("weekNumber", weekNumber.toString());
     return requests.post("course/upload", formData);
   },
-  getMaterialsByCourseId: (courseId: number, query:string) =>
-    requests.get(`course/getCourseMaterialsByCourseId`, {courseId, query}),
+  getMaterialsByCourseId: (courseId: number, query: string) =>
+    requests.get(`course/getCourseMaterialsByCourseId`, { courseId, query }),
   enrollOnCourse: (courseId: number) =>
     requests.post("course/enroll", { courseId }),
   AllStudents: (params: URLSearchParams) =>
     requests.get("course/getStudents", params),
   removeStudentFromCourse: (courseId: number) =>
     requests.post("course/removeStudentFromCourse", { courseId }),
-  myCourses: (params: URLSearchParams) => requests.get("course/getMyCourses", params),
+  myCourses: (params: URLSearchParams) =>
+    requests.get("course/getMyCourses", params),
 };
 
 const Professor = {
@@ -180,6 +181,12 @@ const Message = {
   deleteMessage: (id: number) => requests.delete(`theme/DeleteMessage/${id}`),
   searchMessage: (themeId: number, query: string) =>
     requests.get(`theme/search`, { themeId, query }),
+  uploadMessageMaterial: (file: File, themeId: number) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("themeId", themeId.toString());
+    return requests.post("theme/uploadFile", formData);
+  },
 };
 
 const agent = {

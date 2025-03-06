@@ -12,5 +12,9 @@ namespace API.DTOs
         public DateTime CreationDate { get; set; }
         public UserDto User { get; set; }=default!;
         public int ThemeId { get; set; }
+        public List<GetMessageMaterialDto>? Materials { get; set; }
+        public List<GetFormDto>? Forms { get; set; }
+
+
     }
 }

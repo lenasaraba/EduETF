@@ -23,7 +23,7 @@ export interface CourseState {
   materialsLoaded: boolean;
   myCourses: Course[] | null;
   myCoursesParams: MyCoursesParams;
-  myCoursesLoaded:boolean;
+  myCoursesLoaded: boolean;
   professorCourses: Record<number, Course[]> | null;
   userCourses: Record<number, Course[]> | null;
   students: User[] | null;
@@ -47,8 +47,8 @@ export interface CourseState {
 const initialState: CourseState = {
   courses: null,
   myCourses: null,
-  myCoursesLoaded:false,
-  myCoursesParams:{},
+  myCoursesLoaded: false,
+  myCoursesParams: {},
   allCourses: null,
   currentCourse: null,
   currentCourseMaterials: null,
@@ -174,7 +174,9 @@ export const fetchMyCoursesAsync = createAsyncThunk<
   void,
   { state: RootState }
 >("course/fetchMyCoursesAsync", async (_, thunkAPI) => {
-  const params = getMyCoursesAxiosParams(thunkAPI.getState().course.myCoursesParams);
+  const params = getMyCoursesAxiosParams(
+    thunkAPI.getState().course.myCoursesParams
+  );
 
   try {
     const courses = await agent.Course.myCourses(params);
@@ -187,7 +189,6 @@ export const fetchMyCoursesAsync = createAsyncThunk<
     return thunkAPI.rejectWithValue({ error: error.data });
   }
 });
-
 
 export const fetchCourseAsync = createAsyncThunk<Course, number>(
   "course/fetchCourseAsync",
@@ -233,7 +234,7 @@ export const fetchProfessorCoursesAsync = createAsyncThunk<
 >("course/fetchProfessorCoursesAsync", async (id, thunkAPI) => {
   try {
     const professorCourses = await agent.Course.getProfessorCourses(id);
-    
+
     return professorCourses;
   } catch (error: any) {
     console.log(error.data);
@@ -448,7 +449,10 @@ export const fetchCurrentCourseMaterialAsync = createAsyncThunk<
   MaterialRequest
 >("course/fetchCurrentCourseMaterialAsync", async (query, thunkAPI) => {
   try {
-    const materials = await agent.Course.getMaterialsByCourseId(query.courseId, query.query);
+    const materials = await agent.Course.getMaterialsByCourseId(
+      query.courseId,
+      query.query
+    );
     return materials;
   } catch (error: any) {
     console.log(error.data);
@@ -518,7 +522,6 @@ export const courseSlice = createSlice({
       state.currentCourse = action.payload;
     });
 
-
     builder.addCase(fetchCoursesListAsync.pending, (state) => {
       state.status = "pendingFetchCoursesList";
       state.allcoursesLoaded = false;
@@ -544,8 +547,6 @@ export const courseSlice = createSlice({
     builder.addCase(fetchMyCoursesAsync.rejected, (state) => {
       state.status = "idle";
     });
-
-
 
     builder.addCase(fetchCourseAsync.pending, (state) => {
       state.currentCourse = null;
@@ -746,7 +747,7 @@ export const courseSlice = createSlice({
           enrollDate: action.payload.enrollDate,
         });
         console.log(state.currentCourse);
-        state.status = "fulfilledRemoveProfessorFromCourse";
+        state.status = "fulfilledAddProfessorToCourse";
       }
     );
     builder.addCase(addProfessorToCourse.rejected, (state) => {
@@ -772,19 +773,28 @@ export const courseSlice = createSlice({
         //     );
         // }
 
-        if (state.professorCourses && state.professorCourses[action.payload.professorId]) {
-          const professorCourses = state.professorCourses[action.payload.professorId];
+        if (
+          state.professorCourses &&
+          state.professorCourses[action.payload.professorId]
+        ) {
+          const professorCourses =
+            state.professorCourses[action.payload.professorId];
           console.log(professorCourses);
-          console.log(action.payload)
-          const course = professorCourses.find((pc) => pc.id === action.payload.courseId);
+          console.log(action.payload);
+          const course = professorCourses.find(
+            (pc) => pc.id === action.payload.courseId
+          );
           if (course) {
             console.log(course);
             const profCourse = course.professorsCourse.find(
-              (professor) => (professor.user.id === action.payload.professorId && professor.withdrawDate==null)
+              (professor) =>
+                professor.user.id === action.payload.professorId &&
+                professor.withdrawDate == null
             );
             console.log(profCourse);
-            if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
-            }
+            if (profCourse)
+              profCourse.withdrawDate = action.payload.withdrawDate;
+          }
         }
 
         // Proveri da li currentCourse i professorsCourse postoje pre nego što primeniš filter
@@ -795,12 +805,13 @@ export const courseSlice = createSlice({
         //     );
         // }
 
-        if(state.currentCourse?.professorsCourse){
+        if (state.currentCourse?.professorsCourse) {
           const profCourse = state.currentCourse.professorsCourse.find(
-            (professor) => (professor.user.id === action.payload.professorId && professor.withdrawDate==null)
+            (professor) =>
+              professor.user.id === action.payload.professorId &&
+              professor.withdrawDate == null
           );
           if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
-        
         }
 
         if (state.courses && state.courses.length > 0) {
@@ -809,10 +820,13 @@ export const courseSlice = createSlice({
           );
           if (course) {
             const profCourse = course.professorsCourse.find(
-              (professor) => (professor.user.id === action.payload.professorId  && professor.withdrawDate==null)
+              (professor) =>
+                professor.user.id === action.payload.professorId &&
+                professor.withdrawDate == null
             );
-            if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
-         
+            if (profCourse)
+              profCourse.withdrawDate = action.payload.withdrawDate;
+
             // course.professorsCourse = course.professorsCourse.filter(
             //   (professor) => professor.user.id !== action.payload.professorId
             // );
@@ -824,11 +838,14 @@ export const courseSlice = createSlice({
             (course) => course.id === action.payload.courseId
           );
           if (course) {
-             const profCourse = course.professorsCourse.find(
-            (professor) => (professor.user.id === action.payload.professorId  && professor.withdrawDate==null)
-          );
-          if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
-       
+            const profCourse = course.professorsCourse.find(
+              (professor) =>
+                professor.user.id === action.payload.professorId &&
+                professor.withdrawDate == null
+            );
+            if (profCourse)
+              profCourse.withdrawDate = action.payload.withdrawDate;
+
             // course.professorsCourse = course.professorsCourse.filter(
             //   (professor) => professor.user.id !== action.payload.professorId
             // );

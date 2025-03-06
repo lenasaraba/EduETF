@@ -440,7 +440,7 @@ export default function Course() {
   // const prevProfessorsNumber = useRef(course?.professorsCourse.length);
   useEffect(() => {
     if (course) {
-      if (status != "fulfilledProfessorOnCourse") {
+      if (status != "fulfilledAddProfessorToCourse") {
         //   // console.log(course.professorsCourse.length);
         // console.log(prevProfessors);
         // if (prevProfessors.current == course.professorsCourse.length) {
@@ -578,7 +578,9 @@ export default function Course() {
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
     console.log(course?.professorsCourse);
-    if (course?.professorsCourse.length == 1) {
+    if (
+      course?.professorsCourse.filter((p) => p.withdrawDate == null).length == 1
+    ) {
       setIsLastProf(true);
       handleDeleteClick();
       // navigate("/courses?type=all");
@@ -663,9 +665,12 @@ export default function Course() {
     return <LoadingComponent message="Učitavanje kursa..." />;
   }
   const availableProfessor = professors.filter(
-    (prof) => !course?.professorsCourse.some((p) => p.user.id === prof.id && p.withdrawDate==null)
+    (prof) =>
+      !course?.professorsCourse.some(
+        (p) => p.user.id === prof.id && p.withdrawDate == null
+      )
   );
-
+  console.log(addingWeek, !editingWeek, !currentMat);
   // console.log(availableProfessor);
   return (
     <>
@@ -1125,8 +1130,8 @@ export default function Course() {
               sx={{
                 height: { xs: "auto", md: "50vh" },
                 padding: 3,
-                paddingLeft:2,
-                paddingRight: { xs: 2,  md:showStudents ? 0:2 },
+                paddingLeft: 2,
+                paddingRight: { xs: 2, md: showStudents ? 0 : 2 },
                 justifyContent: "space-between",
                 borderRadius: 3,
                 display: "flex", // Koristimo flex za kontrolu redosleda
@@ -1237,6 +1242,7 @@ export default function Course() {
                             borderRadius: "20pt",
                             paddingX: 1.5,
                             width: "fit-content",
+                            backgroundColor: "rgba(60, 66, 91, 0.43)",
                           }}
                         >
                           {course.name}
@@ -1440,7 +1446,11 @@ export default function Course() {
                 </Box>
                 {course &&
                   (status != "loadingProfessorOnCourse" ? (
-                    <Author authors={course.professorsCourse.filter((prof)=>prof.withdrawDate==null)} />
+                    <Author
+                      authors={course.professorsCourse.filter(
+                        (prof) => prof.withdrawDate == null
+                      )}
+                    />
                   ) : (
                     <CircularProgress
                       size={60}
@@ -1642,177 +1652,12 @@ export default function Course() {
                                     )}
                                   </List>
                                 </Collapse>
-                                {/* )} */}
                               </div>
                             ) : (
                               <></>
                             )
                           )}
-                        </List>
-
-                        {!currentMat &&
-                        !addingWeek &&
-                        !editingWeek &&
-                        course.weekCount > 0 ? (
-                          <>
-                            <Box
-                              sx={{
-                                padding: 0,
-                                margin: 0,
-                                width: "50%",
-                                height: "100%",
-                                // backgroundColor: "pink",
-                                border: "1px dashed",
-                                borderColor: "primary.dark",
-                                borderRadius: "15pt",
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <Typography
-                                sx={{ fontSize: "15pt", color: "primary.dark" }}
-                              >
-                                Materijali će biti prikazani ovdje
-                              </Typography>
-                              <PermMediaIcon
-                                sx={{ color: "primary.main", fontSize: "16pt" }}
-                              />
-                              {isEditing && (
-                                <Typography
-                                  sx={{
-                                    fontSize: "15pt",
-                                    color: "primary.dark",
-                                  }}
-                                >
-                                  Forma za dodavanje materijala
-                                </Typography>
-                              )}
-                            </Box>
-                          </>
-                        ) : !addingWeek && !editingWeek && currentMat ? (
-                          <Box
-                            sx={{
-                              height: "100%",
-                              // maxHeight: "60vh",
-                              // height:"60vh",
-                              backgroundColor: "transparent",
-                              width: "50%",
-                              paddingX: 1,
-                              display: fileVisible ? "block" : "none",
-                              // minHeight: fileVisible ? "40vh" : "0", // Ako su sve zatvorene, minHeight je auto
-                              // Skrol samo ovde
-
-                              // mb: 2,
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                margin: 0,
-                                padding: 0,
-                                maxHeight: "100%", // Sprečava preveliko širenje
-                                overflowY: "auto",
-                              }}
-                            >
-                              {" "}
-                              {getFilePreview(currentMat.filePath)}
-                            </Box>
-                            <Button
-                              sx={{
-                                width: "100%",
-                                color: "text.primary",
-                                // paddingX: 2,
-                                borderRadius: "20pt",
-                                marginTop: 2,
-
-                                // display: "inline-block", // Ovo osigurava da padding i borderRadius funkcionišu ispravno
-                                "&:hover": {
-                                  cursor: "pointer",
-                                  backgroundColor: "action.acive",
-                                  color: "primary.light",
-                                },
-                              }}
-                            >
-                              <CloseIcon
-                                color="inherit" // Ovo sprečava preklapanje sa default stilovima
-                                onClick={() => hideFile()}
-                              />
-                            </Button>
-                          </Box>
-                        ) : addingWeek && !editingWeek && !currentMat ? (
-                          <>
-                            <Box
-                              sx={{
-                                margin: 0,
-                                padding: 0,
-                                display: "flex",
-                                justifyContent: "space-around",
-                                alignItems: "center",
-                                width: "50%",
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  margin: 0,
-                                  padding: 0,
-                                  display: "flex",
-                                  maxWidth: "30vw",
-                                  width: "30vw",
-                                }}
-                              >
-                                <AppDropzone
-                                  name="file"
-                                  control={control}
-                                  handleCloseWeek={handleCloseWeek}
-                                  handleSaveWeek={handleSaveWeek}
-                                  setSelectedFiles={setSelectedFiles}
-                                  newWeek={newWeek}
-                                />{" "}
-                              </Box>{" "}
-                              {watchFile && (
-                                <img
-                                  src={watchFile.preview}
-                                  alt="nesh"
-                                  style={{ maxHeight: "20vh" }}
-                                />
-                              )}
-                            </Box>
-                          </>
-                        ) : editingWeek && !addingWeek && !currentMat ? (
-                          <>
-                            <Box
-                              sx={{
-                                margin: 0,
-                                padding: 0,
-                                display: "flex",
-                                justifyContent: "space-around",
-                                alignItems: "center",
-                                width: "50%",
-                              }}
-                            >
-                              <Box
-                                sx={{ margin: 0, padding: 0, display: "flex" }}
-                              >
-                                <AppDropzone
-                                  name="file"
-                                  control={control}
-                                  handleCloseWeek={handleCloseWeek}
-                                  handleSaveWeek={handleSaveWeek}
-                                  setSelectedFiles={setSelectedFiles}
-                                  newWeek={newWeek}
-                                />{" "}
-                              </Box>{" "}
-                              {watchFile && (
-                                <img
-                                  src={watchFile.preview}
-                                  alt="nesh"
-                                  style={{ maxHeight: "20vh" }}
-                                />
-                              )}
-                            </Box>
-                          </>
-                        ) : null}
+                        </List>{" "}
                       </Box>
                     )
                   ) : (
@@ -1824,7 +1669,170 @@ export default function Course() {
                       Nema materijala za kurs.
                     </Typography>
                   )}
+
+                  {!currentMat &&
+                  !addingWeek &&
+                  !editingWeek &&
+                  course.weekCount > 0 ? (
+                    <>
+                      <Box
+                        sx={{
+                          padding: 0,
+                          margin: 0,
+                          width: "50%",
+                          height: "100%",
+                          // backgroundColor: "pink",
+                          border: "1px dashed",
+                          borderColor: "primary.dark",
+                          borderRadius: "15pt",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Typography
+                          sx={{ fontSize: "15pt", color: "primary.dark" }}
+                        >
+                          Materijali će biti prikazani ovdje
+                        </Typography>
+                        <PermMediaIcon
+                          sx={{ color: "primary.main", fontSize: "16pt" }}
+                        />
+                        {isEditing && (
+                          <Typography
+                            sx={{
+                              fontSize: "15pt",
+                              color: "primary.dark",
+                            }}
+                          >
+                            Forma za dodavanje materijala
+                          </Typography>
+                        )}
+                      </Box>
+                    </>
+                  ) : !addingWeek && !editingWeek && currentMat ? (
+                    <Box
+                      sx={{
+                        height: "100%",
+                        // maxHeight: "60vh",
+                        // height:"60vh",
+                        backgroundColor: "transparent",
+                        width: "50%",
+                        paddingX: 1,
+                        display: fileVisible ? "block" : "none",
+                        // minHeight: fileVisible ? "40vh" : "0", // Ako su sve zatvorene, minHeight je auto
+                        // Skrol samo ovde
+
+                        // mb: 2,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          margin: 0,
+                          padding: 0,
+                          maxHeight: "100%", // Sprečava preveliko širenje
+                          overflowY: "auto",
+                        }}
+                      >
+                        {" "}
+                        {getFilePreview(currentMat.filePath)}
+                      </Box>
+                      <Button
+                        sx={{
+                          width: "100%",
+                          color: "text.primary",
+                          // paddingX: 2,
+                          borderRadius: "20pt",
+                          marginTop: 2,
+
+                          // display: "inline-block", // Ovo osigurava da padding i borderRadius funkcionišu ispravno
+                          "&:hover": {
+                            cursor: "pointer",
+                            backgroundColor: "action.acive",
+                            color: "primary.light",
+                          },
+                        }}
+                      >
+                        <CloseIcon
+                          color="inherit" // Ovo sprečava preklapanje sa default stilovima
+                          onClick={() => hideFile()}
+                        />
+                      </Button>
+                    </Box>
+                  ) : addingWeek && !editingWeek && !currentMat ? (
+                    <>
+                      <Box
+                        sx={{
+                          margin: 0,
+                          padding: 0,
+                          display: "flex",
+                          justifyContent: "space-around",
+                          alignItems: "center",
+                          width: "50%",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            margin: 0,
+                            padding: 0,
+                            display: "flex",
+                            maxWidth: "30vw",
+                            width: "30vw",
+                          }}
+                        >
+                          <AppDropzone
+                            name="file"
+                            control={control}
+                            handleCloseWeek={handleCloseWeek}
+                            handleSaveWeek={handleSaveWeek}
+                            setSelectedFiles={setSelectedFiles}
+                            newWeek={newWeek}
+                          />{" "}
+                        </Box>{" "}
+                        {watchFile && (
+                          <img
+                            src={watchFile.preview}
+                            alt="nesh"
+                            style={{ maxHeight: "20vh" }}
+                          />
+                        )}
+                      </Box>
+                    </>
+                  ) : editingWeek && !addingWeek && !currentMat ? (
+                    <>
+                      <Box
+                        sx={{
+                          margin: 0,
+                          padding: 0,
+                          display: "flex",
+                          justifyContent: "space-around",
+                          alignItems: "center",
+                          width: "50%",
+                        }}
+                      >
+                        <Box sx={{ margin: 0, padding: 0, display: "flex" }}>
+                          <AppDropzone
+                            name="file"
+                            control={control}
+                            handleCloseWeek={handleCloseWeek}
+                            handleSaveWeek={handleSaveWeek}
+                            setSelectedFiles={setSelectedFiles}
+                            newWeek={newWeek}
+                          />{" "}
+                        </Box>{" "}
+                        {watchFile && (
+                          <img
+                            src={watchFile.preview}
+                            alt="nesh"
+                            style={{ maxHeight: "20vh" }}
+                          />
+                        )}
+                      </Box>
+                    </>
+                  ) : null}
                 </Box>
+
                 {/* Forma za novu sedmicu */}
                 {/* {materialsLoaded ? ( */}
                 {/* {addingWeek ? (
@@ -1977,7 +1985,10 @@ export default function Course() {
                 </Typography>{" "}
                 {/* </Box> */}
                 {course && activeThemes && activeThemes?.length > 0 ? (
-                  <SlideCardThemes course={course} themes={activeThemes} />
+                  <SlideCardThemes
+                    // course={course}
+                    themes={activeThemes}
+                  />
                 ) : (
                   <SpeakerNotesOffIcon
                     sx={{ fontSize: 50, color: "gray", mt: 2 }}

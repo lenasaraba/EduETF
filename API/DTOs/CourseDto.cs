@@ -19,7 +19,9 @@ namespace API.DTOs
         public List<UserCourseDto>? UsersCourse { get; set; }
         public List<ProfessorCourseDto>? ProfessorsCourse { get; set; }
         public string Password {get;set;}=string.Empty;
-        public int WeekCount {get;set;}
+        public int WeekCount {get;set;} 
+        public List<GetFormDto>? Forms { get; set; }
+
 
     }
 }

@@ -78,7 +78,7 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
             sx={{
               height: { sm: "auto", md: "50%" },
               aspectRatio: { sm: "16 / 9", md: "" },
-              filter: "brightness(0.6)", 
+              filter: "brightness(0.6)",
             }}
           />
           <Box
@@ -88,20 +88,20 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
               width: "100%",
               alignItems: "center",
               paddingY: 1,
-              paddingX:2,
+              paddingX: 2,
             }}
           >
             <Typography
               component={Link}
-              to={user ? `/forum/${theme.id}` :`/login`}
+              to={user ? `/forum/${theme.id}` : `/login`}
               sx={{
                 textAlign: "left",
                 fontWeight: "bold",
                 fontSize: "clamp(12pt, 16pt, 18pt)",
                 fontFamily: "Raleway, sans-serif",
-                textDecoration: "none", 
+                textDecoration: "none",
 
-                overflow: "hidden", 
+                overflow: "hidden",
                 display: "-webkit-box", // Neophodno za multi-line truncation
                 WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
                 WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
@@ -132,6 +132,7 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
                 fontFamily: "Raleway, sans-serif",
                 backgroundColor: "transparent",
                 fontSize: "0.7em",
+                maxWidth: "10vw",
               }}
             />
           </Box>

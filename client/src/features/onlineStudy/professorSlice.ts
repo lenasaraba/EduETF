@@ -289,7 +289,6 @@ export const fetchProfessorByIdCoursesAsync = createAsyncThunk<
   number
 >("professor/fetchProfessorByIdCoursesAsync", async (id, thunkAPI) => {
   try {
-   
     const professorCourses = await agent.Course.getProfessorCourses(id);
     console.log(professorCourses);
     return {
@@ -515,7 +514,7 @@ export const professorSlice = createSlice({
 
         if (course) {
           const profCourse = course.professorsCourse.find(
-            (professor) => professor.user.id !== action.payload.professorId
+            (professor) => professor.user.id == action.payload.professorId
           );
           if (profCourse) profCourse.withdrawDate = action.payload.withdrawDate;
         }

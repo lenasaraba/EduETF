@@ -21,6 +21,8 @@ namespace API.Entities
         public List<ProfessorCourse>? ProfessorsCourse { get; set; }
         public string Password {get;set;}=string.Empty;
         public int WeekCount {get;set;}=0;
+        public List<Form>? Forms { get; set; }
+
 
 
     }

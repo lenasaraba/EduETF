@@ -9,5 +9,8 @@ namespace API.Entities
         public User? User { get; set; }    
         public int ThemeId { get; set; }
         public Theme? Theme { get; set; }
+        public List<Form>? Forms { get; set; }
+        public List<MessageMaterial>? Materials { get; set; }
+
     }
 }

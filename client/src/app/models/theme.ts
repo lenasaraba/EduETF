@@ -1,4 +1,4 @@
-import { UsersCourse } from "./course";
+import { MaterialType, UsersCourse } from "./course";
 
 export interface Theme {
   id: number;
@@ -22,8 +22,47 @@ export interface Message {
   id?: number;
   content: string;
   creationDate: string;
+  themeId: number;
+  materials?: MessageMaterial[];
+  forms?: Form[];
   user: User;
-  themeId?: number;
+}
+
+export interface MessageMaterial {
+  id?: number;
+  messageId?: number;
+  title: string;
+  filePath: string;
+  url: string;
+  materialType: MaterialType;
+  creationDate: string;
+}
+
+export interface Option {
+  id?: number;
+  text: string;
+  usersOption: UsersOption[];
+  formId: number;
+}
+
+export interface UsersOption {
+  id?: number;
+  user: User;
+  optionId: number;
+  answerDate: string;
+}
+
+export interface Form {
+  id?: number;
+  topic: string;
+  creationDate: string;
+  endDate: string;
+  userId: number;
+  user: User;
+  multipleAnswer: boolean;
+  options: Option[];
+  courseId: number;
+  messageId: number;
 }
 
 export interface Course {

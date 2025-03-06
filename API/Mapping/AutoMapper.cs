@@ -31,6 +31,10 @@ namespace API.Mapping
             CreateMap<CreateMessageDto, Message>();
             CreateMap<Message, GetMessageDto>();
             CreateMap<GetMessageDto, Message>();
+            CreateMap<CreateMessageMaterialDto, MessageMaterial>();
+            CreateMap<MessageMaterial, GetMessageMaterialDto>();
+
+
 
             CreateMap<Course, CreateCourseDto>();
             CreateMap<CreateCourseDto, Course>();

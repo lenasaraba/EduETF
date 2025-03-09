@@ -22,6 +22,11 @@ namespace API.Mapping
             CreateMap<User, UserDto>();
             CreateMap<UserDto, User>();
 
+            CreateMap<Form, GetFormDto>();
+            CreateMap<CreateFormDto, Form>();
+                CreateMap<Option, GetOptionDto>();
+            CreateMap<CreateOptionDto, Option>();
+
             CreateMap<UserCourse, UserCourseDto>();
             CreateMap<UserCourseDto, UserCourse>();
 

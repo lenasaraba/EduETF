@@ -1720,14 +1720,20 @@ export default function Theme() {
                 >
                   <Box
                     sx={{
+                      // display: "flex",
+                      // justifyContent: "center",
                       width: "100%",
                       // height: "100%",
                       padding: 0,
                       borderRadius: 3,
                       overflowY: "auto",
+                      textAlign:"center",
                     }}
                   >
                     {messages &&
+                    messages.some(
+                      (msg) => msg.materials && msg.materials.length > 0
+                    ) ? (
                       messages.map((message, messageIndex) =>
                         message.materials && message.materials.length > 0 ? (
                           <Box
@@ -1822,7 +1828,15 @@ export default function Theme() {
                             })} */}
                           </Box>
                         ) : null
-                      )}
+                      )
+                    ) : (
+                      <Typography
+                        variant="caption"
+                        sx={{ width: "fit-content" }}
+                      >
+                        Materijali iz poruka će se prikazati ovdje
+                      </Typography>
+                    )}
                   </Box>
                 </Grid>
               )}

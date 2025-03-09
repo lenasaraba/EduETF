@@ -6,7 +6,9 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
 import PermMediaIcon from "@mui/icons-material/PermMedia";
-import PeopleIcon from "@mui/icons-material/People";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
+import VisibilityIcon from "@mui/icons-material/Visibility"; // Ikona "oko"
 
 import {
   Collapse,
@@ -30,6 +32,12 @@ import {
   ListItemButton,
   debounce,
   TextField,
+  LinearProgress,
+  SpeedDial,
+  SpeedDialAction,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
 } from "@mui/material";
 import { EditNote, ExpandLess, ExpandMore } from "@mui/icons-material";
 import CourseCardMedia from "./components/CourseCardMedia";
@@ -39,6 +47,9 @@ import SpeakerNotesOffIcon from "@mui/icons-material/SpeakerNotesOff";
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
+import SpeedDialIcon from "@mui/material/SpeedDialIcon";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore"; // Ikona za proširenje
+
 import {
   addProfessorToCourse,
   deleteCourseAsync,
@@ -64,6 +75,43 @@ import { fetchProfessorsAsync } from "./professorSlice";
 import { Professor } from "../../app/models/professor";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import AddNewForm from "../form/components/AddNewForm";
+import FormVote from "../form/components/FormVote";
+import { fetchFormsByCourseIdAsync } from "../form/formSlice";
+import { Form } from "../../app/models/form";
+
+const LinearBuffer = () => {
+  const [progress, setProgress] = useState(0);
+  const [buffer, setBuffer] = useState(10);
+
+  const progressRef = useRef(() => {});
+
+  useEffect(() => {
+    progressRef.current = () => {
+      if (progress >= 100) {
+        setProgress(0);
+        setBuffer(10);
+      } else {
+        setProgress((prev) => prev + 5);
+        setBuffer((prev) => Math.min(100, prev + Math.random() * 15));
+      }
+    };
+  }, [progress]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      progressRef.current();
+    }, 150);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <Box sx={{ width: "30%", height: "2vh", mt: 1 }}>
+      <LinearProgress variant="buffer" value={progress} valueBuffer={buffer} />
+    </Box>
+  );
+};
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -160,12 +208,9 @@ export default function Course() {
   const dispatch = useAppDispatch();
 
   const status = useAppSelector((state) => state.course.status);
+  const statusForm = useAppSelector((state) => state.form.status);
 
   const professors = useAppSelector((state) => state.professor.professors);
-
-  const [openEnrollDialog, setOpenEnrollDialog] = useState(false);
-  const [coursePassword, setCoursePassword] = useState("");
-  const [error, setError] = useState(false);
 
   const getFilePreview = (filePath: string) => {
     const handleDownload = () => {
@@ -303,6 +348,7 @@ export default function Course() {
   >(undefined);
 
   const { user } = useAppSelector((state) => state.account);
+  const [isCreatingForm, setIsCreatingForm] = useState(false); // Stanje za prikaz forme
 
   const handleCloseWeek = async () => {
     setOpenWeeks((prev) => prev.map(() => false));
@@ -372,7 +418,7 @@ export default function Course() {
   useEffect(() => {
     const fetchData = async () => {
       const response = await dispatch(fetchCourseAsync(parseInt(id!)));
-
+      await dispatch(fetchFormsByCourseIdAsync(parseInt(id!)));
       if (fetchCourseAsync.fulfilled.match(response)) {
         dispatch(
           fetchCurrentCourseMaterialAsync({
@@ -490,6 +536,28 @@ export default function Course() {
 
     setNewWeek(course!.weekCount + 1);
     setAddingWeek(true);
+  };
+
+  const courseForms = useAppSelector((state) => state.form.courseForms);
+  const courseFormsLoaded = useAppSelector((state) => state.form.formsLoaded);
+
+  const [expandedFormId, setExpandedFormId] = useState<number | null>(null);
+  const handleAddForm = () => {
+    setIsCreatingForm(true);
+    // setNewWeek(course!.weekCount + 1);
+    // setAddingWeek(true);
+  };
+
+  const handleExpand = (formId: number) => {
+    setExpandedFormId((prev) => (prev === formId ? null : formId)); // Ako je već otvorena, zatvori je
+  };
+
+  // Funkcija za izračunavanje ukupnog broja glasova za formu
+  const getTotalVotes = (form: Form) => {
+    return form.options.reduce(
+      (total, option) => total + option.usersOption.length,
+      0
+    );
   };
 
   const activeThemes = course?.themes.filter((theme) => theme.active);
@@ -629,6 +697,19 @@ export default function Course() {
   const handleCloseProf = () => {
     setOpenProf(false);
   };
+
+  const actions = [
+    {
+      icon: <DashboardCustomizeIcon />,
+      name: "Dodaj novu anketu",
+      action: handleAddForm,
+    },
+    {
+      icon: <DashboardIcon />,
+      name: "Dodaj postojeću anketu",
+      action: () => alert("Anketa postojeća!"),
+    },
+  ];
 
   // Klik na profesora
   const handleSelectProfessor = (professor: Professor) => {
@@ -1382,11 +1463,12 @@ export default function Course() {
                           backgroundColor: "primary.dark",
                           color: "white",
                           padding: 0.8,
-                          borderRadius: "20pt",
+                          borderRadius: "50%",
                           minWidth: "2rem",
                           "&:hover": { backgroundColor: "primary.light" },
-                          height: "fit-content",
-                          width: "2rem",
+                          // height: "fit-content",
+                          width: "38px",
+                          height: "38px",
                           boxSizing: "border-box",
                         }}
                       >
@@ -1452,10 +1534,11 @@ export default function Course() {
                       )}
                     />
                   ) : (
-                    <CircularProgress
-                      size={60}
-                      sx={{ color: "text.secondary" }}
-                    />
+                    // <CircularProgress
+                    //   size={60}
+                    //   sx={{ color: "text.secondary" }}
+                    // />
+                    <LinearBuffer />
                   ))}
               </Box>
             </Grid>
@@ -1495,11 +1578,13 @@ export default function Course() {
                           backgroundColor: "primary.dark",
                           color: "white",
                           padding: 0.8,
-                          borderRadius: "20pt",
+                          borderRadius: "50%",
                           minWidth: "2rem",
                           "&:hover": { backgroundColor: "primary.light" },
-                          height: "fit-content",
-                          width: "2rem",
+                          // height: "fit-content",
+                          // width: "2rem",
+                          width: "38px",
+                          height: "38px",
                           boxSizing: "border-box",
                         }}
                       >
@@ -1522,6 +1607,7 @@ export default function Course() {
                   display: "flex",
                   justifyContent: "space-evenly",
                   gridTemplateRows: "1fr 1fr",
+                  marginBottom: 3,
                 }}
               >
                 <Box
@@ -1531,7 +1617,10 @@ export default function Course() {
                     display: "flex",
                     width: "100%",
                     marginBottom: 5,
-                    justifyContent: "center",
+                    justifyContent:
+                      status == "fetchCurrentCourseMaterialAsync"
+                        ? "space-evenly"
+                        : "center",
                     minHeight:
                       openWeeks.some((week) => week) || fileVisible
                         ? "40vh"
@@ -1542,10 +1631,13 @@ export default function Course() {
                 >
                   {course.weekCount > 0 ? (
                     status == "fetchCurrentCourseMaterialAsync" ? (
-                      <CircularProgress
-                        size={50}
-                        sx={{ color: "text.secondary" }}
-                      />
+                      // <CircularProgress
+                      //   size={50}
+                      //   sx={{ color: "text.secondary" }}
+                      // />
+
+                      // <LinearProgress sx={{ width: "30%", height:"1vh", marginTop:1}} />
+                      <LinearBuffer />
                     ) : (
                       <Box
                         sx={{
@@ -1559,7 +1651,7 @@ export default function Course() {
                         <List
                           sx={{
                             // maxWidth: "80vw",
-                            width: "50%",
+                            width: "100%",
                             // width: "100%",
                             maxHeight: "100%", // Lista prati roditeljsku visinu
                             overflowY: "auto", // Skrol samo ovde
@@ -1910,6 +2002,183 @@ export default function Course() {
             </Grid>
             <Grid item xs={12} md={12} sx={{ padding: 1 }}>
               <Divider sx={{ marginY: 2, width: "100%" }} />
+
+              <Box
+                sx={{
+                  margin: 0,
+                  padding: 0,
+                  mb: 2,
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography variant="h5">Ankete</Typography>
+                {course.professorsCourse.some(
+                  (professor) => professor.user.email === user?.email
+                ) &&
+                  isEditing && (
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Typography
+                        variant="body1"
+                        sx={{ color: "primary.dark" }}
+                      >
+                        Dodaj anketu&nbsp;
+                      </Typography>
+                      <div
+                        style={{
+                          position: "relative",
+                          height: "40px",
+                          width: "50px",
+                        }}
+                      >
+                        <SpeedDial
+                          ariaLabel="Opcije"
+                          icon={<SpeedDialIcon />}
+                          sx={{
+                            position: "absolute", // Sprečava da zauzima previše visine
+                            zIndex: 1,
+                            bottom: 0,
+                            ".MuiSpeedDial-fab": {
+                              height: "38px",
+                              width: "38px",
+                              color: "text.primary",
+                            },
+                            ".MuiSpeedDial-root": {
+                              height: "40px",
+                              width: "40px",
+                            },
+                          }}
+                        >
+                          {actions.map((action) => (
+                            <SpeedDialAction
+                              key={action.name}
+                              icon={action.icon}
+                              tooltipTitle={action.name}
+                              onClick={action.action}
+                            />
+                          ))}
+                        </SpeedDial>
+                      </div>
+                    </Box>
+                  )}
+              </Box>
+              
+              {isCreatingForm && (
+                <AddNewForm
+                  courseId={course.id}
+                  setIsCreatingForm={setIsCreatingForm}
+                />
+              )}
+
+              {statusForm == "pendingFetchFormsByCourseId" ? (
+                <LinearBuffer />
+              ) : (
+                courseForms &&
+                courseForms.length > 0 &&
+                courseForms.map((form) => (
+                  <Accordion
+                    key={form.id}
+                    expanded={expandedFormId === form.id} // Kontroliše da li je forma otvorena
+                    onChange={() => handleExpand(form.id)} // Otvara/zatvara formu
+                    sx={{
+                      mb: 2, // Margina ispod svakog Accordion-a
+                      borderRadius: "15px", // Zaobljene ivice
+                      boxShadow: "none", // Uklanja defaultnu senku
+                      "&:before": {
+                        display: "none", // Uklanja defaultni divider
+                      },
+                      backgroundColor: "transparent", // Providna bela boja
+                      borderColor: "primary.dark",
+                      border: "1px solid",
+                      // transition: "border-color 0.3s ease", // Animacija za promenu boje
+                      "&:hover": {
+                        borderColor: "primary.light", // Svetlija boja na hover
+                      },
+                      "&:last-child": {
+                        mb: 0, // Uklanja marginu ispod poslednjeg Accordion-a
+                        borderBottomLeftRadius: "15px", // Zaobljena donja leva ivica
+                        borderBottomRightRadius: "15px", // Zaobljena donja desna ivica
+                      },
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />} // Strelica za proširenje
+                      aria-controls={`form-content-${form.id}`}
+                      id={`form-header-${form.id}`}
+                      sx={{
+                        margin: 0,
+                        // alignItems: "center !important",
+                        borderRadius: "15px", // Zaobljene ivice za summary
+                        "&:hover": {
+                          backgroundColor: "rgba(0, 0, 0, 0.04)", // Lagani hover efekat
+                        },
+                        ".MuiAccordionSummary-content": {
+                          alignItems: "center",
+                          margin: 0,
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="body1"
+                        sx={{ height: "fit-content", color: "primary.main" }}
+                      >
+                        {form.topic}
+                      </Typography>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          marginLeft: "auto",
+                        }}
+                      >
+                        {user &&
+                          course?.professorsCourse.some(
+                            (pc) => pc.user.username === user.username
+                          ) && (
+                            <IconButton
+                              onClick={(e) => {
+                                e.stopPropagation(); // Sprečava otvaranje/zatvaranje akordeona
+                              }}
+                              size="small"
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <VisibilityIcon />
+                              <Typography variant="body2">
+                                {getTotalVotes(form)}
+                              </Typography>
+                            </IconButton>
+                          )}
+                      </div>
+                    </AccordionSummary>
+                    <AccordionDetails
+                      sx={{
+                        padding: 0, // Uklanja defaultni padding
+                        borderBottomLeftRadius: "15px", // Zaobljena donja leva ivica
+                        borderBottomRightRadius: "15px", // Zaobljena donja desna ivica
+                        display: "flex",
+                        justifyContent: "center", // Centrira horizontalno
+                        alignItems: "center", // Centrira vertikalno
+                        height: "100%", // Popuni celu visinu
+                        paddingY: 2,
+                        // minHeight: '40vh', // Minimalna visina za bolji vizuelni efekat
+                      }}
+                    >
+                      <FormVote
+                        form={form}
+                        // onSubmitVote={(selectedOptions) => handleSubmitVote(form.id, selectedOptions)}
+                      />
+                    </AccordionDetails>
+                  </Accordion>
+                ))
+              )}
+            </Grid>
+            <Grid item xs={12} md={12} sx={{ padding: 1 }}>
+              <Divider sx={{ marginY: 2, width: "100%" }} />
               {user && (
                 <Box
                   sx={{
@@ -1928,11 +2197,13 @@ export default function Course() {
                       backgroundColor: "primary.dark",
                       color: "white",
                       padding: 0.8,
-                      borderRadius: "20pt",
+                      borderRadius: "50%",
                       minWidth: "2rem",
                       "&:hover": { backgroundColor: "primary.light" },
-                      height: "fit-content",
-                      width: "2rem",
+                      // height: "fit-content",
+                      // width: "2rem",
+                      width: "38px",
+                      height: "38px",
                       boxSizing: "border-box",
                     }}
                   >

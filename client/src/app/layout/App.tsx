@@ -17,93 +17,97 @@ import darkLogo from "../../assets/darkLogo.png";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import BadgeTwoToneIcon from "@mui/icons-material/BadgeTwoTone";
 import GroupsTwoToneIcon from "@mui/icons-material/GroupsTwoTone";
+import SummarizeIcon from "@mui/icons-material/Summarize";
 
 import "./app.css"; //
 import { BrandingContext } from "./BrandingContext";
-const NAVIGATION: Navigation = [
-  {
-    kind: "header",
-    title: "Meni",
-  },
-  {
-    segment: "",
-    title: "Početna",
-    icon: <HomeIcon />,
-  },
+import FormPage from "../../features/form/FormPage";
+import { ScheduleRounded, SchoolOutlined } from "@mui/icons-material";
 
-  {
-    kind: "divider",
-  },
-  {
-    kind: "header",
-    title: "EduETF",
-  },
-  {
-    //provjeriti segment
-    segment: "onlineStudy",
-    title: "Online učenje",
-    icon: <AutoStoriesIcon />,
-  },
+// const NAVIGATION: Navigation = [
+//   {
+//     kind: "header",
+//     title: "Meni",
+//   },
+//   {
+//     segment: "",
+//     title: "Početna",
+//     icon: <HomeIcon />,
+//   },
 
-  {
-    segment: "forum",
-    title: "Forum",
-    icon: <ForumIcon />,
-  },
-  {
-    kind: "divider",
-  },
-  {
-    kind: "header",
-    title: "Korisnici",
-  },
+//   {
+//     kind: "divider",
+//   },
+//   {
+//     kind: "header",
+//     title: "EduETF",
+//   },
+//   {
+//     //provjeriti segment
+//     segment: "onlineStudy",
+//     title: "Online učenje",
+//     icon: <AutoStoriesIcon />,
+//   },
 
-  {
-    //provjera
-    segment: "profile",
-    title: "Moj profil",
-    icon: <PersonOutlineIcon />,
-  },
-  {
-    segment: " ",
-    title: "Korisnici",
-    icon: <PeopleOutlineIcon />,
-    children: [
-      {
-        segment: "../professors", // Dodajemo "/" ispred da se tretira kao apsolutna putanja
-        title: "Profesori",
-        icon: <BadgeTwoToneIcon />,
-      },
-      {
-        segment: "../students", // Isto za studente
-        title: "Studenti",
-        icon: <GroupsTwoToneIcon />,
-      },
-    ],
-  },
+//   {
+//     segment: "forum",
+//     title: "Forum",
+//     icon: <ForumIcon />,
+//   },
+//   {
+//     kind: "divider",
+//   },
+//   {
+//     kind: "header",
+//     title: "Korisnici",
+//   },
 
-  {
-    kind: "divider",
-  },
-  // {
-  //   kind: 'header',
-  //   title: 'Analytics',
-  // },
+//   {
+//     //provjera
+//     segment: "profile",
+//     title: "Moj profil",
+//     icon: <PersonOutlineIcon />,
+//   },
+//   {
+//     segment: " ",
+//     title: "Korisnici",
+//     icon: <PeopleOutlineIcon />,
+//     children: [
+//       {
+//         segment: "../professors", // Dodajemo "/" ispred da se tretira kao apsolutna putanja
+//         title: "Profesori",
+//         icon: <BadgeTwoToneIcon />,
+//       },
+//       {
+//         segment: "../students", // Isto za studente
+//         title: "Studenti",
+//         icon: <GroupsTwoToneIcon />,
+//       },
+//     ],
+//   },
 
-  {
-    segment: "etfis",
-    title: "ETFIS",
-    icon: <LaunchIcon />,
-  },
-  {
-    segment: "about",
-    title: "O nama",
-    icon: <InfoIcon />,
-  },
-  {
-    kind: "divider",
-  },
-];
+//   {
+//     kind: "divider",
+//   },
+//   // {
+//   //   kind: 'header',
+//   //   title: 'Analytics',
+//   // },
+
+//   {
+//     segment: "etfis",
+//     title: "ETFIS",
+//     icon: <LaunchIcon />,
+//   },
+//   {
+//     segment: "about",
+//     title: "O nama",
+//     icon: <InfoIcon />,
+//   },
+//   {
+//     kind: "divider",
+//   },
+// ];
 
 const BRANDINGL = {
   title: "",
@@ -233,6 +237,104 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const user = useAppSelector((state) => state.account.user);
 
+  const NAVIGATION = useMemo(() => {
+    const baseNavigation: Navigation = [
+      {
+        kind: "header",
+        title: "Meni",
+      },
+      {
+        segment: "",
+        title: "Početna",
+        icon: <HomeIcon />,
+      },
+      {
+        kind: "divider",
+      },
+      {
+        kind: "header",
+        title: "EduETF",
+      },
+      {
+        segment: "onlineStudy",
+        title: "Online učenje",
+        icon: <AutoStoriesIcon />,
+      },
+      {
+        segment: "forum",
+        title: "Forum",
+        icon: <ForumIcon />,
+      },
+      {
+        kind: "divider",
+      },
+      {
+        kind: "header",
+        title: "Korisnici",
+      },
+      {
+        segment: "profile",
+        title: "Moj profil",
+        icon: <PersonOutlineIcon />,
+      },
+      {
+        segment: " ",
+        title: "Korisnici",
+        icon: <PeopleOutlineIcon />,
+        children: [
+          {
+            segment: "../professors",
+            title: "Profesori",
+            icon: <BadgeTwoToneIcon />,
+          },
+          {
+            segment: "../students",
+            title: "Studenti",
+            icon: <GroupsTwoToneIcon />,
+          },
+        ],
+      },
+      {
+        kind: "divider",
+      },
+      {
+        segment: "etfis",
+        title: "ETFIS",
+        icon: <LaunchIcon />,
+      },
+      {
+        segment: "about",
+        title: "O nama",
+        icon: <InfoIcon />,
+      },
+      {
+        kind: "divider",
+      },
+    ];
+
+    const eduETFIndex = baseNavigation.findIndex(
+      (item) => item.title === "EduETF"
+    );
+  
+    // Ako je pronađen, umetnite nove stavke ispod njega
+    if (eduETFIndex !== -1) {
+      if (user) {
+        
+      
+      
+      baseNavigation.splice(eduETFIndex + 1, 0, {
+        segment: "forms",
+        title: "Ankete",
+        icon: <SummarizeIcon />, // Dodajte odgovarajuću ikonu
+      });}
+  
+    
+    }
+    
+  
+    return baseNavigation;
+  }, [user]); // Ovisi o `user` stanju
+
   const currentSession = {
     user: {
       name: user?.firstName + " " + user?.lastName,
@@ -260,6 +362,7 @@ export default function App() {
   useEffect(() => {
     if (user) {
       setSession(currentSession);
+      
     }
   }, [user]);
 
@@ -271,15 +374,26 @@ export default function App() {
 
   const initApp = useCallback(async () => {
     try {
-      await dispatch(fetchCurrentUser());
+      await dispatch(fetchCurrentUser())
     } catch (error: unknown) {
       console.log(error);
     }
   }, [dispatch]);
 
   useEffect(() => {
-    initApp().then(() => setLoading(false));
+    initApp().then(() => setLoading(false))
   }, [initApp]);
+
+  // useEffect(()=>{
+  //   if (user) {
+  //     NAVIGATION.push({
+  //       segment: "forms",
+  //       title: "Ankete",
+  //       icon: <SummarizeIcon />, // Dodajte odgovarajuću ikonu
+  //     });
+  //   }
+  
+  // }, [])
 
   window.scrollTo(0, 0);
 

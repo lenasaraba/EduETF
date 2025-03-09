@@ -5,6 +5,7 @@ import { courseSlice } from "../../features/onlineStudy/courseSlice";
 import { professorSlice } from "../../features/onlineStudy/professorSlice";
 import { themeSlice } from "../../features/forum/themeSlice";
 import { messageSlice } from "../../features/forum/messageSlice";
+import { formSlice } from "../../features/form/formSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,7 +14,7 @@ export const store = configureStore({
     professor: professorSlice.reducer,
     theme: themeSlice.reducer,
     message: messageSlice.reducer,
-
+    form:formSlice.reducer,
   },
 });
 

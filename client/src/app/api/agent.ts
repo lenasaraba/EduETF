@@ -162,7 +162,11 @@ const Professor = {
     requests.post("professor/removeProfessorFromCourse", { courseId }),
   getProfessorById: (id: number) => requests.get(`professor/GetUserById/${id}`),
 };
-
+const Form={
+  allForms:()=>requests.get("form/getAllForms"),
+  createForm:(values:any)=>requests.post("form/createForm", values),
+  courseForms:(id:number)=>requests.get(`form/getCourseForms/${id}`),
+};
 const Theme = {
   getAll: (params: URLSearchParams) =>
     requests.get("theme/GetAllThemes", params),
@@ -195,6 +199,7 @@ const agent = {
   Professor,
   Theme,
   Message,
+  Form,
 };
 
 export default agent;

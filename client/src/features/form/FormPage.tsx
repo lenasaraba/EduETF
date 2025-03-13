@@ -6,7 +6,7 @@ import {
   Button,
   useTheme,
 } from "@mui/material";
- import AddIcon from "@mui/icons-material/Add";
+import AddIcon from "@mui/icons-material/Add";
 // import CloseIcon from '@mui/icons-material/Close';
 
 import { Grid, Box } from "@mui/system";
@@ -58,6 +58,7 @@ export default function FormPage() {
 
   const forms = useAppSelector((state) => state.form.forms);
   const formsLoaded = useAppSelector((state) => state.form.formsLoaded);
+  const status = useAppSelector((state) => state.form.status);
   const theme = useTheme();
 
   // const [selectedForm, setSelectedForm] = useState<Form | null>(null);
@@ -78,35 +79,6 @@ export default function FormPage() {
       });
     }
   }, []);
-  // interface FormData {
-  //   topic: string;
-  //   endDate: string;
-  //   options: { text: string }[];
-  //   multipleAnswer?: boolean; // Opciono polje, može biti boolean ili undefined
-  // }
-
-  // const methods = useForm<FormData>({
-  //   mode: "all", // Validacija na svaku promjenu
-  //   resolver: yupResolver(formValidation),
-  //   defaultValues: {
-  //     topic: "",
-  //     endDate: "",
-  //     options: [],
-  //     multipleAnswer: false,
-  //   },
-  // });
-
-  // const {
-  //   control,
-  //   handleSubmit,
-  //   setValue,
-  //   getValues,
-  //   reset,
-  //   setError,
-  //   register,
-  //   trigger,
-  //   formState: { errors },
-  // } = methods;
 
   const handleShowCreateForm = () => {
     setIsCreatingForm(!isCreatingForm);
@@ -120,94 +92,6 @@ export default function FormPage() {
       }
     }, 100); // Mali timeout kako bi se osiguralo da se forma prvo prikaže
   };
-
-  //-----------------POPRAVITI----------------CIM DODA OPCIJU ODMAH JE PROVJERI I CRVENI; STAVITI DA JE BUTTON DODAJ DISABLED DOK NISU SVA POTREBNA POLJA POPUNJENA
-  // Funkcija za dodavanje opcije
-  // const [isSubmitted, setIsSubmitted] = useState(false);
-
-  // const handleAddOption = () => {
-  //   const currentOptions = getValues("options");
-  //   const newOptions = [...currentOptions, { text: "" }];
-  //   setValue("options", newOptions, { shouldValidate: false }); // Dodaj opciju bez validacije
-  //   trigger("options")
-  // };
-
-  // const handleRemoveOption = (index: number) => {
-  //   const currentOptions = getValues("options");
-  //   const newOptions = currentOptions.filter((_, i) => i !== index);
-  //   setValue("options", newOptions); // Ažurirajte stanje forme
-  //   trigger("options"); // Obavijestite react-hook-form da je došlo do promjene
-  // };
-  // // Funkcija za ažuriranje opcije
-  // const handleUpdateOption = (index: number, value: string) => {
-  //   const newOptions = [...options]; // Napravite kopiju niza
-  //   newOptions[index] = { ...newOptions[index], text: value }; // Ažurirajte text polje
-  //   setOptions(newOptions); // Postavite novi niz
-  // };
-
-  // Funkcija za kreiranje ankete
-  // const onSubmit = async (data: FormData) => {
-  //   //   const isValid = await trigger(); // Ručno pokreni validaciju
-  //   // if (!isValid) {
-  //   //   console.log("Forma nije validna");
-  //   //   return;
-  //   // }
-  //   setIsSubmitted(true); // Postavi da je forma pokušana biti poslana
-  //   const isValid = await trigger();
-  //   if (!isValid) return;
-
-  //   try {
-  //     // Priprema podataka za slanje
-  //     const newForm = {
-  //       topic: data.topic,
-  //       endDate: data.endDate,
-  //       multipleAnswer: data.multipleAnswer || false, // Ako je undefined, koristimo false
-  //       options: data.options.map((option) => ({ text: option.text })), // Mapiranje opcija
-  //     };
-
-  //     console.log("Nova anketa:", newForm);
-
-  //     // Slanje podataka na backend preko Redux akcije
-  //     await dispatch(createForm(newForm)).unwrap();
-
-  //     console.log("Anketa uspešno kreirana");
-
-  //     // Resetovanje forme
-  //     setIsCreatingForm(false);
-
-  //     reset(); // Resetuje sva polja forme na podrazumevane vrednosti
-  //     // setIsCreatingForm(false);
-  //   } catch (error) {
-  //     console.error("Greška pri kreiranju ankete:", error);
-  //   }
-  // };
-
-  // const onSubmit = async (data: FieldValues) => {
-  //   console.log(data);
-  //   const localDate = new Date();
-  //   const offset = localDate.getTimezoneOffset();
-
-  //   const adjustedDate = new Date(localDate.getTime() - offset * 60000);
-  //   const newCourse = {
-  //     name: data.name,
-  //     description: data.description,
-  //     yearId: data.yearId,
-  //     studyProgramId: data.studyProgramId,
-  //     courseCreationDate: adjustedDate.toISOString(),
-  //     password: data.password,
-  //   };
-  //   console.log(newCourse);
-
-  //   const resultAction = await dispatch(createCourseAsync(newCourse));
-
-  //   if (createCourseAsync.fulfilled.match(resultAction)) {
-  //     navigate(`/courses/${resultAction.payload.id}`);
-  //     console.log(statusC);
-  //   } else {
-  //     console.log("else" + statusC);
-  //     console.error("Failed to create course:", resultAction.payload);
-  //   }
-  // };
 
   useEffect(() => {
     dispatch(fetchAllFormsAsync());
@@ -334,7 +218,7 @@ export default function FormPage() {
           </div>
 
           <Divider sx={{ mb: 3, mt: 3 }} />
-          {!formsLoaded ? (
+          {!formsLoaded || status == "pendingFetchAllForms" ? (
             <Box
               sx={{
                 display: "flex",
@@ -355,7 +239,7 @@ export default function FormPage() {
 
           {/* <div id="createFooormElement"> */}
           {isCreatingForm && (
-            <AddNewForm setIsCreatingForm={setIsCreatingForm}/>
+            <AddNewForm setIsCreatingForm={setIsCreatingForm} />
           )}
         </Grid>
       </Grid>

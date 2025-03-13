@@ -48,6 +48,8 @@ export default function ForumAppBar() {
             sx={{
               flexGrow: 1,
               display: "flex",
+              flexDirection: { xs: "column", sm: "row", md: "row" },
+
               alignItems: "center",
               px: 0,
               justifyContent: "space-evenly",
@@ -57,7 +59,7 @@ export default function ForumAppBar() {
           >
             <Box
               sx={{
-                display: { xs: "none", md: "flex" },
+                display: "flex" ,
                 margin: 0,
                 padding: 0,
               }}
@@ -116,7 +118,7 @@ export default function ForumAppBar() {
 
                 <Box
                   sx={{
-                    display: { xs: "none", md: "flex" },
+                    display: "flex" ,
                     margin: 0,
                     padding: 0,
                   }}

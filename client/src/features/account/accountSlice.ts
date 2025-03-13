@@ -8,10 +8,12 @@ import { toast } from "react-toastify";
 
 interface AccountState {
   user: User | null; // Stanje čuva korisničke podatke ili je null ako korisnik nije prijavljen.
+  status: string;
 }
 
 const initialState: AccountState = {
   user: null, // Početno stanje: korisnik nije prijavljen.
+  status: "idle",
 };
 
 export const signInUser = createAsyncThunk<User, FieldValues>(
@@ -96,6 +98,22 @@ export const accountSlice = createSlice({
 
       router.navigate("/");
       toast.error("Sesija istekla - prijavite se ponovo.");
+    });
+
+    builder.addCase(updateUser.rejected, (state) => {
+      state.user = null;
+      localStorage.removeItem("user");
+
+      router.navigate("/");
+      toast.error("Sesija istekla - prijavite se ponovo.");
+    });
+    builder.addCase(updateUser.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.user!.firstName = action.payload.firstName;
+      state.user!.lastName = action.payload.lastName;
+    });
+    builder.addCase(updateUser.pending, (state) => {
+      state.status = "pendingUpdateUser";
     });
     builder.addMatcher(
       isAnyOf(signInUser.fulfilled, fetchCurrentUser.fulfilled),

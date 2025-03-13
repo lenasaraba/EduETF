@@ -30,6 +30,7 @@ export default function CreateTheme() {
   const navigate = useNavigate();
   const enrolledCourses = useAppSelector((state) => state.course.allCourses);
   const user = useAppSelector((state) => state.account.user);
+  const status = useAppSelector((state) => state.course.status);
 
   const [isFreeTopic, setIsFreeTopic] = useState(false);
   const methods = useForm({
@@ -248,6 +249,7 @@ export default function CreateTheme() {
                       {...field}
                       labelId="courseId-label"
                       value={field.value || "0"}
+                      // disabled={status == "pendingFetchCoursesList"}
                       label="Kurs"
                       error={!!fieldState.error} // Dinamičko upravljanje greškom na Select komponenti
                       onChange={(e) => {
@@ -274,7 +276,11 @@ export default function CreateTheme() {
                         },
                       }}
                     >
-                      <MenuItem value={0}>Nema kursa</MenuItem>
+                      <MenuItem value={0}>
+                        {status == "pendingFetchCoursesList"
+                          ? "Učitavanje..."
+                          : "Nema kursa"}
+                      </MenuItem>
                       {courses?.map((course) => (
                         <MenuItem key={course.id} value={course.id}>
                           {course.name}

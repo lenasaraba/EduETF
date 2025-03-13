@@ -377,11 +377,18 @@ namespace API.Controllers
         [HttpDelete("DeleteMessage/{id}")]
         public async Task<IActionResult> DeleteMessage(int id)
         {
-            var message = await _context.Messages.Include(m=>m.Materials).FirstOrDefaultAsync(m=>m.Id==id);
+            var message = await _context.Messages.Include(m=>m.Forms).Include(m=>m.Materials).FirstOrDefaultAsync(m=>m.Id==id);
 
             if (message == null)
             {
                 return NotFound(new { Message = "Poruka nije pronađena." });
+            }
+            if(message.Forms!=null && message.Forms.Count!=0){
+                foreach(var form in message.Forms){
+                    _context.Form.Remove(form);
+                }
+            await _context.SaveChangesAsync();
+
             }
 
             if(message.Materials?.Count>0)
@@ -423,7 +430,9 @@ namespace API.Controllers
                 var results = await _context.Messages
                     .Where(m => m.ThemeId == themeId &&
                         (m.Content.ToLower().Contains(query.ToLower()) || 
-                        (m.Materials != null && m.Materials.Any(mat => mat.Title.ToLower().Contains(query.ToLower())))))
+                        (m.Materials != null && m.Materials.Any(mat => mat.Title.ToLower().Contains(query.ToLower())))
+                        ||  (m.Forms != null && m.Forms.Any(f => f.Topic.ToLower().Contains(query.ToLower())))
+                        ))
                     .ToListAsync();
 
 

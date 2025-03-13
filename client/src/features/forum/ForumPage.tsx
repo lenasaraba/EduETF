@@ -13,7 +13,6 @@ import ThemeCard from "./components/ThemeCard";
 import ThemeCard2 from "./components/ThemeCard2";
 import forum from "../../assets/forum.png";
 import ForumAppBar from "./components/ForumAppBar";
-import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 
@@ -167,7 +166,12 @@ export default function ForumPage() {
                     {firstFourThemes.map((theme, index) =>
                       index < 2 ? (
                         <Fragment key={index}>
-                          <Grid item xs={6} md={3}>
+                          <Grid
+                            item
+                            xs={12}
+                            md={3}
+                            sx={{ marginBottom: { xs: 2 } }}
+                          >
                             <ThemeCard2 theme={theme} key={index} />
                           </Grid>
 
@@ -176,7 +180,7 @@ export default function ForumPage() {
                             xs={6}
                             md={3}
                             sx={{
-                              display: "flex",
+                              display: { xs: "none", sm: "none", md: "flex" },
                               justifyContent: "center",
                               alignItems: "center",
                             }}
@@ -191,10 +195,11 @@ export default function ForumPage() {
                         <Fragment key={index}>
                           <Grid
                             item
-                            xs={6}
+                            xs={12}
                             md={3}
                             sx={{
-                              display: "flex",
+                              display: { xs: "none", sm: "none", md: "flex" },
+
                               justifyContent: "center",
                               alignItems: "center",
                             }}
@@ -205,7 +210,14 @@ export default function ForumPage() {
                             />
                           </Grid>
 
-                          <Grid item xs={6} md={3} sx={{}}>
+                          <Grid
+                            item
+                            xs={12}
+                            md={3}
+                            sx={{
+                              marginBottom: { xs: 2 },
+                            }}
+                          >
                             <ThemeCard2 theme={theme} key={index} />
                           </Grid>
                         </Fragment>

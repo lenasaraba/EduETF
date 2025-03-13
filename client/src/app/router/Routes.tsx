@@ -22,6 +22,7 @@ import Students from "../../features/onlineStudy/components/Students";
 import UserProfile from "../../features/profile/components/UserProfile";
 import StudentHistory from "../../features/onlineStudy/StudentHistory";
 import FormPage from "../../features/form/FormPage";
+import Users from "../../features/profile/components/Users";
 
 const ExternalRedirect = ({ url }: { url: string }) => {
   useEffect(() => {
@@ -67,6 +68,10 @@ export const router = createBrowserRouter([
             element: <Course />,
           },
           {
+            path: "users",
+            element: <Users />,
+          },
+          {
             path: "profile",
             element: (
               <RequireAuth>
@@ -74,14 +79,6 @@ export const router = createBrowserRouter([
               </RequireAuth>
             ),
           },
-          // {
-          //   path: "profile",
-          //   element: (
-          //     <RequireAuth>
-          //       <ProfilePage />
-          //     </RequireAuth>
-          //   ),
-          // },
           {
             path: "forum",
             element: <ForumPage />,
@@ -103,7 +100,7 @@ export const router = createBrowserRouter([
             element: <CreateCourse />,
           },
           {
-            path: "/professors",
+            path: "/users/professors",
             element: <Professors />,
           },
           {
@@ -111,7 +108,7 @@ export const router = createBrowserRouter([
             element: <ProfessorInfo />,
           },
           {
-            path: "/students",
+            path: "/users/students",
             element: <Students />,
           },
           {

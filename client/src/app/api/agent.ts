@@ -162,10 +162,18 @@ const Professor = {
     requests.post("professor/removeProfessorFromCourse", { courseId }),
   getProfessorById: (id: number) => requests.get(`professor/GetUserById/${id}`),
 };
-const Form={
-  allForms:()=>requests.get("form/getAllForms"),
-  createForm:(values:any)=>requests.post("form/createForm", values),
-  courseForms:(id:number)=>requests.get(`form/getCourseForms/${id}`),
+const Form = {
+  allForms: () => requests.get("form/getAllForms"),
+  createForm: (values: any) => requests.post("form/createForm", values),
+  courseForms: (id: number) => requests.get(`form/getCourseForms/${id}`),
+  assignToCourse: (formId: number, courseId: number) =>
+    requests.put(`form/assignToCourse/${formId}`, { courseId }),
+  vote: (values: number[]) => requests.put("form/vote", { OptionIds: values }),
+  assignToMessage: (formId: number, messageId: number) =>
+    requests.put(`form/assignToMessage/${formId}`, { messageId }),
+  messageForms: (themeId: number) =>
+    requests.get(`form/getMessageForms/${themeId}`),
+  deleteForm: (id: number) => requests.delete(`form/DeleteForm/${id}`),
 };
 const Theme = {
   getAll: (params: URLSearchParams) =>

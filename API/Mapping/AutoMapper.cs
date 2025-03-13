@@ -44,6 +44,12 @@ namespace API.Mapping
             CreateMap<Course, CreateCourseDto>();
             CreateMap<CreateCourseDto, Course>();
 
+            CreateMap<UserOptionDto, UserOption>();
+            CreateMap<UserOption, UserOptionDto>();
+            CreateMap<CreateUserOptionDto, UserOption>();
+
+
+
         }
     }
 }

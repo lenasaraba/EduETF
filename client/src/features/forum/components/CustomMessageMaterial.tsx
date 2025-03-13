@@ -1,9 +1,8 @@
 import Typography from "@mui/material/Typography";
-import { Box, Divider, IconButton, useTheme } from "@mui/material";
+import { Box, Divider, useTheme } from "@mui/material";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
 
-import DeleteIcon from "@mui/icons-material/Delete";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline"; // Play ikonica
 import { MessageMaterial } from "../../../app/models/theme";
 
@@ -16,8 +15,9 @@ const MaterialComponent = ({
   const theme = useTheme();
 
   const renderContent = () => {
-    switch (material.materialType.name) {
-      case "Video":
+    console.log({ ...material });
+    switch (material.materialType.id) {
+      case 1:
         return (
           <Box
             sx={{
@@ -42,7 +42,7 @@ const MaterialComponent = ({
             />
           </Box>
         );
-      case "Slika":
+      case 5:
         return (
           <img
             src={`http://localhost:5000/${material.filePath}`}
@@ -55,7 +55,7 @@ const MaterialComponent = ({
             }}
           />
         );
-      case "PDF":
+      case 2:
         return (
           <Box
             sx={{
@@ -71,7 +71,7 @@ const MaterialComponent = ({
             <PictureAsPdfIcon sx={{ fontSize: 48, color: "text.primary" }} />
           </Box>
         );
-      case "Dokument":
+      case 4:
         return (
           <Box
             sx={{
@@ -104,7 +104,7 @@ const MaterialComponent = ({
         boxShadow: 2,
         "&:hover": {
           boxShadow: 6,
-          cursor: "pointer",
+          // cursor: "pointer",
         },
         marginBottom: "16px", // Dodajemo marginu između elemenata
         margin: 2,
@@ -123,20 +123,34 @@ const MaterialComponent = ({
           overflow: "hidden", // Sprečava prekoračenje teksta
         }}
       >
-        <Typography
-          variant="body2"
-          sx={{
-            // fontWeight: "bold",
-            whiteSpace: "normal", // Omogućava prelazak u novi red
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            display: "-webkit-box",
-            WebkitLineClamp: 2, // Ograničava na 2 reda
-            WebkitBoxOrient: "vertical",
+        <a
+          href={`http://localhost:5000//${material.filePath}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            textDecoration: "none",
+            color: "primary.main",
           }}
         >
-          {material.title}
-        </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              // fontWeight: "bold",
+              whiteSpace: "normal", // Omogućava prelazak u novi red
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              display: "-webkit-box",
+              WebkitLineClamp: 2, // Ograničava na 2 reda
+              WebkitBoxOrient: "vertical",
+              ":&hover": {
+                cursor: "pointer",
+                color: "primary.dark",
+              },
+            }}
+          >
+            {material.title}
+          </Typography>
+        </a>
         <Typography
           variant="caption"
           sx={{
@@ -204,7 +218,7 @@ export default function CustomMessageMaterial({
     >
       {materials &&
         materials.map((material, index) => (
-          <>
+          <Box key={index} sx={{ margin: 0, padding: 0 }}>
             <MaterialComponent
               key={index}
               material={material}
@@ -213,7 +227,7 @@ export default function CustomMessageMaterial({
               //   isEditing={isEditing}
             />
             <Divider sx={{ width: "100%", borderWidth: "1px" }} />
-          </>
+          </Box>
         ))}
     </Box>
   );

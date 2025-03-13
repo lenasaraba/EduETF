@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import agent from "../../app/api/agent";
-import { Message } from "../../app/models/theme";
+import { CreateMessage, Message } from "../../app/models/theme";
 import { RootState } from "../../app/store/configureStore";
 
 export interface MessageState {
@@ -59,7 +59,7 @@ export const searchMessagesAsync = createAsyncThunk<Message[], MessageRequest>(
 //   themeId: number;
 // }
 
-export const createMessage = createAsyncThunk<Message, Message>(
+export const createMessage = createAsyncThunk<Message, CreateMessage>(
   "messages/createMessage",
   async (newMessage, { rejectWithValue }) => {
     try {

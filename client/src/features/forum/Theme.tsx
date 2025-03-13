@@ -51,7 +51,11 @@ import React from "react";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import ChatTwoToneIcon from "@mui/icons-material/ChatTwoTone";
 import LoadingComponent from "../../app/layout/LoadingComponent";
-import { Message, MessageMaterial } from "../../app/models/theme";
+import {
+  CreateMessage,
+  Message,
+  MessageMaterial,
+} from "../../app/models/theme";
 import { Theme as ThemeMod } from "../../app/models/theme";
 
 import "./themeStyle.css";
@@ -66,6 +70,19 @@ import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import CloseIcon from "@mui/icons-material/Close";
 import CustomTimeline from "../onlineStudy/components/CustomTimeline";
 import CustomMessageMaterial from "./components/CustomMessageMaterial";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
+import AddNewForm from "../form/components/AddNewForm";
+import FormTable from "../form/components/FormTable";
+import {
+  assignToMessage,
+  createForm,
+  fetchAllFormsAsync,
+  fetchFormsByMessageIdAsync,
+  fetchFormsByThemeIdAsync,
+} from "../form/formSlice";
+import { CreateForm, Form } from "../../app/models/form";
+import FormVote from "../form/components/FormVote";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -165,6 +182,7 @@ export default function Theme() {
   );
   console.log(resultMessages);
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(0);
+  const bottomOfPageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     console.log(resultMessages);
@@ -307,10 +325,11 @@ export default function Theme() {
   const themeLoaded = useAppSelector((state) => state.theme.currentThemeLoaded);
   useEffect(() => {
     dispatch(fetchThemeByIdAsync(parseInt(id!)));
+    dispatch(fetchAllFormsAsync());
   }, [dispatch]);
 
   const topOfPageRef = useRef<HTMLDivElement>(null);
-  const bottomOfPageRef = useRef<HTMLDivElement>(null);
+  // const bottomOfPageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     console.log(theme);
     if (theme != null && themeLoaded) {
@@ -322,8 +341,15 @@ export default function Theme() {
           console.log("Stranica skrolovana na vrh");
         }
       });
+      dispatch(fetchFormsByThemeIdAsync(theme.id));
     }
   }, [id, theme, dispatch]);
+
+  // useEffect(() => {
+  //   if (messages && messages.length > 0) {
+  //     messages.forEach((m) => dispatch(fetchFormsByMessageIdAsync(m.id!)));
+  //   }
+  // }, [messages]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -331,6 +357,15 @@ export default function Theme() {
   const [loadingStatus, setLoadingStatus] = React.useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [showMaterials, setShowMaterials] = useState(false); // Stanje za prikaz/sakrivanje grida sa studentima
+  const [isCreatingForm, setIsCreatingForm] = useState(false);
+  const [isAddingExistingForm, setIsAddingExistingForm] = useState(false);
+
+  const forms = useAppSelector((state) => state.form.forms);
+  const formsLoaded = useAppSelector((state) => state.form.formsLoaded);
+  const messageForm = useAppSelector((state) => state.form.messageForms);
+  const formStatus = useAppSelector((state) => state.form.status);
+  console.log(messageForm);
+
   const toggleMaterials = () => {
     setShowMaterials(!showMaterials); // Promeni stanje prikaza
   };
@@ -385,6 +420,8 @@ export default function Theme() {
     setAnchorEl(null); // Zatvara Popover
   };
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]); // Prazan niz na početku
+  const [selectedForms, setSelectedForms] = useState<Form[]>([]); // Prazan niz na početku
+  const [newForms, setNewForms] = useState<CreateForm[]>([]); // Prazan niz na početku
 
   if (id == undefined) return <NotFound />;
 
@@ -407,6 +444,7 @@ export default function Theme() {
     input.type = "file";
     input.accept = ".pdf,.docx,image/*,video/*"; // Dozvoljeni tipovi fajlova
     input.multiple = true; // Omogućiti više fajlova
+    input.id = "inputEl";
 
     input.onchange = (event: Event) => {
       const target = event.target as HTMLInputElement;
@@ -415,8 +453,49 @@ export default function Theme() {
         setSelectedFiles((prevFiles) => [...prevFiles, ...filesArray]);
       }
     };
+    setTimeout(() => {
+      const createFormElement = document.getElementById("inputEl");
+      if (createFormElement) {
+        createFormElement.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 100);
 
     input.click();
+  };
+
+  const handleAddForm = () => {
+    setIsAddingExistingForm(false);
+
+    setIsCreatingForm(true);
+    setTimeout(() => {
+      const createFormElement = document.getElementById("createFormElement");
+      if (createFormElement) {
+        createFormElement.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 100);
+    // setNewWeek(course!.weekCount + 1);
+    // setAddingWeek(true);
+  };
+
+  const handleAddExistingForm = () => {
+    setIsCreatingForm(false);
+
+    setIsAddingExistingForm(true);
+    setTimeout(() => {
+      const createFormElement = document.getElementById("createFormElement");
+      if (createFormElement) {
+        createFormElement.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 100);
   };
 
   const actions = [
@@ -425,7 +504,16 @@ export default function Theme() {
       name: "Dodaj fajl",
       action: handleFileAttach,
     },
-    { icon: <SummarizeIcon />, name: "Anketa", action: () => alert("Anketa!") },
+    {
+      icon: <DashboardCustomizeIcon />,
+      name: "Dodaj novu anketu",
+      action: handleAddForm,
+    },
+    {
+      icon: <DashboardIcon />,
+      name: "Dodaj postojeću anketu",
+      action: handleAddExistingForm,
+    },
   ];
 
   const getMaterialType = (file: File) => {
@@ -440,7 +528,7 @@ export default function Theme() {
     }
     return 0;
   };
-  console.log(showMaterials);
+  // console.log("STATUUUS FORMEE " + formStatus);
   return (
     <>
       {id === undefined ? (
@@ -524,7 +612,7 @@ export default function Theme() {
                   </Breadcrumbs>
                 </Box>
               </Grid>
-              <Grid item xs={6} sx={{ padding: 1 }}>
+              <Grid item xs={12} md={6} sm={12} sx={{ padding: 1 }}>
                 <CardContent
                   sx={{
                     border: "1px solid",
@@ -813,7 +901,7 @@ export default function Theme() {
               </Grid>
 
               {theme.course && <Divider sx={{ marginY: 2 }} />}
-              <Grid item xs={6} sx={{ padding: 1 }}>
+              <Grid item xs={12} md={6} sm={12} sx={{ padding: 1 }}>
                 {theme.course ? (
                   <CardContent
                     sx={{
@@ -1181,7 +1269,11 @@ export default function Theme() {
                                       : "common.onBackground",
                                   padding: 2,
                                   borderRadius: 2,
-                                  maxWidth: "70%",
+                                  maxWidth: {
+                                    xs: "100%",
+                                    sm: "100%",
+                                    md: "70%",
+                                  },
                                   border: "2px solid",
                                   borderColor:
                                     highlightedMessage === message.id
@@ -1274,7 +1366,6 @@ export default function Theme() {
                                       </span>
                                     </Typography>
 
-                                    {/* Sadržaj poruke */}
                                     <Typography
                                       variant="body2"
                                       color="text.primary"
@@ -1282,6 +1373,45 @@ export default function Theme() {
                                     >
                                       {message.content}
                                     </Typography>
+
+                                    {formStatus == message.id?.toString() ? (
+                                      <CircularProgress
+                                        size={20}
+                                        sx={{ color: "#fff" }}
+                                      />
+                                    ) : (
+                                      messageForm &&
+                                      messageForm.filter(
+                                        (f) => f.messageId == message.id
+                                      ) &&
+                                      messageForm
+                                        .filter(
+                                          (f) => f.messageId == message.id
+                                        )
+                                        .map((form, index) => (
+                                          <Box
+                                            key={index}
+                                            sx={{
+                                              margin: 0,
+                                              padding: 0,
+                                              marginBottom: 2,
+                                            }}
+                                          >
+                                            {/* <Typography
+                                              variant="body2"
+                                              sx={{
+                                                color: "background.default", ml:2
+                                              }}
+                                            >
+                                              {form.topic}
+                                            </Typography> */}
+                                            <FormVote
+                                              form={form}
+                                              IsTheme={true}
+                                            />
+                                          </Box>
+                                        ))
+                                    )}
 
                                     {/* Pregled materijala (ako postoje) */}
                                     {message.materials &&
@@ -1291,6 +1421,7 @@ export default function Theme() {
                                             marginTop: 1,
                                             display: "flex",
                                             justifyContent: "center",
+                                            flexDirection: "column",
                                           }}
                                         >
                                           {message.materials.map(
@@ -1311,6 +1442,7 @@ export default function Theme() {
                                               ) {
                                                 return (
                                                   <Box
+                                                    key={index}
                                                     sx={{
                                                       margin: 0,
                                                       padding: 0,
@@ -1352,6 +1484,7 @@ export default function Theme() {
                                               ) {
                                                 return (
                                                   <Box
+                                                    key={index}
                                                     sx={{
                                                       margin: 0,
                                                       padding: 0,
@@ -1473,7 +1606,7 @@ export default function Theme() {
                               : "Zatvorena tema"}
                           </Typography>
                         )}
-                        <div ref={bottomOfPageRef}></div>
+                        {/* <div ref={bottomOfPageRef}></div> */}
                       </Box>
                     </Box>
                   </>
@@ -1489,7 +1622,7 @@ export default function Theme() {
                       width: "100%",
                       backgroundColor: "background.paper",
                       borderRadius: "0 0 20px 20px",
-                      height: "60px ",
+                      height: "8vh ",
                       position: "relative",
                     }}
                   >
@@ -1554,9 +1687,9 @@ export default function Theme() {
                             },
                           }}
                         >
-                          {actions.map((action) => (
+                          {actions.map((action, index) => (
                             <SpeedDialAction
-                              key={action.name}
+                              key={index}
                               icon={action.icon}
                               tooltipTitle={action.name}
                               onClick={action.action}
@@ -1567,11 +1700,17 @@ export default function Theme() {
 
                       {/* Dugme za slanje */}
                       <LoadingButton
-                        loading={statusMessage == "pendingCreateMessage"}
+                        loading={
+                          statusMessage == "pendingCreateMessage" ||
+                          formStatus == "pendingCreateForm"
+                        }
                         variant="contained"
                         disabled={
                           !theme.active ||
-                          (messageContent === "" && selectedFiles.length == 0)
+                          (messageContent === "" &&
+                            selectedFiles.length == 0 &&
+                            newForms.length == 0 &&
+                            selectedForms.length == 0)
                         }
                         loadingIndicator={
                           <CircularProgress size={24} sx={{ color: "white" }} />
@@ -1594,19 +1733,17 @@ export default function Theme() {
                               localDate.getTime() - offset * 60000
                             );
 
-                            const newMessage: Message = {
+                            const newMessage: CreateMessage = {
                               content: messageContent ? messageContent : "",
                               themeId: theme.id,
                               creationDate: adjustedDate.toISOString(),
                               user: user!,
                               materials: [],
+                              // forms: selectedForms,
+                              // newForms: newForms,
                             };
 
-                            // Ako ima fajlova, uploaduj ih i dodaj u niz materijala
                             if (selectedFiles && selectedFiles.length > 0) {
-                              // const uploadedMaterials: MessageMaterial[] = [];
-
-                              // Kreiramo niz `Promise`-a za upload svih fajlova
                               const uploadPromises = selectedFiles.map(
                                 async (file) => {
                                   console.log(file, theme.id);
@@ -1617,8 +1754,8 @@ export default function Theme() {
 
                                   return {
                                     title: file.name,
-                                    filePath: response.filePath, // Pretpostavka da response vraća filePath
-                                    url: file.name, // Pretpostavka da response vraća url
+                                    filePath: response.filePath,
+                                    url: file.name,
                                     materialTypeId: getMaterialType(file),
                                     creationDate: adjustedDate.toISOString(),
                                   };
@@ -1631,7 +1768,26 @@ export default function Theme() {
                             }
 
                             // Pošalji poruku nakon što su fajlovi uploadovani
-                            await dispatch(createMessage(newMessage)).unwrap();
+                            const responseMessage = await dispatch(
+                              createMessage(newMessage)
+                            ).unwrap();
+                            console.log(responseMessage);
+
+                            if (newForms.length > 0)
+                              newForms.map((form) => {
+                                form.messageId = responseMessage.id;
+                                dispatch(createForm(form));
+                              });
+
+                            if (selectedForms.length > 0)
+                              selectedForms.map((form) => {
+                                dispatch(
+                                  assignToMessage({
+                                    formId: form.id,
+                                    messageId: responseMessage!.id!,
+                                  })
+                                );
+                              });
 
                             // Skrolovanje do dna
                             if (bottomOfPageRef.current) {
@@ -1644,6 +1800,8 @@ export default function Theme() {
                             // Resetovanje input polja
                             setMessageContent("");
                             setSelectedFiles([]);
+                            setSelectedForms([]);
+                            setNewForms([]);
                           } catch (error) {
                             console.error("Greška pri slanju poruke:", error);
                           }
@@ -1654,56 +1812,254 @@ export default function Theme() {
                     </Box>
                   </Box>
                 )}
-                {/* Prikaz svih odabranih fajlova */}
-                {selectedFiles.length > 0 && (
-                  <Grid
-                    container
-                    sx={{ marginTop: 1, display: "flex", flexDirection: "row" }}
-                  >
-                    {selectedFiles.map((file, index) => (
-                      <Grid
-                        item
-                        md={3.8}
-                        key={index}
+              </Grid>
+
+              {/* Prikaz svih odabranih fajlova */}
+              {selectedFiles.length > 0 && (
+                <Box
+                  sx={{
+                    width: "100%",
+                    padding: 0,
+                    marginTop: 1,
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "column", md: "row" },
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography>
+                    <AttachFileIcon sx={{ color: "primary.dark", mr: 3 }} />
+                  </Typography>
+                  {selectedFiles.map((file, index) => (
+                    <Grid
+                      item
+                      xs={12}
+                      sm={12}
+                      md={3.8}
+                      key={index}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        margin: 1,
+                        marginTop: 0,
+                        padding: "5px 10px",
+                        width: "100%",
+                        backgroundColor: "background.paper",
+                        borderRadius: "8px",
+                        // maxWidth: "300px",
+                      }}
+                    >
+                      {/* Ikonica fajla */}
+                      <InsertDriveFileIcon sx={{ color: "primary.main" }} />
+
+                      {/* Ime fajla */}
+                      <Typography
+                        variant="body2"
                         sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          margin: 1,
-                          padding: "5px 10px",
-                          backgroundColor: "background.paper",
-                          borderRadius: "8px",
-                          maxWidth: "300px",
+                          flexGrow: 1,
+                          wordBreak: "break-word",
+                          width: "100%",
                         }}
                       >
-                        {/* Ikonica fajla */}
-                        <InsertDriveFileIcon sx={{ color: "primary.main" }} />
+                        {file.name}
+                      </Typography>
 
-                        {/* Ime fajla */}
-                        <Typography
-                          variant="body2"
-                          sx={{ flexGrow: 1, wordBreak: "break-word" }}
-                        >
-                          {file.name}
-                        </Typography>
+                      {/* Dugme za brisanje fajla */}
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setSelectedFiles(
+                            (prevFiles) =>
+                              prevFiles.filter((_, i) => i !== index) // Brišemo fajl sa liste
+                          );
+                        }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Grid>
+                  ))}
+                </Box>
+              )}
 
-                        {/* Dugme za brisanje fajla */}
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setSelectedFiles(
-                              (prevFiles) =>
-                                prevFiles.filter((_, i) => i !== index) // Brišemo fajl sa liste
-                            );
+              {(isCreatingForm || newForms.length > 0) && (
+                <Box
+                  sx={{
+                    margin: 0,
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    flexDirection: "column",
+                  }}
+                >
+                  {newForms.length > 0 && (
+                    <Box
+                      sx={{
+                        margin: 0,
+                        padding: 0,
+                        display: "flex",
+                        flexDirection: {
+                          xs: "column",
+                          sm: "column",
+                          md: "row",
+                        },
+                        width: "100%",
+                        alignItems: "center",
+                      }}
+                    >
+                      <DashboardCustomizeIcon
+                        sx={{ color: "primary.dark", mr: 3 }}
+                      />
+                      {newForms.map((form, index) => (
+                        <Grid
+                          item
+                          xs={12}
+                          sm={12}
+                          md={3.8}
+                          key={index}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            margin: 1,
+                            marginTop: 0,
+                            padding: "5px 10px",
+                            backgroundColor: "background.paper",
+                            borderRadius: "8px",
+                            maxWidth: "300px",
                           }}
                         >
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </Grid>
-                    ))}
-                  </Grid>
-                )}
-              </Grid>
+                          {/* Ime fajla */}
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              flexGrow: 1,
+                              wordBreak: "break-word",
+                              width: "100%",
+                            }}
+                          >
+                            {form.topic}
+                          </Typography>
+
+                          {/* Dugme za brisanje fajla */}
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setNewForms(
+                                (prevForms) =>
+                                  prevForms.filter((_, i) => i !== index) // Brišemo fajl sa liste
+                              );
+                            }}
+                          >
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </Grid>
+                      ))}
+                    </Box>
+                  )}
+                  {isCreatingForm && (
+                    <Box sx={{ margin: 0, padding: 0, width: "100%" }}>
+                      <AddNewForm
+                        // courseId={course.id}
+                        setIsCreatingForm={setIsCreatingForm}
+                        messageId={0}
+                        setNewForms={setNewForms}
+                      />
+                    </Box>
+                  )}
+                </Box>
+              )}
+
+              {(isAddingExistingForm || selectedForms.length > 0) && (
+                <Box
+                  sx={{
+                    margin: 0,
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    flexDirection: "column",
+                  }}
+                >
+                  {selectedForms.length > 0 && (
+                    <Box
+                      sx={{
+                        margin: 0,
+                        padding: 0,
+                        display: "flex",
+                        flexDirection: {
+                          xs: "column",
+                          sm: "column",
+                          md: "row",
+                        },
+                        width: "100%",
+                        alignItems: "center",
+                      }}
+                    >
+                      <DashboardIcon sx={{ color: "primary.dark", mr: 3 }} />
+                      {selectedForms.map((form, index) => (
+                        <Grid
+                          item
+                          xs={12}
+                          sm={12}
+                          md={3.8}
+                          key={index}
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            margin: 1,
+                            marginTop: 0,
+                            padding: "5px 10px",
+                            backgroundColor: "background.paper",
+                            borderRadius: "8px",
+                            maxWidth: "300px",
+                          }}
+                        >
+                          {/* Ime fajla */}
+                          <Typography
+                            variant="body2"
+                            sx={{ flexGrow: 1, wordBreak: "break-word" }}
+                          >
+                            {form.topic}
+                          </Typography>
+
+                          {/* Dugme za brisanje fajla */}
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSelectedForms(
+                                (prevForms) =>
+                                  prevForms.filter((_, i) => i !== index) // Brišemo fajl sa liste
+                              );
+                            }}
+                          >
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </Grid>
+                      ))}
+                    </Box>
+                  )}
+                  {forms && isAddingExistingForm && (
+                    <Box sx={{ margin: 0, padding: 0, width: "100%" }}>
+                      {forms.filter((form) => !form.courseId && !form.messageId)
+                        .length > 0 ? (
+                        <FormTable
+                          forms={forms.filter(
+                            (form) => !form.courseId && !form.messageId
+                          )}
+                          // courseId={course.id}
+                          setIsAddingExistingForm={setIsAddingExistingForm}
+                          messageId={0}
+                          setSelectedMessageForms={setSelectedForms}
+                        />
+                      ) : (
+                        "Nema formi za prikaz."
+                      )}
+                    </Box>
+                  )}
+                </Box>
+              )}
               {showMaterials && (
                 <Grid
                   item
@@ -1716,6 +2072,8 @@ export default function Theme() {
                     borderRadius: 3,
                     marginTop: { xs: 0, md: 0 }, // Uklonili smo marginu na malim ekranima
                     order: 2,
+                    height: "78vh",
+                    overflow: "auto",
                   }}
                 >
                   <Box
@@ -1727,7 +2085,7 @@ export default function Theme() {
                       padding: 0,
                       borderRadius: 3,
                       overflowY: "auto",
-                      textAlign:"center",
+                      textAlign: "center",
                     }}
                   >
                     {messages &&
@@ -1745,93 +2103,13 @@ export default function Theme() {
                             <CustomMessageMaterial
                               materials={message.materials}
                             />
-                            {/* {message.materials.map((material, index) => {
-                              if (material.materialType.id === 4) {
-                                return (
-                                  <Box
-                                    key={index}
-                                    sx={{
-                                      marginBottom: 2,
-                                    }}
-                                  >
-                                    <a href={material.url} download>
-                                      <img
-                                        src="/path/to/docx-icon.png"
-                                        alt="DOCX Icon"
-                                        style={{ width: 50, height: 50 }}
-                                      />
-                                      <Typography variant="body1">
-                                        {material.title}
-                                      </Typography>
-                                    </a>
-                                  </Box>
-                                );
-                              } else if (material.materialType.id === 2) {
-                                return (
-                                  <Box
-                                    key={index}
-                                    sx={{
-                                      marginBottom: 2,
-                                    }}
-                                  >
-                                    <a href={material.url} download>
-                                      <img
-                                        src="/path/to/pdf-icon.png"
-                                        alt="PDF Icon"
-                                        style={{ width: 50, height: 50 }}
-                                      />
-                                      <Typography variant="body1">
-                                        {material.title}
-                                      </Typography>
-                                    </a>
-                                  </Box>
-                                );
-                              } else if (material.materialType.id === 5) {
-                                return (
-                                  <Box
-                                    key={index}
-                                    sx={{
-                                      marginBottom: 2,
-                                    }}
-                                  >
-                                    <img
-                                      src={`http://localhost:5000//${material.filePath}`}
-                                      alt={material.title}
-                                      style={{
-                                        maxWidth: "100%",
-                                        borderRadius: 8,
-                                      }}
-                                    />
-                                  </Box>
-                                );
-                              } else if (material.materialType.id === 1) {
-                                return (
-                                  <Box
-                                    key={index}
-                                    sx={{
-                                      marginBottom: 2,
-                                    }}
-                                  >
-                                    <video
-                                      controls
-                                      style={{
-                                        maxWidth: "100%",
-                                        borderRadius: 8,
-                                      }}
-                                      src={`http://localhost:5000//${material.filePath}`}
-                                    />
-                                  </Box>
-                                );
-                              } else {
-                                return null;
-                              }
-                            })} */}
                           </Box>
                         ) : null
                       )
                     ) : (
                       <Typography
                         variant="caption"
+                        // key={messageIndex}
                         sx={{ width: "fit-content" }}
                       >
                         Materijali iz poruka će se prikazati ovdje
@@ -1894,6 +2172,7 @@ export default function Theme() {
           </Dialog>
         </>
       )}
+      {/* <div id="FormElement"></div> */}
     </>
   );
 }

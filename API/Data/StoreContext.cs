@@ -27,6 +27,8 @@ namespace API.Data
         public DbSet<UserCourse> UserCourses { get; set; } = null!;
         public DbSet<Form> Form { get; set; } = null!;
         public DbSet<Option> Option { get; set; } = null!;
+        public DbSet<UserOption> UserOption { get; set; } = null!;
+
 
 
 

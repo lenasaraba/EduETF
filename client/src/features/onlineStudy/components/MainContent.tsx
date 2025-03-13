@@ -109,7 +109,10 @@ export default function MainContent() {
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
     console.log(courseSelected);
     console.log(courseSelected?.professorsCourse);
-    if (courseSelected?.professorsCourse.filter((p)=>p.withdrawDate==null).length == 1) {
+    if (
+      courseSelected?.professorsCourse.filter((p) => p.withdrawDate == null)
+        .length == 1
+    ) {
       setIsLastProf(true);
       handleDeleteClick();
       setOpenDialogRemoveProfessor(false);
@@ -268,7 +271,9 @@ export default function MainContent() {
               padding: 1,
             }}
           >
-            <Typography variant="body1">Učitavanje kurseva</Typography>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Učitavanje kurseva
+            </Typography>
             <CircularProgress size={120} sx={{ color: "text.secondary" }} />
           </Box>
         ) : (

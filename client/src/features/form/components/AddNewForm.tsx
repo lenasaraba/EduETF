@@ -11,7 +11,7 @@ import {
 import { Box } from "@mui/system";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { CreateOption } from "../../../app/models/form";
+import { CreateForm, CreateOption } from "../../../app/models/form";
 import { Form } from "../../../app/models/theme";
 import {
   useAppDispatch,
@@ -27,15 +27,19 @@ interface Props {
   courseId?: number;
   messageId?: number;
   setIsCreatingForm: (value: boolean) => void; // Funkcija za ažuriranje upita
+  setNewForms?: (
+    value: CreateForm[] | ((prevForms: CreateForm[]) => CreateForm[])
+  ) => void;
 }
 export default function AddNewForm({
   courseId,
   messageId,
   setIsCreatingForm,
+  setNewForms,
 }: Props) {
   const dispatch = useAppDispatch();
   //   const user = useAppSelector((state) => state.account.user);
-
+  console.log(messageId);
   const theme = useTheme();
 
   //   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
@@ -76,32 +80,48 @@ export default function AddNewForm({
     trigger,
     formState: { errors },
   } = methods;
-  const onSubmit = async (data: FormData) => {
-    setIsSubmitted(true);
-    const isValid = await trigger();
-    if (!isValid) return;
 
-    try {
-      const newForm = {
+  const onSubmit = async (data: FormData) => {
+    if (messageId != 0) {
+      setIsSubmitted(true);
+      const isValid = await trigger();
+      if (!isValid) return;
+
+      try {
+        const newForm = {
+          topic: data.topic,
+          endDate: data.endDate,
+          multipleAnswer: data.multipleAnswer || false,
+          options: data.options.map((option) => ({ text: option.text })),
+          courseId: courseId ? courseId : null,
+        };
+
+        console.log("Nova anketa:", newForm);
+
+        await dispatch(createForm(newForm)).unwrap();
+
+        console.log("Anketa uspješno kreirana");
+
+        setIsCreatingForm(false);
+
+        reset();
+      } catch (error) {
+        console.error("Greška pri kreiranju ankete:", error);
+      }
+    } else {
+      const isValid = await trigger();
+      if (!isValid) return;
+      const newForm: CreateForm = {
         topic: data.topic,
         endDate: data.endDate,
         multipleAnswer: data.multipleAnswer || false,
         options: data.options.map((option) => ({ text: option.text })),
-        courseId: courseId,
         messageId: messageId,
       };
-
-      console.log("Nova anketa:", newForm);
-
-      await dispatch(createForm(newForm)).unwrap();
-
-      console.log("Anketa uspješno kreirana");
-
+      if (setNewForms) {
+        setNewForms((prevForms: CreateForm[]) => [...prevForms, newForm]);
+      }
       setIsCreatingForm(false);
-
-      reset();
-    } catch (error) {
-      console.error("Greška pri kreiranju ankete:", error);
     }
   };
 
@@ -128,6 +148,7 @@ export default function AddNewForm({
           backgroundColor: "background.paper",
           borderRadius: "12px",
           boxShadow: theme.shadows[3],
+          mb: 2,
         }}
       >
         <Typography variant="h6" sx={{ mb: 2 }}>
@@ -168,6 +189,9 @@ export default function AddNewForm({
                 }}
                 error={!!errors.endDate}
                 helperText={errors.endDate?.message}
+                inputProps={{
+                  min: new Date().toISOString().split("T")[0], // Postavi minimalni datum na današnji datum
+                }}
               />
             )}
           />
@@ -307,7 +331,8 @@ export default function AddNewForm({
               },
             }}
           >
-            Dodaj anketu
+            {" "}
+            {messageId == 0 ? "Sačuvaj" : "Dodaj anketu"}
           </LoadingButton>
         </Box>
       </Box>

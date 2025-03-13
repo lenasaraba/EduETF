@@ -1,4 +1,5 @@
 import { MaterialType, UsersCourse } from "./course";
+import { CreateForm } from "./form";
 
 export interface Theme {
   id: number;
@@ -25,8 +26,32 @@ export interface Message {
   themeId: number;
   materials?: MessageMaterial[];
   forms?: Form[];
+  newForms?: CreateForm[];
+
   user: User;
 }
+export interface CreateMessage {
+  id?: number;
+  content: string;
+  creationDate: string;
+  themeId: number;
+  materials?: CreateMessageMaterial[];
+  forms?: Form[];
+  newForms?: CreateForm[];
+
+  user: User;
+}
+export interface CreateMessageMaterial {
+  id?: number;
+  messageId?: number;
+  title: string;
+  filePath: string;
+  url: string;
+  materialTypeId: number;
+  creationDate: string;
+}
+
+
 
 export interface MessageMaterial {
   id?: number;

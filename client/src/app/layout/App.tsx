@@ -7,9 +7,9 @@ import HomeIcon from "@mui/icons-material/Home";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ForumIcon from "@mui/icons-material/Forum";
-import { type Navigation, type Session } from "@toolpad/core";
+import { Router, type Navigation, type Session } from "@toolpad/core";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import LoadingComponent from "./LoadingComponent";
 import { fetchCurrentUser, signOut } from "../../features/account/accountSlice";
 import lightLogo from "../../assets/lightLogo.png";
@@ -23,6 +23,7 @@ import "./app.css"; //
 import { BrandingContext } from "./BrandingContext";
 import FormPage from "../../features/form/FormPage";
 import { ScheduleRounded, SchoolOutlined } from "@mui/icons-material";
+import { router } from "../router/Routes";
 
 // const NAVIGATION: Navigation = [
 //   {
@@ -161,7 +162,7 @@ const demoTheme = extendTheme({
           default: "#f7f9fc",
           paper: "#e3edf5",
         },
-        divider: "#e3edf5",
+        divider: "#c5daeb",
         primary: { main: "#89a8b2" },
         secondary: { main: "#c4d4e180" },
         common: {
@@ -236,7 +237,9 @@ export default function App() {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
   const user = useAppSelector((state) => state.account.user);
+  const [pathname, setPathname] = useState("/dashboard");
 
+  console.log(router);
   const NAVIGATION = useMemo(() => {
     const baseNavigation: Navigation = [
       {
@@ -278,21 +281,24 @@ export default function App() {
         icon: <PersonOutlineIcon />,
       },
       {
-        segment: " ",
+        segment: "users",
+
+        // action: <PeopleOutlineIcon />,
         title: "Korisnici",
         icon: <PeopleOutlineIcon />,
         children: [
           {
-            segment: "../professors",
+            segment: "/professors",
             title: "Profesori",
             icon: <BadgeTwoToneIcon />,
           },
           {
-            segment: "../students",
+            segment: "/students",
             title: "Studenti",
             icon: <GroupsTwoToneIcon />,
           },
         ],
+        // action: () => {},
       },
       {
         kind: "divider",
@@ -315,23 +321,18 @@ export default function App() {
     const eduETFIndex = baseNavigation.findIndex(
       (item) => item.title === "EduETF"
     );
-  
+
     // Ako je pronađen, umetnite nove stavke ispod njega
     if (eduETFIndex !== -1) {
       if (user) {
-        
-      
-      
-      baseNavigation.splice(eduETFIndex + 1, 0, {
-        segment: "forms",
-        title: "Ankete",
-        icon: <SummarizeIcon />, // Dodajte odgovarajuću ikonu
-      });}
-  
-    
+        baseNavigation.splice(eduETFIndex + 1, 0, {
+          segment: "forms",
+          title: "Ankete",
+          icon: <SummarizeIcon />, // Dodajte odgovarajuću ikonu
+        });
+      }
     }
-    
-  
+
     return baseNavigation;
   }, [user]); // Ovisi o `user` stanju
 
@@ -362,7 +363,6 @@ export default function App() {
   useEffect(() => {
     if (user) {
       setSession(currentSession);
-      
     }
   }, [user]);
 
@@ -374,14 +374,14 @@ export default function App() {
 
   const initApp = useCallback(async () => {
     try {
-      await dispatch(fetchCurrentUser())
+      await dispatch(fetchCurrentUser());
     } catch (error: unknown) {
       console.log(error);
     }
   }, [dispatch]);
 
   useEffect(() => {
-    initApp().then(() => setLoading(false))
+    initApp().then(() => setLoading(false));
   }, [initApp]);
 
   // useEffect(()=>{
@@ -392,7 +392,7 @@ export default function App() {
   //       icon: <SummarizeIcon />, // Dodajte odgovarajuću ikonu
   //     });
   //   }
-  
+
   // }, [])
 
   window.scrollTo(0, 0);
@@ -409,8 +409,9 @@ export default function App() {
           branding={branding}
           authentication={authentication}
           session={session}
+          // router={router}
         >
-          <Outlet />
+          <Outlet/>
         </AppProvider>
       </BrandingContext.Provider>
     </>

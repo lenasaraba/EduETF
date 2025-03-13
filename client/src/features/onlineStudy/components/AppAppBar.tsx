@@ -33,6 +33,7 @@ export default function AppAppBar() {
         sx={{
           // position: "fixed",
           display: "flex",
+          // flexDirection: {xs:"column", sm:"column",md:"row"},
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
@@ -56,7 +57,9 @@ export default function AppAppBar() {
           <Box
             sx={{
               flexGrow: 1,
+
               display: "flex",
+              flexDirection: { xs: "column", sm: "row", md: "row" },
               alignItems: "center",
               px: 0,
               justifyContent: "space-evenly",
@@ -66,9 +69,10 @@ export default function AppAppBar() {
           >
             <Box
               sx={{
-                display: { xs: "none", md: "flex" },
+                display: "flex",
                 margin: 0,
                 padding: 0,
+                // flexDirection: { xs: "column", sm: "column", md: "row" },
               }}
             >
               <Button
@@ -124,7 +128,7 @@ export default function AppAppBar() {
 
                 <Box
                   sx={{
-                    display: { xs: "none", md: "flex" },
+                    display:"flex" ,
                     margin: 0,
                     padding: 0,
                   }}
@@ -183,7 +187,7 @@ export default function AppAppBar() {
                 </Box>
                 <Box
                   sx={{
-                    display: { xs: "none", md: "flex" },
+                    display:"flex" ,
                     margin: 0,
                     padding: 0,
                   }}

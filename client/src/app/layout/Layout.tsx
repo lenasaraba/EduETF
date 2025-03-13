@@ -272,12 +272,10 @@ export default function Layout() {
               },
             },
           },
-
         }}
       />
     );
   }
-
 
   function CustomLoginButton({ mini }: SidebarFooterProps) {
     return (
@@ -288,7 +286,7 @@ export default function Layout() {
           overflow: "hidden",
           height: "7vh",
           maxHeight: "7vh",
-          minHeight:"7vh",
+          minHeight: "7vh",
           width: "100%",
           display: "flex",
           justifyContent: "center",
@@ -334,15 +332,12 @@ export default function Layout() {
         padding: 0,
       }}
       defaultSidebarCollapsed
-      
       // children={}
       slots={{
         toolbarActions: sideMenu,
         toolbarAccount: () => null,
         sidebarFooter: user ? SidebarFooterAccount : CustomLoginButton,
-        
       }}
-      
     >
       {/* <PageContainer> */}
       <Box
@@ -350,6 +345,7 @@ export default function Layout() {
           overflowY: "auto",
           height: "100vh",
           display: "flex",
+          minWidth: "500px",
         }}
       >
         <Outlet />

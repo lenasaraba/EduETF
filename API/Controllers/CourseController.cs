@@ -350,13 +350,18 @@ namespace API.Controllers
         [HttpDelete("DeleteCourse/{id}")]
         public async Task<IActionResult> DeleteCourse(int id)
         {
-            var course = await _context.Courses.FindAsync(id);
+            var course = await _context.Courses.Include(c=>c.Forms).FirstOrDefaultAsync(c=>c.Id==id);
 
             if (course == null)
             {
                 return NotFound(new { Message = "Kurs nije pronađen." });
             }
-
+            if(course.Forms!=null && course.Forms.Count!=0){
+                foreach(var form in course.Forms){
+                    _context.Form.Remove(form);
+                }
+            await _context.SaveChangesAsync();
+            }
             _context.Courses.Remove(course);
             await _context.SaveChangesAsync();
 

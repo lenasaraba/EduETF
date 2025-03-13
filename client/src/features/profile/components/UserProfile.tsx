@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Container,
   Box,
@@ -8,6 +8,8 @@ import {
   Paper,
   Button,
   TextField,
+  CircularProgress,
+  LinearProgress,
 } from "@mui/material";
 import {
   useAppDispatch,
@@ -16,9 +18,11 @@ import {
 import LaunchIcon from "@mui/icons-material/Launch";
 import { updateUser } from "../../account/accountSlice";
 import { Link } from "react-router-dom";
+import { LoadingButton } from "@mui/lab";
 
 const UserProfile = () => {
   const user = useAppSelector((state) => state.account.user);
+  const status = useAppSelector((state) => state.account.status);
 
   // State za mod uređivanja i korisničke podatke
   const [isEditing, setIsEditing] = useState(false);
@@ -36,6 +40,43 @@ const UserProfile = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+
+  const LinearBuffer = () => {
+    const [progress, setProgress] = useState(0);
+    const [buffer, setBuffer] = useState(10);
+
+    const progressRef = useRef(() => {});
+
+    useEffect(() => {
+      progressRef.current = () => {
+        if (progress >= 100) {
+          setProgress(0);
+          setBuffer(10);
+        } else {
+          setProgress((prev) => prev + 5);
+          setBuffer((prev) => Math.min(100, prev + Math.random() * 15));
+        }
+      };
+    }, [progress]);
+
+    useEffect(() => {
+      const timer = setInterval(() => {
+        progressRef.current();
+      }, 150);
+
+      return () => clearInterval(timer);
+    }, []);
+
+    return (
+      <Box sx={{ width: "30%", height: "2vh", mt: 1 }}>
+        <LinearProgress
+          variant="buffer"
+          value={progress}
+          valueBuffer={buffer}
+        />
+      </Box>
+    );
   };
 
   const dispatch = useAppDispatch();
@@ -92,7 +133,11 @@ const UserProfile = () => {
               </Typography> */}
               <Box
                 component={Link}
-                to={user?.role=="Student"? "/studentHistory":`/professorInfo/${user?.id}`}
+                to={
+                  user?.role == "Student"
+                    ? "/studentHistory"
+                    : `/professorInfo/${user?.id}`
+                }
                 title="Dodatne informacije o profilu"
                 sx={{
                   // backgroundColor: "primary.dark",
@@ -104,26 +149,33 @@ const UserProfile = () => {
                   height: "fit-content",
                   width: "2rem",
                   boxSizing: "border-box",
-                  display:"flex", justifyContent:"center",
+                  display: "flex",
+                  justifyContent: "center",
                 }}
               >
                 <LaunchIcon sx={{ fontSize: "16pt" }} />
               </Box>
             </Box>
           </div>
-          <Avatar
-            sx={{
-              width: 80,
-              height: 80,
-              backgroundColor: "text.primary",
-              mb: 2,
-            }}
-          >
-            {initialData.firstName.charAt(0).toUpperCase()}
-          </Avatar>
-          <Typography variant="h5" fontWeight="bold">
-            {initialData.firstName} {initialData.lastName}
-          </Typography>
+          {status == "pendingUpdateUser" ? (
+            <CircularProgress size={30} />
+          ) : (
+            <>
+              <Avatar
+                sx={{
+                  width: 80,
+                  height: 80,
+                  backgroundColor: "text.primary",
+                  mb: 2,
+                }}
+              >
+                {initialData.firstName.charAt(0).toUpperCase()}
+              </Avatar>
+              <Typography variant="h5" fontWeight="bold">
+                {initialData.firstName} {initialData.lastName}
+              </Typography>
+            </>
+          )}
           <Typography variant="subtitle1" color="text.secondary">
             @{user!.username} &bull; {user!.role}
           </Typography>
@@ -184,7 +236,11 @@ const UserProfile = () => {
                 />
               </Grid> */}
               <Box sx={{ textAlign: "center", margin: 2, width: "100%" }}>
-                <Button
+                <LoadingButton
+                  loading={status == "pendingUpdateUser"}
+                  loadingIndicator={
+                    <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+                  }
                   variant="contained"
                   sx={{
                     backgroundColor: "text.primary",
@@ -195,7 +251,7 @@ const UserProfile = () => {
                   disabled={!isFormValid}
                 >
                   Sačuvaj izmjene
-                </Button>
+                </LoadingButton>
                 <Button
                   variant="outlined"
                   sx={{ color: "text.primary" }}
@@ -218,7 +274,11 @@ const UserProfile = () => {
                 >
                   Ime:
                 </Typography>
-                <Typography variant="body1">{formData.firstName}</Typography>
+                {status == "pendingUpdateUser" ? (
+                  <LinearBuffer />
+                ) : (
+                  <Typography variant="body1">{formData.firstName}</Typography>
+                )}
               </Grid>
               <Grid item xs={12}>
                 <Typography
@@ -228,7 +288,11 @@ const UserProfile = () => {
                 >
                   Prezime:
                 </Typography>
-                <Typography variant="body1">{user!.lastName}</Typography>
+                {status == "pendingUpdateUser" ? (
+                  <LinearBuffer />
+                ) : (
+                  <Typography variant="body1">{formData!.lastName}</Typography>
+                )}
               </Grid>
               <Grid item xs={12}>
                 <Typography

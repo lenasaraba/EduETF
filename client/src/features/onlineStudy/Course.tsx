@@ -8,8 +8,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import PermMediaIcon from "@mui/icons-material/PermMedia";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
-import VisibilityIcon from "@mui/icons-material/Visibility"; // Ikona "oko"
-
+import HowToRegOutlinedIcon from "@mui/icons-material/HowToRegOutlined";
 import {
   Collapse,
   Divider,
@@ -49,6 +48,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import SpeedDialIcon from "@mui/material/SpeedDialIcon";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"; // Ikona za proširenje
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import {
   addProfessorToCourse,
@@ -77,8 +77,13 @@ import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import AddNewForm from "../form/components/AddNewForm";
 import FormVote from "../form/components/FormVote";
-import { fetchFormsByCourseIdAsync } from "../form/formSlice";
+import {
+  deleteFormAsync,
+  fetchAllFormsAsync,
+  fetchFormsByCourseIdAsync,
+} from "../form/formSlice";
 import { Form } from "../../app/models/form";
+import FormTable from "../form/components/FormTable";
 
 const LinearBuffer = () => {
   const [progress, setProgress] = useState(0);
@@ -330,6 +335,9 @@ export default function Course() {
     (state) => state.course.currentCourseLoaded
   );
 
+  const forms = useAppSelector((state) => state.form.forms);
+  const formsLoaded = useAppSelector((state) => state.form.formsLoaded);
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const idMenu = open ? "simple-popover" : undefined;
@@ -348,7 +356,8 @@ export default function Course() {
   >(undefined);
 
   const { user } = useAppSelector((state) => state.account);
-  const [isCreatingForm, setIsCreatingForm] = useState(false); // Stanje za prikaz forme
+  const [isCreatingForm, setIsCreatingForm] = useState(false);
+  const [isAddingExistingForm, setIsAddingExistingForm] = useState(false);
 
   const handleCloseWeek = async () => {
     setOpenWeeks((prev) => prev.map(() => false));
@@ -419,6 +428,8 @@ export default function Course() {
     const fetchData = async () => {
       const response = await dispatch(fetchCourseAsync(parseInt(id!)));
       await dispatch(fetchFormsByCourseIdAsync(parseInt(id!)));
+      await dispatch(fetchAllFormsAsync());
+
       if (fetchCourseAsync.fulfilled.match(response)) {
         dispatch(
           fetchCurrentCourseMaterialAsync({
@@ -548,16 +559,32 @@ export default function Course() {
     // setAddingWeek(true);
   };
 
+  const handleAddExistingForm = () => {
+    setIsAddingExistingForm(true);
+    // setNewWeek(course!.weekCount + 1);
+    // setAddingWeek(true);
+  };
+
   const handleExpand = (formId: number) => {
     setExpandedFormId((prev) => (prev === formId ? null : formId)); // Ako je već otvorena, zatvori je
   };
 
   // Funkcija za izračunavanje ukupnog broja glasova za formu
   const getTotalVotes = (form: Form) => {
-    return form.options.reduce(
-      (total, option) => total + option.usersOption.length,
-      0
-    );
+    // return form.options.reduce(
+    //   (total, option) => total + option.usersOption.length,
+    //   0
+    // );
+    const uniqueUserIds = new Set<number>();
+
+    form.options.forEach((option) => {
+      option.usersOption.forEach((userOption) => {
+        uniqueUserIds.add(userOption.user.id);
+      });
+    });
+
+    return uniqueUserIds.size;
+    // return 0;
   };
 
   const activeThemes = course?.themes.filter((theme) => theme.active);
@@ -573,6 +600,22 @@ export default function Course() {
 
   const handleRemoveStudentClick = () => {
     setOpenDialogRemoveStudent(true);
+  };
+  const [openFormDialog, setOpenFormDialog] = useState(false);
+  const [selectedFormId, setSelectedFormId] = useState<number>();
+
+  const handleDeleteForm = (id: number) => {
+    setSelectedFormId(id!);
+    setOpenFormDialog(true);
+  };
+  const handleFormDeleteClick = async () => {
+    try {
+      await dispatch(deleteFormAsync(selectedFormId!));
+    } catch (error) {
+      console.error("Greška prilikom brisanja forme:", error);
+    } finally {
+      setOpenFormDialog(false);
+    }
   };
 
   const handleDeleteMaterialClick = (material: Material) => {
@@ -707,7 +750,7 @@ export default function Course() {
     {
       icon: <DashboardIcon />,
       name: "Dodaj postojeću anketu",
-      action: () => alert("Anketa postojeća!"),
+      action: handleAddExistingForm,
     },
   ];
 
@@ -751,7 +794,7 @@ export default function Course() {
         (p) => p.user.id === prof.id && p.withdrawDate == null
       )
   );
-  console.log(addingWeek, !editingWeek, !currentMat);
+
   // console.log(availableProfessor);
   return (
     <>
@@ -1202,6 +1245,56 @@ export default function Course() {
                   }
                 >
                   Ispiši se
+                </LoadingButton>
+              </DialogActions>
+            </Dialog>
+
+            <Dialog
+              open={openFormDialog}
+              sx={{
+                "& .MuiDialog-paper": {
+                  borderRadius: "12pt",
+                  padding: 3,
+                  minWidth: 300,
+                  textAlign: "center",
+                },
+              }}
+            >
+              <DialogTitle
+                sx={{
+                  fontFamily: "Raleway, sans-serif",
+                  fontSize: "1.2rem",
+                }}
+              >
+                Potvrda brisanja
+              </DialogTitle>
+              <DialogContent>
+                <Typography
+                  sx={{
+                    fontFamily: "Raleway, sans-serif",
+                    color: "text.secondary",
+                  }}
+                >
+                  Da li ste sigurni da želite da obrišete anketu?
+                </Typography>
+              </DialogContent>
+              <DialogActions sx={{ justifyContent: "center", gap: 2 }}>
+                <Button
+                  onClick={() => setOpenFormDialog(false)}
+                  sx={{ color: "text.primary" }}
+                >
+                  Odustani
+                </Button>
+                <LoadingButton
+                  loading={statusForm == "pendingDeleteForm"}
+                  onClick={handleFormDeleteClick}
+                  color="error"
+                  variant="contained"
+                  loadingIndicator={
+                    <CircularProgress size={18} sx={{ color: "white" }} />
+                  }
+                >
+                  Obriši
                 </LoadingButton>
               </DialogActions>
             </Dialog>
@@ -1709,6 +1802,7 @@ export default function Course() {
                                   in={openWeeks[index]}
                                   timeout="auto"
                                   unmountOnExit
+                                  key={index}
                                 >
                                   <List
                                     component="div"
@@ -1745,9 +1839,7 @@ export default function Course() {
                                   </List>
                                 </Collapse>
                               </div>
-                            ) : (
-                              <></>
-                            )
+                            ) : null
                           )}
                         </List>{" "}
                       </Box>
@@ -2063,13 +2155,38 @@ export default function Course() {
                     </Box>
                   )}
               </Box>
-              
+
               {isCreatingForm && (
                 <AddNewForm
                   courseId={course.id}
                   setIsCreatingForm={setIsCreatingForm}
                 />
               )}
+
+              {isAddingExistingForm &&
+                (formsLoaded ? (
+                  forms ? (
+                    <Box
+                      sx={{
+                        marginY: 2,
+                        marginX: 0,
+                        padding: 0,
+                      }}
+                    >
+                      <FormTable
+                        courseId={course.id}
+                        forms={forms.filter(
+                          (form) => !form.courseId && !form.messageId
+                        )}
+                        setIsAddingExistingForm={setIsAddingExistingForm}
+                      />
+                    </Box>
+                  ) : (
+                    "Nema anketa za prikaz."
+                  )
+                ) : (
+                  <CircularProgress size={18} sx={{ color: "white" }} />
+                ))}
 
               {statusForm == "pendingFetchFormsByCourseId" ? (
                 <LinearBuffer />
@@ -2136,22 +2253,45 @@ export default function Course() {
                           course?.professorsCourse.some(
                             (pc) => pc.user.username === user.username
                           ) && (
-                            <IconButton
-                              onClick={(e) => {
-                                e.stopPropagation(); // Sprečava otvaranje/zatvaranje akordeona
-                              }}
-                              size="small"
+                            <Box
                               sx={{
+                                margin: 0,
+                                padding: 0,
                                 display: "flex",
-                                alignItems: "center",
-                                gap: 1,
+                                width: "fit-content",
                               }}
                             >
-                              <VisibilityIcon />
-                              <Typography variant="body2">
-                                {getTotalVotes(form)}
-                              </Typography>
-                            </IconButton>
+                              <IconButton
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Sprečava otvaranje/zatvaranje akordeona
+                                }}
+                                size="small"
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                  mr: 1,
+                                }}
+                              >
+                                <HowToRegOutlinedIcon />
+                                <Typography variant="body2">
+                                  {getTotalVotes(form)}
+                                </Typography>
+                              </IconButton>
+                              {isEditing && (
+                                <IconButton
+                                  onClick={() => handleDeleteForm(form.id)}
+                                  size="small"
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                  }}
+                                >
+                                  <DeleteIcon />
+                                </IconButton>
+                              )}
+                            </Box>
                           )}
                       </div>
                     </AccordionSummary>
@@ -2179,38 +2319,51 @@ export default function Course() {
             </Grid>
             <Grid item xs={12} md={12} sx={{ padding: 1 }}>
               <Divider sx={{ marginY: 2, width: "100%" }} />
-              {user && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                  }}
-                >
-                  <Typography variant="body1" sx={{ color: "primary.dark" }}>
-                    Dodaj temu za ovaj kurs&nbsp;
-                  </Typography>
-                  <Button
-                    onClick={() => navigate("/createTheme")}
-                    title="Dodaj temu"
+
+              <Box
+                sx={{
+                  margin: 0,
+                  padding: 0,
+                  mb: 2,
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography variant="h5">Teme</Typography>{" "}
+                {user && (
+                  <Box
                     sx={{
-                      backgroundColor: "primary.dark",
-                      color: "white",
-                      padding: 0.8,
-                      borderRadius: "50%",
-                      minWidth: "2rem",
-                      "&:hover": { backgroundColor: "primary.light" },
-                      // height: "fit-content",
-                      // width: "2rem",
-                      width: "38px",
-                      height: "38px",
-                      boxSizing: "border-box",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
                     }}
                   >
-                    <AddIcon sx={{ fontSize: "16pt" }} />
-                  </Button>
-                </Box>
-              )}
+                    <Typography variant="body1" sx={{ color: "primary.dark" }}>
+                      Dodaj temu za ovaj kurs&nbsp;
+                    </Typography>
+                    <Button
+                      onClick={() => navigate("/createTheme")}
+                      title="Dodaj temu"
+                      sx={{
+                        backgroundColor: "primary.dark",
+                        color: "white",
+                        padding: 0.8,
+                        borderRadius: "50%",
+                        minWidth: "2rem",
+                        "&:hover": { backgroundColor: "primary.light" },
+                        // height: "fit-content",
+                        // width: "2rem",
+                        width: "38px",
+                        height: "38px",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <AddIcon sx={{ fontSize: "16pt" }} />
+                    </Button>
+                  </Box>
+                )}{" "}
+              </Box>
             </Grid>
 
             <Grid

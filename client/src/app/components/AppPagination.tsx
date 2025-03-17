@@ -14,7 +14,7 @@ export default function AppPagination({ metaData, onPageChange }: Props) {
     totalPages
   );
   return (
-    <Box display="flex" justifyContent="space-between" alignItems="center">
+    <Box display="flex" justifyContent="space-between" alignItems="center" sx={{flexDirection:{xs:"column", sm:"column", md:"row"}}}>
       <Typography
         sx={{ fontFamily: "Raleway, sans-serif", color: "primary.main" }}
       >

@@ -72,7 +72,8 @@ export const router = createBrowserRouter([
             element: <Users />,
           },
           {
-            path: "profile",
+            //popraviti u kodu, zamijeniti profile
+            path: "myProfile",
             element: (
               <RequireAuth>
                 <UserProfile />

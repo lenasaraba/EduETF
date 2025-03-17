@@ -21,13 +21,17 @@ namespace API.Controllers
         private readonly IMapper _mapper;
         private readonly RoleManager<Role> _roleManager;
         private readonly UserManager<User> _userManager;
+        private readonly FirebaseService _firebaseService;
 
-        public ProfessorController(StoreContext context, IMapper mapper, RoleManager<Role> roleManager, UserManager<User> userManager)
+
+        public ProfessorController(StoreContext context, IMapper mapper, RoleManager<Role> roleManager, UserManager<User> userManager, FirebaseService firebaseService)
         {
             _context = context;
             _mapper = mapper;
             _roleManager = roleManager;
             _userManager = userManager;
+            _firebaseService = firebaseService;
+
         }
 
         public class AddRequest
@@ -37,7 +41,7 @@ namespace API.Controllers
 
         }
 
-         public class RemoveRequestP
+        public class RemoveRequestP
         {
             public int CourseId { get; set; }
 
@@ -50,23 +54,21 @@ namespace API.Controllers
             var role = await _roleManager.FindByIdAsync(roleId.ToString());
             if (role == null)
             {
-                return NotFound("Role not found");
+                return NotFound("Rola nije pronađena");
             }
 
-            // Kreiranje upita za sve profesore sa specifičnom ulogom
             var query = _context.Users
                 .Where(u => _context.UserRoles
                     .Where(ur => ur.RoleId == role.Id)
                     .Any(ur => ur.UserId == u.Id))
-                .Include(u => u.ProfessorCourses) // Veza sa kursevima profesora
-                    .ThenInclude(pc => pc.Course)
-                    .ThenInclude(c => c.StudyProgram) // Veza sa programima
                 .Include(u => u.ProfessorCourses)
                     .ThenInclude(pc => pc.Course)
-                    .ThenInclude(c => c.Year) // Veza sa godinama
+                    .ThenInclude(c => c.StudyProgram)
+                .Include(u => u.ProfessorCourses)
+                    .ThenInclude(pc => pc.Course)
+                    .ThenInclude(c => c.Year)
                 .AsQueryable();
 
-            // Filtriranje prema imenu i prezimenu
             if (!string.IsNullOrEmpty(professorsParams.SearchTerm))
             {
                 query = query.Where(p =>
@@ -74,28 +76,23 @@ namespace API.Controllers
                     p.LastName.Contains(professorsParams.SearchTerm));
             }
 
-            // Filtriranje prema godinama
             if (!string.IsNullOrEmpty(professorsParams.Year))
             {
                 if (professorsParams.Year != "Sve")
                     query = query.Where(p =>
-                        p.ProfessorCourses.Any(pc =>pc.WithdrawDate==null && pc.Course.Year.Name == professorsParams.Year));
+                        p.ProfessorCourses.Any(pc => pc.WithdrawDate == null && pc.Course.Year.Name == professorsParams.Year));
             }
 
-            // Filtriranje prema programima
             if (!string.IsNullOrEmpty(professorsParams.Program))
             {
                 if (professorsParams.Program != "Sve")
                     query = query.Where(p =>
-                        p.ProfessorCourses.Any(pc =>pc.WithdrawDate==null && pc.Course.StudyProgram.Name == professorsParams.Program));
+                        p.ProfessorCourses.Any(pc => pc.WithdrawDate == null && pc.Course.StudyProgram.Name == professorsParams.Program));
             }
 
 
-
-            // Izvršavanje upita
             var professors = await query.ToListAsync();
 
-            // Mapiranje rezultata na DTO
             return professors.Select(p => _mapper.Map<UserDto>(p)).ToList();
         }
 
@@ -117,15 +114,15 @@ namespace API.Controllers
         public async Task<ActionResult> GetProfessorYearsPrograms(int id)
         {
             var years = await _context.ProfessorCourses
-                .Where(pc => pc.UserId == id && pc.WithdrawDate==null) // Filtriranje po ID-u profesora
-                .Select(pc => pc.Course!.Year) // Dohvatanje godina iz povezanog kursa
+                .Where(pc => pc.UserId == id && pc.WithdrawDate == null)
+                .Select(pc => pc.Course!.Year)
                 .Distinct()
                 .ToListAsync();
 
 
             var programs = await _context.ProfessorCourses
-                .Where(pc => pc.UserId == id && pc.WithdrawDate==null) // Filtriranje po ID-u profesora
-                .Select(pc => pc.Course!.StudyProgram) // Dohvatanje programa iz povezanog kursa
+                .Where(pc => pc.UserId == id && pc.WithdrawDate == null)
+                .Select(pc => pc.Course!.StudyProgram)
                 .Distinct()
                 .ToListAsync();
 
@@ -166,24 +163,28 @@ namespace API.Controllers
             if (course == null)
                 return NotFound("Kurs nije pronađen");
 
-            // Provera da li je student već upisan na kurs
             var existingEnrollment = await _context.ProfessorCourses
-                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId && pc.WithdrawDate==null);
+                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId && pc.WithdrawDate == null);
 
             if (existingEnrollment != null)
                 return BadRequest("Profesor je već dodat na kurs.");
 
-            // Kreiranje novog zapisa
             var enrollment = new ProfessorCourse
             {
                 UserId = professor.Id,
                 CourseId = courseId,
-                EnrollDate = DateTime.UtcNow // Ako želiš da čuvaš datum upisa
+                EnrollDate = DateTime.UtcNow
 
             };
 
             _context.ProfessorCourses.Add(enrollment);
             await _context.SaveChangesAsync();
+
+
+            var addedProfessor = await _context.Users.Include(u => u.FcmTokens).FirstOrDefaultAsync(i => i.Id == professor.Id);
+            var token = addedProfessor.FcmTokens.Select(t => t.Token).ToList();
+
+            await _firebaseService.SendNotificationAsync(token, "Poruka", "Postali ste profesor na kursu " + course.Name);
 
             var professorDto = new UserDto
             {
@@ -211,36 +212,31 @@ namespace API.Controllers
         {
             int courseId = request.CourseId;
 
-            // Provera identiteta profesora
             var professor = await _userManager.FindByNameAsync(User.Identity.Name);
-            // int professorId=professor.Id;
             if (professor == null)
                 return NotFound("Profesor nije pronađen");
 
-            // Provera da li kurs postoji
             var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == courseId);
             if (course == null)
                 return NotFound("Kurs nije pronađen");
 
-            // Provera da li je profesor upisan na kurs
             var enrollment = await _context.ProfessorCourses
-                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId && pc.WithdrawDate==null);
+                .FirstOrDefaultAsync(pc => pc.UserId == professor.Id && pc.CourseId == courseId && pc.WithdrawDate == null);
 
             if (enrollment == null)
                 return BadRequest("Profesor nije upisan na kurs.");
 
-            enrollment.WithdrawDate=DateTime.UtcNow;
+            enrollment.WithdrawDate = DateTime.UtcNow;
 
-            // Brisanje zapisa o upisu profesora na kurs
-            // _context.ProfessorCourses.Remove(enrollment);
             await _context.SaveChangesAsync();
 
             return Ok(new
-            {   Method="RemoveProfessorFromCourse",
+            {
+                Method = "RemoveProfessorFromCourse",
                 Message = "Uspješno ste ispisani sa kursa.",
                 professorId = professor.Id,
                 courseId = course.Id,
-                withdrawDate=enrollment.WithdrawDate
+                withdrawDate = enrollment.WithdrawDate
             });
         }
 

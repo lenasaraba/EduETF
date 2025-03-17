@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
-import PermMediaIcon from "@mui/icons-material/PermMedia";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
 import HowToRegOutlinedIcon from "@mui/icons-material/HowToRegOutlined";
@@ -37,8 +36,17 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  useTheme,
+  useMediaQuery,
+  Modal,
 } from "@mui/material";
-import { EditNote, ExpandLess, ExpandMore } from "@mui/icons-material";
+import {
+  EditNote,
+  ExpandLess,
+  ExpandMore,
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
 import CourseCardMedia from "./components/CourseCardMedia";
 import { Author } from "./components/Author";
 import SlideCardThemes from "./components/SlideCardThemes";
@@ -47,7 +55,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
 import SpeedDialIcon from "@mui/material/SpeedDialIcon";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"; // Ikona za proširenje
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import {
@@ -67,7 +75,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import AddIcon from "@mui/icons-material/Add";
 import AppDropzone from "./components/AppDropzone";
 import { useForm } from "react-hook-form";
-import { AddMaterial, Material } from "../../app/models/course";
+import { Material } from "../../app/models/course";
 import CustomTimeline from "./components/CustomTimeline";
 import { LoadingButton } from "@mui/lab";
 import Unauthorized from "../../app/errors/Unauthorized";
@@ -112,7 +120,7 @@ const LinearBuffer = () => {
   }, []);
 
   return (
-    <Box sx={{ width: "30%", height: "2vh", mt: 1 }}>
+    <Box sx={{ width: "100%", height: "2vh", mt: 1 }}>
       <LinearProgress variant="buffer" value={progress} valueBuffer={buffer} />
     </Box>
   );
@@ -121,18 +129,16 @@ const LinearBuffer = () => {
 interface SearchBarProps {
   onSearch: (query: string) => void;
   query: string;
-  setQuery: (query: string) => void; // Funkcija za ažuriranje upita
+  setQuery: (query: string) => void;
 }
 const SearchBar: React.FC<SearchBarProps> = ({ onSearch, query, setQuery }) => {
-  // const [query, setQuery] = useState<string>("");
-
   const debouncedSearch = useMemo(
     () =>
       debounce((event: any) => {
         console.log(event);
         onSearch(event);
       }, 1000),
-    [] // Zavisi samo od dispatch-ap
+    []
   );
 
   useEffect(() => {
@@ -176,26 +182,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, query, setQuery }) => {
             borderColor: "background.default",
           },
           "&:hover fieldset": {
-            borderColor: "action.hover", // Promeni samo obrub, ako želiš
+            borderColor: "action.hover",
           },
           "&:hover": {
-            backgroundColor: "action.hover", // Ovdje se menja pozadina celog inputa
+            backgroundColor: "action.hover",
           },
           "&.Mui-focused fieldset": {
             borderColor: "primary.main",
           },
         },
-        "& .MuiOutlinedInput-input": {
-          // padding: 0,
-          // height: "100%",
-        },
-        // "& .MuiInputBase-inputAdornedStart": {
-        //   paddingLeft: 0,
-        // },
-        // "& input": {
-        //   color: "primary.main", // Osnovna boja teksta
-        //   fontSize: 14,
-        // },
       }}
       value={query}
       onChange={(e: any) => {
@@ -204,7 +199,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, query, setQuery }) => {
         debouncedSearch(e.target.value);
       }}
     />
-    // <button onClick={handleSearch}>Search</button>
   );
 };
 
@@ -219,14 +213,10 @@ export default function Course() {
 
   const getFilePreview = (filePath: string) => {
     const handleDownload = () => {
-      // const userConfirmed = window.confirm(
-      //   "Da li želite da preuzmete ovaj fajl?"
-      // );
-      // if (userConfirmed) {
       const link = document.createElement("a");
       link.href = `http://localhost:5000//${filePath}`;
       link.download =
-        `http://localhost:5000//${filePath}`!.split("/").pop() || ""; // Ime fajla za preuzimanje
+        `http://localhost:5000//${filePath}`!.split("/").pop() || "";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -242,7 +232,7 @@ export default function Course() {
         <img
           src={fileUrl}
           alt="Preview"
-          style={{ width: "100%", maxHeight: "100%", objectFit: "cover" }}
+          style={{ width: "100%", maxHeight: "100%", objectFit: "contain" }}
         />
       );
     }
@@ -259,16 +249,45 @@ export default function Course() {
 
     if (fileExtension === "pdf") {
       return (
-        <iframe
-          src={fileUrl}
-          style={{
-            width: "100%",
-            height: "100%",
-            border: "none",
-            minHeight: "59vh",
-          }}
-          title="PDF Preview"
-        />
+        <object
+          data={fileUrl}
+          type="application/pdf"
+          width="100%"
+          height="600px"
+        >
+          <Box
+            sx={{
+              margin: 0,
+              padding: 0,
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+            }}
+          >
+            <PictureAsPdfIcon fontSize="medium" sx={{ mr: 2 }} />
+
+            <Typography
+              variant="body1"
+              sx={{
+                textDecoration: "none",
+                color: "primary.main",
+                "&:hover": {
+                  color: "primary.main",
+                },
+                "& a:visited": { color: "primary.main" },
+              }}
+            >
+              Prikaži PDF &nbsp;
+              <a
+                href={fileUrl}
+                target="_blank"
+                style={{ textDecoration: "none" }}
+              >
+                {filePath.split("/").pop()}&nbsp;
+              </a>
+            </Typography>
+          </Box>
+        </object>
       );
     }
 
@@ -277,8 +296,9 @@ export default function Course() {
         display="flex"
         alignItems="center"
         sx={{
-          width: "fit-content",
+          width: "100%",
           "&:hover": { cursor: "pointer", color: "primary.dark" },
+          justifyContent: "space-evenly",
         }}
       >
         {fileExtension === "docx" || fileExtension === "xlsx" ? (
@@ -286,7 +306,7 @@ export default function Course() {
         ) : (
           <PictureAsPdfIcon fontSize="medium" />
         )}
-        <Typography sx={{ marginLeft: 1, fontSize: "10pt" }}>
+        <Typography variant="body1" sx={{ marginLeft: 1 }}>
           {filePath.split("/").pop()}&nbsp;
         </Typography>
         <IconButton title="Preuzmi dokument" onClick={handleDownload}>
@@ -325,16 +345,12 @@ export default function Course() {
     } else if (file.name.endsWith(".docx")) {
       return 4;
     } else if (file.type.startsWith("video/")) {
-      return 1; // Video
+      return 1;
     }
     return 0;
   };
 
   const navigate = useNavigate();
-  const currentCourseLoaded = useAppSelector(
-    (state) => state.course.currentCourseLoaded
-  );
-
   const forms = useAppSelector((state) => state.form.forms);
   const formsLoaded = useAppSelector((state) => state.form.formsLoaded);
 
@@ -348,9 +364,11 @@ export default function Course() {
 
   const [openDialogRemoveStudent, setOpenDialogRemoveStudent] = useState(false);
   const [isLastProf, setIsLastProf] = useState(false);
-  // const [isStudent, setIsStudent] = useState(false);
-  // const [isProfessor, setIsProfessor] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
   const [selectedMaterial, setSelectedMaterial] = useState<
     Material | undefined
   >(undefined);
@@ -371,15 +389,12 @@ export default function Course() {
       alert("Dodajte bar jedan fajl!");
       return;
     }
-    console.log(selectedFiles);
 
-    const materials: AddMaterial[] = [];
     const localDate = new Date();
     const offset = localDate.getTimezoneOffset();
 
     const adjustedDate = new Date(localDate.getTime() - offset * 60000);
     selectedFiles.forEach((file) => {
-      console.log(file);
       const material = {
         courseId: parseInt(id!),
         title: file.name,
@@ -389,9 +404,6 @@ export default function Course() {
         creationDate: adjustedDate.toISOString(),
         week: newWeek,
       };
-
-      console.log(material);
-      //materials.push(material);
       dispatch(
         uploadFile({
           file: file,
@@ -403,25 +415,21 @@ export default function Course() {
     });
     if (addingWeek) setAddingWeek(false);
     else if (editingWeek) setEditingWeek(false);
-
-    // await dispatch(uploadMaterials(materials));
     setSelectedFiles([]);
-    // setNewWeek((prev) => prev + 1);
+    setOpenWeeks((prev) =>
+      prev.map((isOpen, i) => (i === newWeek - 1 ? true : false))
+    );
   };
 
   const [isEditing, setIsEditing] = useState(false);
-  // const [isEditingWeek, setIsEditingWeek] = useState(false);
-
   const toggleEdit = () => {
-    setAnchorEl(null); // Dijalog se otvara nakon što se tema postavi
-
+    setAnchorEl(null);
     setTimeout(() => {
       setIsEditing(!isEditing);
     }, 0);
   };
 
   const { id } = useParams<{ id: string }>();
-  // const prevProfessors = useRef(0);
 
   const course = useAppSelector((state) => state.course.currentCourse);
   useEffect(() => {
@@ -430,14 +438,14 @@ export default function Course() {
       await dispatch(fetchFormsByCourseIdAsync(parseInt(id!)));
       await dispatch(fetchAllFormsAsync());
 
-      if (fetchCourseAsync.fulfilled.match(response)) {
-        dispatch(
-          fetchCurrentCourseMaterialAsync({
-            courseId: parseInt(id!),
-            query: "",
-          })
-        );
-      }
+      // if (fetchCourseAsync.fulfilled.match(response)) {
+      //   dispatch(
+      //     fetchCurrentCourseMaterialAsync({
+      //       courseId: parseInt(id!),
+      //       query: "",
+      //     })
+      //   );
+      // }
     };
 
     fetchData();
@@ -453,11 +461,10 @@ export default function Course() {
     }
   }, [id]);
 
-  // const user = useAppSelector((state) => state.account.user);
-
   const courseMaterials = useAppSelector(
     (state) => state.course.currentCourseMaterials
   );
+  if (courseMaterials) console.log(...courseMaterials);
 
   // useEffect(() => {
   //     dispatch(fetchCurrentCourseMaterialAsync(parseInt(id!)));
@@ -466,12 +473,7 @@ export default function Course() {
   const materialsLoaded = useAppSelector(
     (state) => state.course.materialsLoaded
   );
-  // const courseStatus = useAppSelector((state) => state.course.status);
 
-  // const coursesLoaded = useAppSelector((state) => state.course.allcoursesLoaded);
-  // console.log(course);
-
-  //novo
   const [openWeeks, setOpenWeeks] = useState<boolean[]>([]);
   const [addingWeek, setAddingWeek] = useState(false);
   const [editingWeek, setEditingWeek] = useState(false);
@@ -482,22 +484,19 @@ export default function Course() {
 
   const [openProf, setOpenProf] = useState(false);
 
-  const [showStudents, setShowStudents] = useState(false); // Stanje za prikaz/sakrivanje grida sa studentima
+  const [showStudents, setShowStudents] = useState(false);
 
   const toggleStudents = () => {
-    setShowStudents(!showStudents); // Promeni stanje prikaza
+    setShowStudents(!showStudents);
   };
-  // useEffect(() => {
-  //   console.log("newWeek ažuriran:", newWeek);
-  //   // Ovdje možeš dodati bilo koji kod koji treba da reaguje na promjenu
-  // }, [newWeek]);
 
-  // Čekaj da se kurs učita, zatim postavi state
-
-  // const prevProfessorsNumber = useRef(course?.professorsCourse.length);
   useEffect(() => {
     if (course) {
-      if (status != "fulfilledAddProfessorToCourse") {
+      if (
+        status != "fulfilledAddProfessorToCourse" &&
+        status != "idleUploadExistingWeek" &&
+        status != "idleUploadNewWeek"
+      ) {
         //   // console.log(course.professorsCourse.length);
         // console.log(prevProfessors);
         // if (prevProfessors.current == course.professorsCourse.length) {
@@ -506,29 +505,33 @@ export default function Course() {
         dispatch(
           fetchCurrentCourseMaterialAsync({ courseId: course.id, query: "" })
         );
-        console.log("aaaa");
+      }
+      if (status == "idleUploadNewWeek") {
+        setOpenWeeks(Array(course.weekCount + 1).fill(false));
+        setOpenWeeks((prev) =>
+          prev.map((isOpen, i) => (i === course.weekCount ? true : false))
+        );
+        setNewWeek(course.weekCount);
       }
     }
   }, [course]);
 
   useEffect(() => {
     if (selectedMaterial != undefined) {
-      console.log(selectedMaterial);
       setOpenDialogMaterial(true);
-    } else {
-      console.log("USLA U ODUSTANI");
-      console.log(selectedMaterial);
     }
   }, [selectedMaterial]);
 
   const toggleWeek = (index: number) => {
+    // console.log(index);
+
     setOpenWeeks((prev) =>
       prev.map((isOpen, i) => (i === index ? !isOpen : isOpen))
     );
+    // console.log(...openWeeks)
   };
 
   const editWeek = (index: number) => {
-    console.log(index);
     setOpenWeeks((prev) =>
       prev.map((isOpen, i) => (i === index - 1 ? true : false))
     );
@@ -538,7 +541,6 @@ export default function Course() {
     setTimeout(() => {
       setEditingWeek(true);
     }, 0);
-    console.log(newWeek);
   };
 
   const handleAddWeek = () => {
@@ -550,19 +552,14 @@ export default function Course() {
   };
 
   const courseForms = useAppSelector((state) => state.form.courseForms);
-  const courseFormsLoaded = useAppSelector((state) => state.form.formsLoaded);
 
   const [expandedFormId, setExpandedFormId] = useState<number | null>(null);
   const handleAddForm = () => {
     setIsCreatingForm(true);
-    // setNewWeek(course!.weekCount + 1);
-    // setAddingWeek(true);
   };
 
   const handleAddExistingForm = () => {
     setIsAddingExistingForm(true);
-    // setNewWeek(course!.weekCount + 1);
-    // setAddingWeek(true);
   };
 
   const handleExpand = (formId: number) => {
@@ -720,6 +717,10 @@ export default function Course() {
     }
   };
 
+  const theme = useTheme();
+
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md")); // xs i sm ekrani
+
   const showFile = (material: Material) => {
     setFileVisible(true);
     console.log(material);
@@ -728,6 +729,14 @@ export default function Course() {
   const hideFile = () => {
     setFileVisible(false);
     setCurrentMat(undefined); // ili undefined, zavisno od tipa
+  };
+
+  const handleFileClick = (material: Material) => {
+    if (isSmallScreen) {
+      window.open(`http://localhost:5000/${material.filePath}`, "_blank"); // Otvori u novom tabu
+    } else {
+      showFile(material); // Setuje fileVisible
+    }
   };
 
   // Klik na Chip - otvara modal i preuzima profesore
@@ -821,7 +830,7 @@ export default function Course() {
             paddingY: 3,
             marginBottom: 5,
             height: "fit-content",
-            minWidth: "600px",
+            // minWidth: "600px",
             overflowX: "hidden",
           }}
         >
@@ -1308,15 +1317,14 @@ export default function Course() {
                 paddingRight: { xs: 2, md: showStudents ? 0 : 2 },
                 justifyContent: "space-between",
                 borderRadius: 3,
-                display: "flex", // Koristimo flex za kontrolu redosleda
-                flexDirection: { xs: "column", md: "row" }, // Na malim ekranima kolona, na većim red
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
               }}
             >
-              {/* Leva strana - Informacije o kursu */}
               <Grid
                 item
                 xs={12}
-                md={showStudents ? 8 : 12} // Dinamička širina u zavisnosti od prikaza studenta
+                md={showStudents ? 8 : 12}
                 sx={{
                   height: { xs: "auto", md: "100%" },
                   width: "100%",
@@ -1330,10 +1338,9 @@ export default function Course() {
                   "&:hover": {
                     transform: "scale(1.01)",
                   },
-                  order: 1, // Prvi element u redu
+                  order: 1,
                 }}
               >
-                {/* Dugme za prikaz/sakrivanje studenta */}
                 <Grid
                   container
                   spacing={1}
@@ -1344,9 +1351,7 @@ export default function Course() {
                     paddingBottom: 1,
                   }}
                 >
-                  {/* 1. Velika slika kursa */}
                   <Box
-                    component={Grid}
                     sx={{ width: "100%", height: "60%", position: "relative" }}
                   >
                     <Grid
@@ -1383,8 +1388,6 @@ export default function Course() {
                           sx={{
                             backdropFilter: "blur(40px)",
                             color: "primary.dark",
-                            // borderRadius:0,
-                            // paddingX:2,
                           }}
                         >
                           <PeopleAltOutlinedIcon
@@ -1393,7 +1396,6 @@ export default function Course() {
                           />
                         </IconButton>
                       </Box>
-                      {/* 2. Naziv kursa */}
                       <Box
                         sx={{
                           width: "100%",
@@ -1424,8 +1426,6 @@ export default function Course() {
                       </Box>
                     </Grid>
                   </Box>
-
-                  {/* 3. Opis kursa i datum */}
                   <Box
                     sx={{
                       width: "100%",
@@ -1437,7 +1437,6 @@ export default function Course() {
                       pr: 1,
                     }}
                   >
-                    {/* Opis kursa */}
                     <Box
                       sx={{
                         width: { xs: "100%", md: "70%" },
@@ -1454,8 +1453,6 @@ export default function Course() {
                         {course.description}
                       </Typography>
                     </Box>
-
-                    {/* Datum kreiranja kursa */}
                     <Box
                       sx={{
                         width: { xs: "100%", md: "30%" },
@@ -1481,8 +1478,6 @@ export default function Course() {
                   </Box>
                 </Grid>
               </Grid>
-
-              {/* Desna strana - Prikaz studenta (sakrivanje/prikazivanje) */}
               {showStudents && (
                 <Grid
                   item
@@ -1493,8 +1488,8 @@ export default function Course() {
                     width: "100%",
                     padding: 0,
                     borderRadius: 3,
-                    marginTop: { xs: 0, md: 0 }, // Uklonili smo marginu na malim ekranima
-                    order: 2, // Drugi element u redu
+                    marginTop: { xs: 0, md: 0 },
+                    order: 2,
                   }}
                 >
                   <Box
@@ -1511,9 +1506,6 @@ export default function Course() {
                 </Grid>
               )}
             </Grid>
-
-            {/* KRAJ  */}
-
             <Grid item xs={12} md={12} sx={{ padding: 1 }}>
               <Box
                 sx={{
@@ -1522,11 +1514,32 @@ export default function Course() {
                   width: "100%",
                   mt: 2,
                   color: "primary.main",
+                  display: "flex",
+                  justifyContent: "space-between",
                 }}
               >
-                {course?.year.name}&nbsp;&nbsp;
-                {"   |   "}&nbsp;&nbsp;
-                {course?.studyProgram.name}
+                <Box sx={{ margin: 0, padding: 0, width: "100%" }}>
+                  {course?.year.name}&nbsp;&nbsp;
+                  {"   |   "}&nbsp;&nbsp;
+                  {course?.studyProgram.name}
+                </Box>
+                {user &&
+                  course?.professorsCourse.some(
+                    (pc) => pc.user.username === user.username
+                  ) && (
+                    <Box display="flex" alignItems="center">
+                                {showPassword ? course.password : "••••••"}
+
+
+                      <IconButton title={showPassword ? "Sakrij lozinku":"Prikaži lozinku"}
+                        onClick={togglePasswordVisibility}
+                        size="small"
+                        sx={{color:"primary.dark"}}
+                      >
+                        {showPassword ? <VisibilityOff/> : <Visibility />}
+                      </IconButton>
+                    </Box>
+                  )}
               </Box>
               <Divider sx={{ width: "100%", marginY: 2 }} />
 
@@ -1537,6 +1550,7 @@ export default function Course() {
                     padding: 0,
                     display: "flex",
                     justifyContent: "space-between",
+                    flexDirection: { xs: "column", md: "row" },
                   }}
                 >
                   {" "}
@@ -1559,7 +1573,6 @@ export default function Course() {
                           borderRadius: "50%",
                           minWidth: "2rem",
                           "&:hover": { backgroundColor: "primary.light" },
-                          // height: "fit-content",
                           width: "38px",
                           height: "38px",
                           boxSizing: "border-box",
@@ -1627,27 +1640,21 @@ export default function Course() {
                       )}
                     />
                   ) : (
-                    // <CircularProgress
-                    //   size={60}
-                    //   sx={{ color: "text.secondary" }}
-                    // />
                     <LinearBuffer />
                   ))}
               </Box>
             </Grid>
-
-            {/* DIO SA MATERIJALIMA */}
-
             <Grid item xs={12} md={12} sx={{ padding: 1 }}>
               <Divider sx={{ width: "100%", marginY: 2 }} />
               <Box
                 sx={{
                   margin: 0,
                   padding: 0,
-                  mb: 2,
+                  mb: 3,
                   width: "100%",
                   display: "flex",
                   justifyContent: "space-between",
+                  flexDirection: { xs: "column", md: "row" },
                 }}
               >
                 <Typography variant="h5">Sedmice i materijali </Typography>
@@ -1674,8 +1681,6 @@ export default function Course() {
                           borderRadius: "50%",
                           minWidth: "2rem",
                           "&:hover": { backgroundColor: "primary.light" },
-                          // height: "fit-content",
-                          // width: "2rem",
                           width: "38px",
                           height: "38px",
                           boxSizing: "border-box",
@@ -1685,9 +1690,7 @@ export default function Course() {
                       </Button>
                     </Box>
                   )}
-              </Box>{" "}
-              {/* box sa SEDMICE I MATERIJALI naslovom i dugme za dodavanje
-              sedmice ZAVRSEN*/}
+              </Box>
               {course.weekCount > 0 && (
                 <SearchBar
                   onSearch={handleSearch}
@@ -1698,56 +1701,64 @@ export default function Course() {
               <Grid
                 sx={{
                   display: "flex",
+                  gap: 0,
                   justifyContent: "space-evenly",
                   gridTemplateRows: "1fr 1fr",
-                  marginBottom: 3,
+                  marginBottom: 2,
                 }}
               >
-                <Box
+                <Grid
+                  container
                   sx={{
                     margin: 0,
                     padding: 0,
                     display: "flex",
                     width: "100%",
-                    marginBottom: 5,
-                    justifyContent:
-                      status == "fetchCurrentCourseMaterialAsync"
-                        ? "space-evenly"
-                        : "center",
-                    minHeight:
-                      openWeeks.some((week) => week) || fileVisible
-                        ? "40vh"
-                        : "auto", // Ako su sve zatvorene, minHeight je auto
-                    maxHeight: "60vh", // Sprečava preveliko širenje
-                    transition: "max-height 0.3s ease-in-out", // Glatka animacija
+                    marginBottom: 0,
+                    justifyContent: "space-between",
+                    minHeight: "35vh",
+                    maxHeight: {
+                      xs: "fit-content",
+                      sm: "fit-content",
+                      md: "50vh",
+                    },
+                    transition: "max-height 0.3s ease-in-out",
                   }}
                 >
                   {course.weekCount > 0 ? (
                     status == "fetchCurrentCourseMaterialAsync" ? (
-                      // <CircularProgress
-                      //   size={50}
-                      //   sx={{ color: "text.secondary" }}
-                      // />
-
-                      // <LinearProgress sx={{ width: "30%", height:"1vh", marginTop:1}} />
-                      <LinearBuffer />
-                    ) : (
                       <Box
+                        sx={{
+                          margin: 0,
+                          padding: 0,
+                          paddingX: 2,
+                          width: isEditing ? "49%" : "100%",
+                        }}
+                      >
+                        <LinearBuffer />
+                      </Box>
+                    ) : (
+                      <Grid
+                        container
                         sx={{
                           padding: 0,
                           margin: 0,
                           display: "flex",
-                          width: "100%",
+                          width: {
+                            xs: "100%",
+                            sm: "100%",
+                            md: isEditing ? "49%" : "100%",
+                          },
                           gap: 1,
+                          mb: 2,
+                          maxHeight: "50vh",
+                          overflowY: "auto",
                         }}
                       >
                         <List
                           sx={{
-                            // maxWidth: "80vw",
                             width: "100%",
-                            // width: "100%",
-                            maxHeight: "100%", // Lista prati roditeljsku visinu
-                            overflowY: "auto", // Skrol samo ovde
+                            maxHeight: "100%",
                             overflowX: "hidden",
                             whiteSpace: "nowrap",
                             padding: 0,
@@ -1764,7 +1775,6 @@ export default function Course() {
                                 <ListItem
                                   component="div"
                                   sx={{
-                                    // cursor: "pointer",
                                     padding: "8px 16px",
                                     backgroundColor: openWeeks[index]
                                       ? "rgba(0, 0, 0, 0.04)"
@@ -1787,17 +1797,12 @@ export default function Course() {
                                   )}
                                   <IconButton onClick={() => toggleWeek(index)}>
                                     {openWeeks[index] ? (
-                                      <ExpandLess
-                                      //  onClick={() => toggleWeek(index)}
-                                      />
+                                      <ExpandLess />
                                     ) : (
-                                      <ExpandMore
-                                      // onClick={() => toggleWeek(index)}
-                                      />
+                                      <ExpandMore />
                                     )}
                                   </IconButton>
                                 </ListItem>
-                                {/* {courseMaterials && courseMaterials.length > 0 && ( */}
                                 <Collapse
                                   in={openWeeks[index]}
                                   timeout="auto"
@@ -1818,19 +1823,18 @@ export default function Course() {
                                     courseMaterials.filter(
                                       (material) => material.week === index + 1
                                     ).length > 0 ? (
-                                      <>
-                                        <CustomTimeline
-                                          materials={courseMaterials.filter(
-                                            (material) =>
-                                              material.week === index + 1
-                                          )}
-                                          showFile={showFile}
-                                          handleDelete={
-                                            handleDeleteMaterialClick
-                                          }
-                                          isEditing={isEditing}
-                                        />
-                                      </>
+                                      <CustomTimeline
+                                        // key={}
+
+                                        materials={courseMaterials.filter(
+                                          (material) =>
+                                            material.week === index + 1
+                                        )}
+                                        // materials={courseMaterials}
+                                        showFile={handleFileClick}
+                                        handleDelete={handleDeleteMaterialClick}
+                                        isEditing={isEditing}
+                                      />
                                     ) : (
                                       <ListItem>
                                         <ListItemText primary="Nema materijala za ovu sedmicu." />
@@ -1841,8 +1845,8 @@ export default function Course() {
                               </div>
                             ) : null
                           )}
-                        </List>{" "}
-                      </Box>
+                        </List>
+                      </Grid>
                     )
                   ) : (
                     <Typography
@@ -1858,92 +1862,73 @@ export default function Course() {
                   !addingWeek &&
                   !editingWeek &&
                   course.weekCount > 0 ? (
-                    <>
-                      <Box
-                        sx={{
-                          padding: 0,
-                          margin: 0,
-                          width: "50%",
-                          height: "100%",
-                          // backgroundColor: "pink",
-                          border: "1px dashed",
-                          borderColor: "primary.dark",
-                          borderRadius: "15pt",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Typography
-                          sx={{ fontSize: "15pt", color: "primary.dark" }}
-                        >
-                          Materijali će biti prikazani ovdje
-                        </Typography>
-                        <PermMediaIcon
-                          sx={{ color: "primary.main", fontSize: "16pt" }}
-                        />
+                    !isSmallScreen && (
+                      <>
                         {isEditing && (
-                          <Typography
+                          <Box
                             sx={{
-                              fontSize: "15pt",
-                              color: "primary.dark",
+                              padding: 0,
+                              margin: 0,
+                              width: { xs: "100%", md: "49%" },
+                              height: "100%",
+                              border: "1px dashed",
+                              borderColor: "primary.dark",
+                              borderRadius: "15pt",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "center",
                             }}
                           >
-                            Forma za dodavanje materijala
-                          </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: "15pt",
+                                color: "primary.dark",
+                              }}
+                            >
+                              Forma za dodavanje materijala
+                            </Typography>
+                          </Box>
                         )}
-                      </Box>
-                    </>
+                      </>
+                    )
                   ) : !addingWeek && !editingWeek && currentMat ? (
-                    <Box
+                    <Modal
+                      open={fileVisible}
+                      onClose={hideFile}
                       sx={{
-                        height: "100%",
-                        // maxHeight: "60vh",
-                        // height:"60vh",
-                        backgroundColor: "transparent",
-                        width: "50%",
-                        paddingX: 1,
-                        display: fileVisible ? "block" : "none",
-                        // minHeight: fileVisible ? "40vh" : "0", // Ako su sve zatvorene, minHeight je auto
-                        // Skrol samo ovde
-
-                        // mb: 2,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
                       <Box
                         sx={{
-                          margin: 0,
-                          padding: 0,
-                          maxHeight: "100%", // Sprečava preveliko širenje
-                          overflowY: "auto",
+                          backgroundColor: "white",
+                          boxShadow: 24,
+                          p: 2,
+                          borderRadius: 2,
+                          width: "80%",
+                          height: "95%",
+                          display: "flex",
+                          flexDirection: "column",
                         }}
                       >
-                        {" "}
-                        {getFilePreview(currentMat.filePath)}
+                        <IconButton
+                          sx={{ alignSelf: "flex-end", color: "gray" }}
+                          onClick={hideFile}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                        <Box
+                          sx={{
+                            minHeight: "300px",
+                          }}
+                        >
+                          {getFilePreview(currentMat!.filePath)}
+                        </Box>
                       </Box>
-                      <Button
-                        sx={{
-                          width: "100%",
-                          color: "text.primary",
-                          // paddingX: 2,
-                          borderRadius: "20pt",
-                          marginTop: 2,
-
-                          // display: "inline-block", // Ovo osigurava da padding i borderRadius funkcionišu ispravno
-                          "&:hover": {
-                            cursor: "pointer",
-                            backgroundColor: "action.acive",
-                            color: "primary.light",
-                          },
-                        }}
-                      >
-                        <CloseIcon
-                          color="inherit" // Ovo sprečava preklapanje sa default stilovima
-                          onClick={() => hideFile()}
-                        />
-                      </Button>
-                    </Box>
+                    </Modal>
                   ) : addingWeek && !editingWeek && !currentMat ? (
                     <>
                       <Box
@@ -1953,7 +1938,7 @@ export default function Course() {
                           display: "flex",
                           justifyContent: "space-around",
                           alignItems: "center",
-                          width: "50%",
+                          width: { xs: "100%", md: "49%" },
                         }}
                       >
                         <Box
@@ -1961,8 +1946,7 @@ export default function Course() {
                             margin: 0,
                             padding: 0,
                             display: "flex",
-                            maxWidth: "30vw",
-                            width: "30vw",
+                            width: "100%",
                           }}
                         >
                           <AppDropzone
@@ -1972,12 +1956,12 @@ export default function Course() {
                             handleSaveWeek={handleSaveWeek}
                             setSelectedFiles={setSelectedFiles}
                             newWeek={newWeek}
-                          />{" "}
-                        </Box>{" "}
+                          />
+                        </Box>
                         {watchFile && (
                           <img
                             src={watchFile.preview}
-                            alt="nesh"
+                            alt="file"
                             style={{ maxHeight: "20vh" }}
                           />
                         )}
@@ -1992,10 +1976,17 @@ export default function Course() {
                           display: "flex",
                           justifyContent: "space-around",
                           alignItems: "center",
-                          width: "50%",
+                          width: { xs: "100%", md: "49%" },
                         }}
                       >
-                        <Box sx={{ margin: 0, padding: 0, display: "flex" }}>
+                        <Box
+                          sx={{
+                            margin: 0,
+                            padding: 0,
+                            display: "flex",
+                            width: "100%",
+                          }}
+                        >
                           <AppDropzone
                             name="file"
                             control={control}
@@ -2003,98 +1994,24 @@ export default function Course() {
                             handleSaveWeek={handleSaveWeek}
                             setSelectedFiles={setSelectedFiles}
                             newWeek={newWeek}
-                          />{" "}
-                        </Box>{" "}
+                          />
+                        </Box>
                         {watchFile && (
                           <img
                             src={watchFile.preview}
-                            alt="nesh"
+                            alt="file"
                             style={{ maxHeight: "20vh" }}
                           />
                         )}
                       </Box>
                     </>
                   ) : null}
-                </Box>
-
-                {/* Forma za novu sedmicu */}
-                {/* {materialsLoaded ? ( */}
-                {/* {addingWeek ? (
-                  <>
-                    <Box
-                      sx={{
-                        margin: 0,
-                        padding: 0,
-                        display: "flex",
-                        justifyContent: "space-around",
-                        alignItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          margin: 0,
-                          padding: 0,
-                          display: "flex",
-                          maxWidth: "30vw",
-                          width: "30vw",
-                        }}
-                      >
-                        <AppDropzone
-                          name="file"
-                          control={control}
-                          handleCloseWeek={handleCloseWeek}
-                          handleSaveWeek={handleSaveWeek}
-                          setSelectedFiles={setSelectedFiles}
-                          newWeek={newWeek}
-                        />{" "}
-                      </Box>{" "}
-                      {watchFile && (
-                        <img
-                          src={watchFile.preview}
-                          alt="nesh"
-                          style={{ maxHeight: "20vh" }}
-                        />
-                      )}
-                    </Box>
-                  </>
-                ) : editingWeek ? (
-                  <>
-                    <Box
-                      sx={{
-                        margin: 0,
-                        padding: 0,
-                        display: "flex",
-                        justifyContent: "space-around",
-                        alignItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <Box sx={{ margin: 0, padding: 0, display: "flex" }}>
-                        <AppDropzone
-                          name="file"
-                          control={control}
-                          handleCloseWeek={handleCloseWeek}
-                          handleSaveWeek={handleSaveWeek}
-                          setSelectedFiles={setSelectedFiles}
-                          newWeek={newWeek}
-                        />{" "}
-                      </Box>{" "}
-                      {watchFile && (
-                        <img
-                          src={watchFile.preview}
-                          alt="nesh"
-                          style={{ maxHeight: "20vh" }}
-                        />
-                      )}
-                    </Box>
-                  </>
-                ) : null} */}
+                </Grid>
               </Grid>
             </Grid>
+
             <Grid item xs={12} md={12} sx={{ padding: 1 }}>
               <Divider sx={{ marginY: 2, width: "100%" }} />
-
               <Box
                 sx={{
                   margin: 0,
@@ -2103,6 +2020,7 @@ export default function Course() {
                   width: "100%",
                   display: "flex",
                   justifyContent: "space-between",
+                  flexDirection: { xs: "column", md: "row" },
                 }}
               >
                 <Typography variant="h5">Ankete</Typography>
@@ -2128,7 +2046,7 @@ export default function Course() {
                           ariaLabel="Opcije"
                           icon={<SpeedDialIcon />}
                           sx={{
-                            position: "absolute", // Sprečava da zauzima previše visine
+                            position: "absolute",
                             zIndex: 1,
                             bottom: 0,
                             ".MuiSpeedDial-fab": {
@@ -2196,39 +2114,37 @@ export default function Course() {
                 courseForms.map((form) => (
                   <Accordion
                     key={form.id}
-                    expanded={expandedFormId === form.id} // Kontroliše da li je forma otvorena
-                    onChange={() => handleExpand(form.id)} // Otvara/zatvara formu
+                    expanded={expandedFormId === form.id}
+                    onChange={() => handleExpand(form.id)}
                     sx={{
-                      mb: 2, // Margina ispod svakog Accordion-a
-                      borderRadius: "15px", // Zaobljene ivice
-                      boxShadow: "none", // Uklanja defaultnu senku
+                      mb: 2,
+                      borderRadius: "15px",
+                      boxShadow: "none",
                       "&:before": {
-                        display: "none", // Uklanja defaultni divider
+                        display: "none",
                       },
-                      backgroundColor: "transparent", // Providna bela boja
+                      backgroundColor: "transparent",
                       borderColor: "primary.dark",
                       border: "1px solid",
-                      // transition: "border-color 0.3s ease", // Animacija za promenu boje
                       "&:hover": {
-                        borderColor: "primary.light", // Svetlija boja na hover
+                        borderColor: "primary.light",
                       },
                       "&:last-child": {
-                        mb: 0, // Uklanja marginu ispod poslednjeg Accordion-a
-                        borderBottomLeftRadius: "15px", // Zaobljena donja leva ivica
-                        borderBottomRightRadius: "15px", // Zaobljena donja desna ivica
+                        mb: 0,
+                        borderBottomLeftRadius: "15px",
+                        borderBottomRightRadius: "15px",
                       },
                     }}
                   >
                     <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />} // Strelica za proširenje
+                      expandIcon={<ExpandMoreIcon />}
                       aria-controls={`form-content-${form.id}`}
                       id={`form-header-${form.id}`}
                       sx={{
                         margin: 0,
-                        // alignItems: "center !important",
-                        borderRadius: "15px", // Zaobljene ivice za summary
+                        borderRadius: "15px",
                         "&:hover": {
-                          backgroundColor: "rgba(0, 0, 0, 0.04)", // Lagani hover efekat
+                          backgroundColor: "rgba(0, 0, 0, 0.04)",
                         },
                         ".MuiAccordionSummary-content": {
                           alignItems: "center",
@@ -2263,7 +2179,7 @@ export default function Course() {
                             >
                               <IconButton
                                 onClick={(e) => {
-                                  e.stopPropagation(); // Sprečava otvaranje/zatvaranje akordeona
+                                  e.stopPropagation();
                                 }}
                                 size="small"
                                 sx={{
@@ -2297,21 +2213,17 @@ export default function Course() {
                     </AccordionSummary>
                     <AccordionDetails
                       sx={{
-                        padding: 0, // Uklanja defaultni padding
-                        borderBottomLeftRadius: "15px", // Zaobljena donja leva ivica
-                        borderBottomRightRadius: "15px", // Zaobljena donja desna ivica
+                        padding: 0,
+                        borderBottomLeftRadius: "15px",
+                        borderBottomRightRadius: "15px",
                         display: "flex",
-                        justifyContent: "center", // Centrira horizontalno
-                        alignItems: "center", // Centrira vertikalno
-                        height: "100%", // Popuni celu visinu
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "100%",
                         paddingY: 2,
-                        // minHeight: '40vh', // Minimalna visina za bolji vizuelni efekat
                       }}
                     >
-                      <FormVote
-                        form={form}
-                        // onSubmitVote={(selectedOptions) => handleSubmitVote(form.id, selectedOptions)}
-                      />
+                      <FormVote form={form} />
                     </AccordionDetails>
                   </Accordion>
                 ))
@@ -2328,6 +2240,7 @@ export default function Course() {
                   width: "100%",
                   display: "flex",
                   justifyContent: "space-between",
+                  flexDirection: { xs: "column", md: "row" },
                 }}
               >
                 <Typography variant="h5">Teme</Typography>{" "}
@@ -2352,8 +2265,6 @@ export default function Course() {
                         borderRadius: "50%",
                         minWidth: "2rem",
                         "&:hover": { backgroundColor: "primary.light" },
-                        // height: "fit-content",
-                        // width: "2rem",
                         width: "38px",
                         height: "38px",
                         boxSizing: "border-box",
@@ -2375,18 +2286,6 @@ export default function Course() {
                 height: "50vh",
               }}
             >
-              {/* Leva strana - Aktuelne teme */}
-              {/* <Box
-                component={Grid}
-                sx={{
-                  width: "45%",
-                  display: "flex",
-                  flexDirection: "column",
-                  position: "relative",
-                  alignItems: "center",
-                }}
-              > */}
-
               <Grid
                 item
                 xs={12}
@@ -2398,38 +2297,19 @@ export default function Course() {
                   flexDirection: "column",
                   borderRadius: 3,
                   alignItems: "center",
-
-                  // overflow: "hidden",
-                  // boxShadow: 5,
                 }}
               >
-                {/* <Box component={Grid} sx={{ position: "relative" }}> */}
                 <Typography variant="overline" sx={{ mb: 2 }}>
                   Aktuelne teme za ovaj kurs
-                </Typography>{" "}
-                {/* </Box> */}
+                </Typography>
                 {course && activeThemes && activeThemes?.length > 0 ? (
-                  <SlideCardThemes
-                    // course={course}
-                    themes={activeThemes}
-                  />
+                  <SlideCardThemes themes={activeThemes} />
                 ) : (
                   <SpeakerNotesOffIcon
                     sx={{ fontSize: 50, color: "gray", mt: 2 }}
                   />
                 )}
               </Grid>
-
-              {/* Desna strana - Zatvorene teme */}
-              {/* <Box
-                component={Grid}
-                sx={{
-                  width: "45%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              > */}
               <Grid
                 item
                 xs={12}
@@ -2440,8 +2320,6 @@ export default function Course() {
                   display: "flex",
                   flexDirection: "column",
                   borderRadius: 3,
-                  // overflow: "hidden",
-                  // boxShadow: 5,
                   alignItems: "center",
                 }}
               >

@@ -28,10 +28,7 @@ namespace API.Data
         public DbSet<Form> Form { get; set; } = null!;
         public DbSet<Option> Option { get; set; } = null!;
         public DbSet<UserOption> UserOption { get; set; } = null!;
-
-
-
-
+        public DbSet<FcmToken> FcmTokens { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -99,6 +96,12 @@ namespace API.Data
             .WithMany(c => c.Materials)
             .HasForeignKey(t => t.CourseId)
             .OnDelete(DeleteBehavior.Cascade);
+
+
+             builder.Entity<FcmToken>()
+            .HasOne(ft => ft.User)
+            .WithMany(u => u.FcmTokens)
+            .HasForeignKey(ft => ft.UserId);
 
 // builder.Entity<Theme>()
 //     .HasOne(t => t.Course)

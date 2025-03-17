@@ -10,12 +10,15 @@ import {
   Paper,
   Box,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
 import DuoIcon from "@mui/icons-material/Duo";
 import { FieldValues, UseControllerProps } from "react-hook-form";
+import { LoadingButton } from "@mui/lab";
+import { useAppSelector } from "../../../app/store/configureStore";
 
 type Props<T extends FieldValues> = {
   name: keyof T;
@@ -32,50 +35,7 @@ export default function AppDropzone<T extends FieldValues>({
   newWeek,
 }: Props<T>) {
   const [files, setFiles] = useState<File[]>([]);
-
-  // const handleCloseWeek = async () => {
-  //  setAddingWeek(false);
-  //  console.log(watchFile.path);
-  // };
-
-  // const handleSaveWeek = async () => {
-  //  if (selectedFiles.length === 0) {
-  //    alert("Dodajte bar jedan fajl!");
-  //    return;
-  //  }
-  //  console.log(selectedFiles);
-  //  const formData = new FormData();
-  //  formData.append("weekNumber", newWeek.toString());
-  //  // Dodaj svaki fajl pod istim ključem "files"
-  //  selectedFiles.forEach((file, index) => {
-  //    formData.append(`files`, file); // Ovo bi backend trebao da podrži
-  //  });
-  //  // Provera da li su svi fajlovi pravilno dodati
-  //  console.log("Sadržaj FormData:");
-  //  for (const pair of formData.entries()) {
-  //    console.log(pair);
-  //  }
-  // try {
-  //   const response = await fetch("/api/courses/add-material", {
-  //     method: "POST",
-  //     body: formData,
-  //   });
-  //   if (response.ok) {
-  //  alert("Materijal uspešno sačuvan!");
-  //  setAddingWeek(false);
-  //  setSelectedFiles([]);
-  //  console.log(newWeek);
-  //  setNewWeek((prev) => prev + 1);
-  //  console.log(newWeek);
-  //   } else {
-  //     alert("Greška prilikom čuvanja!");
-  //   }
-  // } catch (error) {
-  //   console.error("Greška:", error);
-  // }
-  // };
-
-  // Funkcija za dodavanje fajlova
+const status=useAppSelector((state)=>state.course.status)
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       setSelectedFiles([...files, ...acceptedFiles]);
@@ -85,7 +45,6 @@ export default function AppDropzone<T extends FieldValues>({
     [files]
   );
 
-  // Funkcija za uklanjanje fajla iz liste
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
   };
@@ -97,13 +56,12 @@ export default function AppDropzone<T extends FieldValues>({
       "application/msword": [".doc"],
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
         [".docx"],
-      "image/*": [], // Sve slike
+      "image/*": [],
       "video/mp4": [".mp4"],
     },
     multiple: true,
   });
 
-  // Funkcija za dobijanje odgovarajuće ikonice
   const getFileIcon = (file: File) => {
     if (file.type.startsWith("image/")) {
       return (
@@ -124,15 +82,12 @@ export default function AppDropzone<T extends FieldValues>({
         />
       );
     } else if (file.name.endsWith(".mp4")) {
-      console.log(file);
       return (
         <DuoIcon sx={{ fontSize: 30, marginRight: 2, color: "primary.main" }} />
       );
     }
     return <DescriptionIcon sx={{ fontSize: 40, marginRight: 2 }} />;
   };
-
-  // console.log(files.length);
 
   return (
     <Box
@@ -142,100 +97,170 @@ export default function AppDropzone<T extends FieldValues>({
         display: "flex",
         flexDirection: "column",
         width: "100%",
+        gap: 2, 
       }}
     >
-      <Typography variant="body2">Sedmica {newWeek}</Typography>
-      <div style={{ display: "flex", gap: 20 }}>
-        {/* Dropzone */}
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
+      <Typography
+        variant="body2"
+        sx={{ fontWeight: "bold", color: "text.secondary" }}
+      >
+        Sedmica {newWeek}
+      </Typography>
+
+      <Box
+        sx={{
+          display: "flex",
+          gap: 3, 
+          flexDirection: { xs: "column", sm: "row" }, 
+          alignItems: "stretch",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            flex: 1, 
+          }}
+        >
           <Box
             {...getRootProps()}
             sx={{
-              margin: 0,
-              border: "2px dashed gray",
-              padding: 2.5,
+              border: "2px dashed",
+              borderColor: "primary.main",
+              borderRadius: 2,
+              padding: 3,
               textAlign: "center",
-              width: "100%",
-              height: "20vh",
+              height: "30vh",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0,
+              flexDirection: "column",
+              gap: 1,
+              backgroundColor: "action.hover",
               "&:hover": {
-                cursor: "crosshair",
+                cursor: "pointer",
+                borderColor: "primary.dark",
+                backgroundColor: "action.selected",
               },
             }}
           >
             <input {...getInputProps()} />
-            <p>Prevuci i otpusti fajlove ovdje ili klikni za dodavanje</p>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Prevuci i otpusti fajlove ovdje
+            </Typography>
+            <Typography variant="caption" sx={{ color: "text.disabled" }}>
+              ili klikni za dodavanje
+            </Typography>
           </Box>
-          {files.length == 0 && (
-            <Button onClick={handleCloseWeek} sx={{ width: "100%" }}>
+
+          {files.length === 0 && (
+            <Button
+              onClick={handleCloseWeek}
+              sx={{
+                width: "100%",
+                mt: 2,
+                backgroundColor: "error.light",
+                "&:hover": {
+                  backgroundColor: "error.main",
+                },
+              }}
+              variant="contained"
+            >
               Otkaži
             </Button>
           )}
         </Box>
-        {/* Kontejner za listu fajlova sa fiksnom visinom i skrolovanjem */}
-        <Box
-          sx={{
-            // display: "grid",
-            // gridTemplateColumns:
-            //   files.length > 0 ? "repeat(2, 1fr)" : "repeat(1, 1fr)",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {files.length > 0 && (
-            <>
-              <Paper
-                // elevation={3}
-                sx={{
-                  width: "100%",
-                  height: "20vh",
-                  overflowY: "auto",
-                  // padding: 1,
-                  backgroundColor: "transparent",
-                }}
-              >
-                <List>
-                  {files.map((file, index) => (
-                    <ListItem key={index} sx={{ padding: 0, pl: 1 }}>
-                      {getFileIcon(file)}
-                      <ListItemText
-                        primary={file.name}
-                        sx={{ fontSize: "10pt", padding: 0 }}
-                        primaryTypographyProps={{ sx: { fontSize: "10pt" } }}
-                      />
-                      <IconButton onClick={() => removeFile(index)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
 
-              <Box
-                sx={{
-                  // display: "grid",
-                  // gridTemplateColumns:
-                  //   files.length > 0 ? "repeat(2, 1fr)" : "repeat(1, 1fr)",
-                  display: "flex",
-                  flexDirection: "row",
-                  width: "100%",
-                }}
-              >
-                <Button onClick={handleCloseWeek} sx={{ width: "50%" }}>
-                  Otkaži
-                </Button>
+        {files.length > 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              // flex: 1, // Prilagodljiva širina
+              gap: 2,
+            }}
+          >
+            <Paper
+              sx={{
+                width: "100%",
+                height: "30vh",
+                overflowY: "auto",
+                backgroundColor: "background.paper",
+                boxShadow: 1,
+                borderRadius: 2,
+              }}
+            >
+              <List>
+                {files.map((file, index) => (
+                  <ListItem
+                    key={index}
+                    sx={{
+                      padding: 1,
+                      "&:hover": {
+                        backgroundColor: "action.hover",
+                      },
+                    }}
+                  >
+                    {getFileIcon(file)}
 
-                <Button onClick={handleSaveWeek} sx={{ width: "50%" }}>
-                  Sačuvaj
-                </Button>
-              </Box>
-            </>
-          )}
-        </Box>
-      </div>
+                    <ListItemText
+                      primary={file.name}
+                      sx={{ fontSize: "10pt", ml: 1 }}
+                      primaryTypographyProps={{ sx: { fontSize: "10pt", wordBreak:"break-word" } }}
+                    />
+
+                    <IconButton
+                      onClick={() => removeFile(index)}
+                      sx={{ color: "error.main" }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+
+            {/* Dugmad "Otkaži" i "Sačuvaj" */}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+              }}
+            >
+              <Button
+                onClick={handleCloseWeek}
+                sx={{
+                  flex: 1,
+                  backgroundColor: "error.light",
+                  "&:hover": {
+                    backgroundColor: "error.main",
+                  },
+                }}
+                variant="contained"
+              >
+                Otkaži
+              </Button>
+              <LoadingButton
+                loading={status == "pendingUploadMaterial"}
+                onClick={handleSaveWeek}
+                sx={{
+                  flex: 1,
+                  backgroundColor: "success.light",
+                  "&:hover": {
+                    backgroundColor: "success.main",
+                  },
+                }}
+                variant="contained"
+                loadingIndicator={
+                  <CircularProgress size={18} sx={{ color: "white" }} /> 
+                }
+              >
+                Sačuvaj
+              </LoadingButton>
+            </Box>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }

@@ -56,6 +56,29 @@ export const fetchCurrentUser = createAsyncThunk<User>(
   }
 );
 
+interface UserToken{
+  userId:number,
+  token:string
+}
+
+export const sendTokenToBackend = createAsyncThunk<void, UserToken>(
+  'firebase/sendTokenToBackend',
+  async (userToken, { rejectWithValue }) => {
+    try {
+      const response = await agent.Firebase.addToken({ userId: userToken.userId, token: userToken.token });
+      console.log("Odgovor od backenda:", response);
+      
+      if (response.status === 200 && response.data === "Token već postoji.") {
+        console.log("Token već postoji u bazi.");
+      } else {
+        console.log("Token uspješno dodan u bazu.");
+      }
+    } catch (error: any) {
+      console.log("Greška prilikom slanja tokena na backend:", error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
 interface UpdateUserDto {
   firstName: string;
   lastName: string;

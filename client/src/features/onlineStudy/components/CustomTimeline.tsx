@@ -66,7 +66,9 @@ const MaterialComponent = ({
               height: "100%",
               backgroundColor: theme.palette.primary.dark,
               borderRadius: "8px",
+              
             }}
+            
           >
             <PictureAsPdfIcon sx={{ fontSize: 48, color: "text.primary" }} />
           </Box>
@@ -110,7 +112,7 @@ const MaterialComponent = ({
         margin: 2,
         boxSizing: "border-box",
       }}
-      onClick={() => showFile(material)}
+      onClick={() => {showFile(material)}}
     >
       {renderContent()}
       <Box
@@ -194,6 +196,8 @@ export default function CustomTimeline({
   handleDelete,
   isEditing,
 }: Props) {
+
+  console.log(...materials);
   return (
     <Box
       sx={{
@@ -204,16 +208,16 @@ export default function CustomTimeline({
     >
       {materials &&
         materials.map((material, index) => (
-          <>
+          <Box key={index} sx={{margin:0, padding:0}}>
             <MaterialComponent
-              key={index}
+              // key={index}
               material={material}
               showFile={showFile}
               handleDelete={handleDelete}
               isEditing={isEditing}
             />
             <Divider sx={{ width: "100%", borderWidth:"1px" }} />
-          </>
+          </Box>
         ))}
     </Box>
   );

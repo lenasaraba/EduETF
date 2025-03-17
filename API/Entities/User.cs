@@ -13,6 +13,8 @@ namespace API.Entities
 
         public List<UserCourse>? UserCourses { get; set; }
         public List<ProfessorCourse>? ProfessorCourses { get; set; }
+        public List<FcmToken> FcmTokens { get; set; }=new List<FcmToken>();
+
 
     }
 }

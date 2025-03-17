@@ -34,7 +34,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import CloseIcon from "@mui/icons-material/Close";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, User, Option, UsersOption } from "../../../app/models/form";
 import { LoadingButton } from "@mui/lab";
 import {
@@ -42,13 +42,14 @@ import {
   useAppSelector,
 } from "../../../app/store/configureStore";
 import { assignToCourse } from "../formSlice";
+import { fetchCourseAsync } from "../../onlineStudy/courseSlice";
 
 interface Props {
   forms: Form[];
   courseId?: number;
   messageId?: number;
   setIsAddingExistingForm?: (value: boolean) => void; // Funkcija za ažuriranje upita
- setSelectedMessageForms?: (
+  setSelectedMessageForms?: (
     value: Form[] | ((prevForms: Form[]) => Form[])
   ) => void;
 }
@@ -68,6 +69,13 @@ const FormTable = ({
   const status = useAppSelector((state) => state.form.status);
   const dispatch = useAppDispatch();
   //   console.log(courseId, messageId);
+
+  // useEffect(()=>{
+  //   if(selectedForm?.courseId)
+  //     dispatch(fetchCourseAsync(selectedForm?.courseId))
+  //   else
+  //     dispatch(fetchMess)
+  // }, [selectedForm])
 
   const getFormStatus = (endDate: string) => {
     const currentDate = new Date();
@@ -118,32 +126,33 @@ const FormTable = ({
   };
   const handleAddSurvey = () => {
     console.log(selectedForms);
-      if (messageId != 0) {
-    selectedForms.forEach((formId) => {
-      console.log("Čekirana anketa ID:", formId);
-      if (courseId)
-        dispatch(assignToCourse({ formId: formId, courseId: courseId }));
-    });
-    if (setIsAddingExistingForm) setIsAddingExistingForm(false);}
-     else {
-         console.log("Poruka");
-          // if (setSelectedMessageForms) {
-          //   setSelectedMessageForms((prevForms: Form[]) => [
-          //     ...prevForms,
-          //     selectedForms,
-          //   ]);
-          // }
-    selectedForms.forEach((formId) => {
-           if (setSelectedMessageForms) {
-            setSelectedMessageForms((prevForms: Form[]) => [
-              ...prevForms,
-              forms.find(f=>f.id==formId)!,
-            ]);
-    }})
-            if (setIsAddingExistingForm) setIsAddingExistingForm(false);}
-
+    if (messageId != 0) {
+      selectedForms.forEach((formId) => {
+        console.log("Čekirana anketa ID:", formId);
+        if (courseId)
+          dispatch(assignToCourse({ formId: formId, courseId: courseId }));
+      });
+      if (setIsAddingExistingForm) setIsAddingExistingForm(false);
+    } else {
+      console.log("Poruka");
+      // if (setSelectedMessageForms) {
+      //   setSelectedMessageForms((prevForms: Form[]) => [
+      //     ...prevForms,
+      //     selectedForms,
+      //   ]);
+      // }
+      selectedForms.forEach((formId) => {
+        if (setSelectedMessageForms) {
+          setSelectedMessageForms((prevForms: Form[]) => [
+            ...prevForms,
+            forms.find((f) => f.id == formId)!,
+          ]);
         }
-  
+      });
+      if (setIsAddingExistingForm) setIsAddingExistingForm(false);
+    }
+  };
+
   return (
     <>
       <Box
@@ -261,21 +270,31 @@ const FormTable = ({
             }}
           >
             <TableRow sx={{ height: "42px" }}>
-              <TableCell sx={{ padding: "12px", width: "20%" }}>
-                {" "}
-                {/* Fiksna širina */}
+              {/* Kolona "Pitanje" */}
+              <TableCell
+                sx={{
+                  padding: "12px",
+                  width: { xs: "50%", sm: "50%", md: "20%" }, // Širina za različite ekrane
+                }}
+              >
                 <Typography
                   fontWeight="bold"
                   color="primary.dark"
                   variant="subtitle1"
                   sx={{ fontSize: "12pt" }}
                 >
-                  Tema
+                  Pitanje
                 </Typography>
               </TableCell>
-              <TableCell sx={{ padding: "12px", width: "20%" }}>
-                {" "}
-                {/* Fiksna širina */}
+
+              {/* Kolona "Autor" (sakrivena za xs i sm) */}
+              <TableCell
+                sx={{
+                  padding: "12px",
+                  width: { md: "20%" }, // Širina samo za md
+                  display: { xs: "none", sm: "none", md: "table-cell" }, // Sakriveno za xs i sm
+                }}
+              >
                 <Typography
                   fontWeight="bold"
                   color="primary.dark"
@@ -285,9 +304,15 @@ const FormTable = ({
                   Autor
                 </Typography>
               </TableCell>
-              <TableCell sx={{ padding: "12px", width: "20%" }}>
-                {" "}
-                {/* Manja širina za datum */}
+
+              {/* Kolona "Datum kreiranja" (sakrivena za xs i sm) */}
+              <TableCell
+                sx={{
+                  padding: "12px",
+                  width: { md: "20%" }, // Širina samo za md
+                  display: { xs: "none", sm: "none", md: "table-cell" }, // Sakriveno za xs i sm
+                }}
+              >
                 <Button
                   onClick={() =>
                     setSortByDate(sortByDate === "asc" ? "desc" : "asc")
@@ -304,8 +329,6 @@ const FormTable = ({
                     color: "primary.dark",
                     fontWeight: "bold",
                     borderRadius: "20px",
-
-                    // padding: "6px 12px",
                     "&:hover": {
                       backgroundColor: "primary.main",
                       color: "white",
@@ -317,9 +340,16 @@ const FormTable = ({
                   Datum kreiranja
                 </Button>
               </TableCell>
-              <TableCell align="center" sx={{ padding: "12px", width: "15%" }}>
-                {" "}
-                {/* Fiksna širina */}
+
+              {/* Kolona "Status" (sakrivena za xs i sm) */}
+              <TableCell
+                align="center"
+                sx={{
+                  padding: "12px",
+                  width: { md: "20%" }, // Širina samo za md
+                  display: { xs: "none", sm: "none", md: "table-cell" }, // Sakriveno za xs i sm
+                }}
+              >
                 <Typography
                   fontWeight="bold"
                   color="primary.dark"
@@ -329,9 +359,15 @@ const FormTable = ({
                   Status
                 </Typography>
               </TableCell>
-              <TableCell align="center" sx={{ padding: "12px", width: "10%" }}>
-                {" "}
-                {/* Fiksna širina */}
+
+              {/* Kolona "Pregled" (uvijek vidljiva) */}
+              <TableCell
+                align="center"
+                sx={{
+                  padding: "12px",
+                  width: { xs: "50%", sm: "50%", md: "20%" }, // Širina za različite ekrane
+                }}
+              >
                 <Typography
                   fontWeight="bold"
                   color="primary.dark"
@@ -341,13 +377,17 @@ const FormTable = ({
                   Pregled
                 </Typography>
               </TableCell>
-              {(courseId || messageId==0) && (
+
+              {/* Kolona "Označi" (samo ako je ispunjen uslov) */}
+              {(courseId || messageId == 0) && (
                 <TableCell
                   align="center"
-                  sx={{ padding: "12px", width: "10%" }}
+                  sx={{
+                    padding: "12px",
+                    width: { md: "20%" }, // Širina samo za md
+                    display: { xs: "none", sm: "none", md: "table-cell" }, // Sakriveno za xs i sm
+                  }}
                 >
-                  {" "}
-                  {/* Fiksna širina */}
                   <Typography
                     fontWeight="bold"
                     color="primary.dark"
@@ -360,6 +400,7 @@ const FormTable = ({
               )}
             </TableRow>
           </TableHead>
+
           <TableBody>
             {paginatedForms.map((form, index) => (
               <TableRow
@@ -376,26 +417,52 @@ const FormTable = ({
                   },
                 }}
               >
-                <TableCell sx={{ padding: "12px", width: "30%" }}>
-                  {" "}
-                  {/* Fiksna širina */}
+                {/* Kolona "Pitanje" */}
+                <TableCell
+                  sx={{
+                    padding: "12px",
+                    width: { xs: "50%", sm: "50%", md: "20%" },
+                  }}
+                >
                   <Typography variant="body1" noWrap sx={{ fontSize: "11pt" }}>
                     {form.topic}
                   </Typography>
                 </TableCell>
-                <TableCell sx={{ padding: "12px", width: "20%" }}>
+
+                {/* Kolona "Autor" (sakrivena za xs i sm) */}
+                <TableCell
+                  sx={{
+                    padding: "12px",
+                    width: { md: "20%" },
+                    display: { xs: "none", sm: "none", md: "table-cell" },
+                  }}
+                >
                   <Typography variant="body1" noWrap sx={{ fontSize: "11pt" }}>
                     {form.user.firstName} {form.user.lastName}
                   </Typography>
                 </TableCell>
-                <TableCell sx={{ padding: "12px", width: "15%" }}>
+
+                {/* Kolona "Datum kreiranja" (sakrivena za xs i sm) */}
+                <TableCell
+                  sx={{
+                    padding: "12px",
+                    width: { md: "20%" },
+                    display: { xs: "none", sm: "none", md: "table-cell" },
+                  }}
+                >
                   <Typography variant="body1" noWrap sx={{ fontSize: "11pt" }}>
                     {new Date(form.creationDate).toLocaleDateString("sr-RS")}
                   </Typography>
                 </TableCell>
+
+                {/* Kolona "Status" (sakrivena za xs i sm) */}
                 <TableCell
                   align="center"
-                  sx={{ padding: "12px", width: "15%" }}
+                  sx={{
+                    padding: "12px",
+                    width: { md: "20%" },
+                    display: { xs: "none", sm: "none", md: "table-cell" },
+                  }}
                 >
                   <Chip
                     label={getFormStatus(form.endDate)}
@@ -412,9 +479,14 @@ const FormTable = ({
                     }}
                   />
                 </TableCell>
+
+                {/* Kolona "Pregled" (uvijek vidljiva) */}
                 <TableCell
                   align="center"
-                  sx={{ padding: "12px", width: "10%" }}
+                  sx={{
+                    padding: "12px",
+                    width: { xs: "50%", sm: "50%", md: "20%" },
+                  }}
                 >
                   <IconButton
                     color="primary"
@@ -433,10 +505,16 @@ const FormTable = ({
                     <VisibilityIcon fontSize="small" />
                   </IconButton>
                 </TableCell>
-                {(courseId || messageId==0 )&& (
+
+                {/* Kolona "Označi" (samo ako je ispunjen uslov) */}
+                {(courseId || messageId == 0) && (
                   <TableCell
                     align="center"
-                    sx={{ padding: "12px", width: "10%" }}
+                    sx={{
+                      padding: "12px",
+                      width: { md: "20%" },
+                      display: { xs: "none", sm: "none", md: "table-cell" },
+                    }}
                   >
                     <Checkbox
                       checked={selectedForms.includes(form.id)}
@@ -470,7 +548,7 @@ const FormTable = ({
             onChange={(_, newPage) => setPage(newPage)}
             color="primary"
           />
-          {(courseId || messageId==0)   && setIsAddingExistingForm && (
+          {(courseId || messageId == 0) && setIsAddingExistingForm && (
             <Box
               sx={{
                 position: "absolute",
@@ -533,12 +611,10 @@ const FormTable = ({
       <Dialog
         open={!!selectedForm}
         onClose={handleCloseDialog}
-        // maxWidth="sm"
         fullWidth
         sx={{
           "& .MuiDialog-paper": {
-            borderRadius: 2, // Zaobljeni rubovi dijaloga
-            // width: "80vw",
+            borderRadius: 2,
           },
         }}
       >
@@ -550,10 +626,35 @@ const FormTable = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            py: 2, // Padding za naslov
+            py: 2,
           }}
         >
+          <Box sx={{margin:0, padding:0, width:"100%"}}>
           {selectedForm?.topic}
+          {selectedForm && selectedForm.courseId > 0 && (
+            <Chip
+              label="Kurs"
+              sx={{
+                backgroundColor: "primary.dark",
+                color: "white",
+                fontWeight: "bold",
+                ml:2,
+              }}
+            />
+          )}
+          {selectedForm && selectedForm.messageId > 0 && (
+            <Chip
+              label="Tema"
+              sx={{
+                backgroundColor: "primary.dark",
+                color: "white",
+                fontWeight: "bold",
+                ml:2,
+
+              }}
+            />
+          )}
+          </Box>
           <IconButton
             onClick={handleCloseDialog}
             sx={{ color: "primary.dark" }}

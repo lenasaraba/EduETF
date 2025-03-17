@@ -50,6 +50,7 @@ export default function ProfessorList() {
           flexDirection: "column",
           gap: 4,
           mb: 4,
+          mt: 4,
         }}
       >
         <Grid
@@ -174,50 +175,53 @@ export default function ProfessorList() {
                   <Divider component="div" sx={{ my: 2 }} />
 
                   {professorCourses &&
-  professorCourses[teacher.id] &&
-  professorCourses[teacher.id].filter((course) => {
-    const hasValidProfessor = course.professorsCourse.some((pc) => {
-      const conditionMet = pc.withdrawDate === null && pc.user.id === teacher.id;
-      
-      // console.log(
-      //   "Course ID:", course.id,
-      //   "| Professor ID:", pc.user.id,
-      //   "| Withdraw Date:", pc.withdrawDate,
-      //   "| Condition Met:", conditionMet
-      // );
+                  professorCourses[teacher.id] &&
+                  professorCourses[teacher.id].filter((course) => {
+                    const hasValidProfessor = course.professorsCourse.some(
+                      (pc) => {
+                        const conditionMet =
+                          pc.withdrawDate === null && pc.user.id === teacher.id;
 
-      return conditionMet;
-    });
+                        // console.log(
+                        //   "Course ID:", course.id,
+                        //   "| Professor ID:", pc.user.id,
+                        //   "| Withdraw Date:", pc.withdrawDate,
+                        //   "| Condition Met:", conditionMet
+                        // );
 
-    // console.log("Filtered Course:", course.id, "| Included in SlideCard:", hasValidProfessor);
-    
-    return hasValidProfessor;
-  }).length > 0 ? (
-    <SlideCard
-      courses={professorCourses[teacher.id].filter((course) => {
-        const hasValidProfessor = course.professorsCourse.some((pc) => {
-          const conditionMet = pc.withdrawDate === null && pc.user.id === teacher.id;
+                        return conditionMet;
+                      }
+                    );
 
-          // console.log(
-          //   "Course ID (Inside SlideCard Filter):", course.id,
-          //   "| Professor ID:", pc.user.id,
-          //   "| Withdraw Date:", pc.withdrawDate,
-          //   "| Condition Met:", conditionMet
-          // );
+                    // console.log("Filtered Course:", course.id, "| Included in SlideCard:", hasValidProfessor);
 
-          return conditionMet;
-        });
-        console.log("TEACHER "+teacher.email)
-        console.log("Filtered Course (For SlideCard):", course.id, "| Included:", hasValidProfessor);
+                    return hasValidProfessor;
+                  }).length > 0 ? (
+                    <SlideCard
+                      courses={professorCourses[teacher.id].filter((course) => {
+                        const hasValidProfessor = course.professorsCourse.some(
+                          (pc) => {
+                            const conditionMet =
+                              pc.withdrawDate === null &&
+                              pc.user.id === teacher.id;
 
-        return hasValidProfessor;
-      })}
-    />
-  ) : (
-    <Typography>Nema kurseva</Typography>
-  )
-}
+                            // console.log(
+                            //   "Course ID (Inside SlideCard Filter):", course.id,
+                            //   "| Professor ID:", pc.user.id,
+                            //   "| Withdraw Date:", pc.withdrawDate,
+                            //   "| Condition Met:", conditionMet
+                            // );
 
+                            return conditionMet;
+                          }
+                        );
+
+                        return hasValidProfessor;
+                      })}
+                    />
+                  ) : (
+                    <Typography>Nema kurseva</Typography>
+                  )}
 
                   <Divider component="div" sx={{ my: 2 }} />
 

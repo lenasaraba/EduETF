@@ -1,7 +1,9 @@
+using System.Text.RegularExpressions;
 using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.RequestHelpers;
+using API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +15,17 @@ namespace API.Controllers
     {
         private readonly StoreContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly FirebaseService _firebaseService;
+
 
         private readonly IMapper _mapper;
-        public ThemeController(StoreContext context, IMapper mapper, UserManager<User> userManager)
+        public ThemeController(StoreContext context, IMapper mapper, UserManager<User> userManager, FirebaseService firebaseService)
         {
             _context = context;
             _userManager = userManager;
             _mapper = mapper;
+            _firebaseService = firebaseService;
+
         }
 
         [HttpGet("GetAllThemes")]
@@ -126,7 +132,7 @@ namespace API.Controllers
                 //pravo pristupa
                 if (role == "Student")
                 {
-                    bool isStudentEnrolled = theme.Course.UsersCourse.Any(uc => uc.User.Id == user.Id && uc.WithdrawDate==null);
+                    bool isStudentEnrolled = theme.Course.UsersCourse.Any(uc => uc.User.Id == user.Id && uc.WithdrawDate == null);
 
                     if (!isStudentEnrolled)
                     {
@@ -136,7 +142,7 @@ namespace API.Controllers
 
                 if (role == "Profesor")
                 {
-                    bool isProfessorOfCourse = theme.Course.ProfessorsCourse.Any(pc => pc.User.Id == user.Id && pc.WithdrawDate==null);
+                    bool isProfessorOfCourse = theme.Course.ProfessorsCourse.Any(pc => pc.User.Id == user.Id && pc.WithdrawDate == null);
 
                     if (!isProfessorOfCourse)
                     {
@@ -252,37 +258,55 @@ namespace API.Controllers
         [HttpPost("CreateMessage")]
         public async Task<ActionResult<GetMessageDto>> CreateMessage(CreateMessageDto newMessage)
         {
-            var creator = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var creator = await _context.Users.Include(t => t.FcmTokens).FirstOrDefaultAsync(t => t.Id == user.Id);
             var message = _mapper.Map<Message>(newMessage);
             message.UserId = creator.Id;
             message.User = creator;
 
-            var theme = await _context.Themes.FirstOrDefaultAsync(t => t.Id == newMessage.ThemeId);
+            var theme = await _context.Themes.Include(u => u.User).ThenInclude(f => f.FcmTokens).FirstOrDefaultAsync(t => t.Id == newMessage.ThemeId);
             if (theme != null)
             {
                 message.Theme = theme;
                 message.ThemeId = newMessage.ThemeId;
             }
             if (newMessage.Materials != null)
-    {
-        message.Materials = newMessage.Materials
-            .Select(m => new MessageMaterial
             {
-                Title = m.Title,
-                FilePath = m.FilePath,
-                Url = m.Url,
-                MaterialTypeId = m.MaterialTypeId,
-                CreationDate = m.CreationDate,
-                MaterialType = _context.MaterialTypes.FirstOrDefault(mt => mt.Id == m.MaterialTypeId) // Sinhrono preuzimanje
-            }).ToList();
-    }
+                message.Materials = newMessage.Materials
+                    .Select(m => new MessageMaterial
+                    {
+                        Title = m.Title,
+                        FilePath = m.FilePath,
+                        Url = m.Url,
+                        MaterialTypeId = m.MaterialTypeId,
+                        CreationDate = m.CreationDate,
+                        MaterialType = _context.MaterialTypes.FirstOrDefault(mt => mt.Id == m.MaterialTypeId) // Sinhrono preuzimanje
+                    }).ToList();
+            }
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
 
+            var themeCreator = theme.User;
 
-            // var messages = await _context.Messages.Include(u => u.User).Include(t => t.Theme).ToListAsync();
 
-            // return messages.Select(c => _mapper.Map<GetMessageDto>(c)).ToList();
+            var tokens = creator.FcmTokens.Select(t => t.Token).ToList();
+            var creatorTokens = themeCreator.FcmTokens.Select(t => t.Token).ToList();
+
+
+
+            if (themeCreator.Id != creator.Id)
+                await _firebaseService.SendNotificationAsync(creatorTokens, "Poruka", "Imate novu poruku na temi " + theme.Title);
+
+            var mentionedUsernames = FindMentionedUsernames(newMessage.Content);
+            foreach (var username in mentionedUsernames)
+            {
+                var mentionedUser = await _context.Users.Include(u => u.FcmTokens).FirstOrDefaultAsync(u => u.UserName == username);
+                if (mentionedUser != null && mentionedUser.Id != creator.Id)
+                {
+                    var mentionedUserTokens = mentionedUser.FcmTokens.Select(t => t.Token).ToList();
+                    await _firebaseService.SendNotificationAsync(mentionedUserTokens, "Obavještenje", $"Korisnik {creator.UserName} vas je pomenuo u poruci na temi {theme.Title}");
+                }
+            }
 
             var response = new
             {
@@ -292,6 +316,18 @@ namespace API.Controllers
             };
 
             return CreatedAtAction(nameof(GetMessageById), new { id = message.Id }, response);
+        }
+
+        private List<string> FindMentionedUsernames(string content)
+        {
+            var mentionedUsernames = new List<string>();
+            var regex = new Regex(@"@(\w+)");
+            var matches = regex.Matches(content);
+            foreach (Match match in matches)
+            {
+                mentionedUsernames.Add(match.Groups[1].Value);
+            }
+            return mentionedUsernames;
         }
 
 
@@ -329,7 +365,7 @@ namespace API.Controllers
         [HttpGet("GetMessageById/{id}")]
         public async Task<ActionResult<GetMessageDto>> GetMessageById(int id)
         {
-            var message = await _context.Messages.Include(u => u.User).Include(t => t.Theme).Include(m=>m.Materials).ThenInclude(mt=>mt.MaterialType).FirstOrDefaultAsync(m => m.Id == id);
+            var message = await _context.Messages.Include(u => u.User).Include(t => t.Theme).Include(m => m.Materials).ThenInclude(mt => mt.MaterialType).FirstOrDefaultAsync(m => m.Id == id);
             if (message == null)
             {
                 return NotFound();
@@ -343,7 +379,7 @@ namespace API.Controllers
         [HttpGet("GetAllMessages/{id}")]
         public async Task<ActionResult<List<GetMessageDto>>> GetAllMessages(int id)
         {
-            var messages = await _context.Messages.Where(m => m.ThemeId == id).Include(u => u.User).Include(t => t.Theme).Include(m=>m.Materials).ThenInclude(mt=>mt.MaterialType).ToListAsync();
+            var messages = await _context.Messages.Where(m => m.ThemeId == id).Include(u => u.User).Include(t => t.Theme).Include(m => m.Materials).ThenInclude(mt => mt.MaterialType).ToListAsync();
 
             return messages.Select(c => _mapper.Map<GetMessageDto>(c)).ToList();
         }
@@ -377,32 +413,35 @@ namespace API.Controllers
         [HttpDelete("DeleteMessage/{id}")]
         public async Task<IActionResult> DeleteMessage(int id)
         {
-            var message = await _context.Messages.Include(m=>m.Forms).Include(m=>m.Materials).FirstOrDefaultAsync(m=>m.Id==id);
+            var message = await _context.Messages.Include(m => m.Forms).Include(m => m.Materials).FirstOrDefaultAsync(m => m.Id == id);
 
             if (message == null)
             {
                 return NotFound(new { Message = "Poruka nije pronađena." });
             }
-            if(message.Forms!=null && message.Forms.Count!=0){
-                foreach(var form in message.Forms){
+            if (message.Forms != null && message.Forms.Count != 0)
+            {
+                foreach (var form in message.Forms)
+                {
                     _context.Form.Remove(form);
                 }
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
             }
 
-            if(message.Materials?.Count>0)
+            if (message.Materials?.Count > 0)
             {
                 foreach (var material in message.Materials)
-                {    if (!string.IsNullOrEmpty(material.FilePath))
+                {
+                    if (!string.IsNullOrEmpty(material.FilePath))
                     {
                         var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", material.FilePath);
                         if (System.IO.File.Exists(filePath))
                         {
                             System.IO.File.Delete(filePath);
                         }
-                    }                    
-                }            
+                    }
+                }
             }
 
             _context.Messages.Remove(message);
@@ -421,23 +460,23 @@ namespace API.Controllers
 
         [HttpGet("search")]
         public async Task<ActionResult<List<GetMessageDto>>> SearchMessages([FromQuery] int themeId, [FromQuery] string? query = "")
+        {
+            if (string.IsNullOrEmpty(query))
             {
-                if (string.IsNullOrEmpty(query))
-                {
-                    return Ok(new List<GetMessageDto>()); // Vrati prazan niz umesto 404
-                }
+                return Ok(new List<GetMessageDto>()); // Vrati prazan niz umesto 404
+            }
 
-                var results = await _context.Messages
-                    .Where(m => m.ThemeId == themeId &&
-                        (m.Content.ToLower().Contains(query.ToLower()) || 
-                        (m.Materials != null && m.Materials.Any(mat => mat.Title.ToLower().Contains(query.ToLower())))
-                        ||  (m.Forms != null && m.Forms.Any(f => f.Topic.ToLower().Contains(query.ToLower())))
-                        ))
-                    .ToListAsync();
+            var results = await _context.Messages
+                .Where(m => m.ThemeId == themeId &&
+                    (m.Content.ToLower().Contains(query.ToLower()) ||
+                    (m.Materials != null && m.Materials.Any(mat => mat.Title.ToLower().Contains(query.ToLower())))
+                    || (m.Forms != null && m.Forms.Any(f => f.Topic.ToLower().Contains(query.ToLower())))
+                    ))
+                .ToListAsync();
 
 
 
-                return Ok(results.Select(c => _mapper.Map<GetMessageDto>(c)).ToList());
+            return Ok(results.Select(c => _mapper.Map<GetMessageDto>(c)).ToList());
         }
 
 
@@ -448,7 +487,7 @@ namespace API.Controllers
 
 
         // }
- 
+
         // [HttpGet("search")]
         // public async Task<ActionResult<List<GetMessageDto>>> SearchMessages(MessageRequest request)
         // {
@@ -466,24 +505,24 @@ namespace API.Controllers
         //     return Ok(results.Select(c => _mapper.Map<GetMessageDto>(c)).ToList());
         // }
 
-    // private readonly List<Message> _messages = new List<Message>
-    // {
-    //     new Message { Id = 1, Content = "Zdravo, kako si?", CreationDate = DateTime.Now },
-    //     new Message { Id = 2, Content = "Dobro sam, hvala! A ti?", CreationDate = DateTime.Now },
-    //     new Message { Id = 3, Content = "I ja sam dobro. Šta ima novo?", CreationDate = DateTime.Now },
-    //     new Message { Id = 4, Content = "Ništa posebno, samo radim na projektu.", CreationDate = DateTime.Now },
-    //     new Message { Id = 5, Content = "Super, sretno s projektom!", CreationDate = DateTime.Now }
-    // };
- 
-    // [HttpGet("search")]
-    // public IActionResult SearchMessages(string query)
-    // {
-    //     var results = _messages
-    //         .Where(m => m.Content.Contains(query, StringComparison.OrdinalIgnoreCase))
-    //         .ToList();
- 
-    //     return Ok(results);
-    // }
+        // private readonly List<Message> _messages = new List<Message>
+        // {
+        //     new Message { Id = 1, Content = "Zdravo, kako si?", CreationDate = DateTime.Now },
+        //     new Message { Id = 2, Content = "Dobro sam, hvala! A ti?", CreationDate = DateTime.Now },
+        //     new Message { Id = 3, Content = "I ja sam dobro. Šta ima novo?", CreationDate = DateTime.Now },
+        //     new Message { Id = 4, Content = "Ništa posebno, samo radim na projektu.", CreationDate = DateTime.Now },
+        //     new Message { Id = 5, Content = "Super, sretno s projektom!", CreationDate = DateTime.Now }
+        // };
+
+        // [HttpGet("search")]
+        // public IActionResult SearchMessages(string query)
+        // {
+        //     var results = _messages
+        //         .Where(m => m.Content.Contains(query, StringComparison.OrdinalIgnoreCase))
+        //         .ToList();
+
+        //     return Ok(results);
+        // }
 
     }
 }

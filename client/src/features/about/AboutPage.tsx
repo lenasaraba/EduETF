@@ -34,7 +34,8 @@ export default function HomePage() {
       >
         <Grid
           item
-          xs={7}
+          xs={12}
+          md={7}
           sx={{
             display: "flex",
             alignItems: "center",
@@ -48,6 +49,7 @@ export default function HomePage() {
               backgroundColor: "secondary.main",
               height: "100%",
               width: "100%",
+              mb:{xs:2, md:0}
             }}
           >
             <Grid

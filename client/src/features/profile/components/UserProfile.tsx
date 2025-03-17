@@ -106,11 +106,13 @@ const UserProfile = () => {
         paddingLeft: 0,
         paddingRight: 0,
         height: "fit-content",
-        display: "block",
+        display: {xs:"flex", sm:"flex", md:"block"},
+        justifyContent:{xs:"center", sm:"center"},
         margin: "auto",
+
       }}
     >
-      <Paper elevation={3} sx={{ p: 2, borderRadius: 2, width: "40vw" }}>
+      <Paper elevation={3} sx={{ p: 2, borderRadius: 2, width: {xs:"80%", sm:"80%", md:"40vw"} }}>
         <Box
           display="flex"
           alignItems="center"

@@ -493,3 +493,7 @@ API/appsettings.json
 API/appsettings.Development.json
 
 API/wwwroot
+
+# Firebase Service Account Key
+API/Firebase/eduetf-95ea5-080189fe0d38.json
+client/authConfig.js

@@ -11,7 +11,7 @@ import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import Table from "@mui/joy/Table";
 import Sheet from "@mui/joy/Sheet";
-import { debounce, TableBody, Theme } from "@mui/material";
+import { debounce, TableBody, Theme, useMediaQuery } from "@mui/material";
 
 import { Typography as MuiTypo } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -96,6 +96,11 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
     undefined
   );
   const [userSelected, setUserSelected] = useState<User | undefined>(undefined);
+
+  const theme = themeM;
+  const isXs = useMediaQuery(theme.breakpoints.down("xs")); // xs ekrani
+  const isSm = useMediaQuery(theme.breakpoints.down("sm")); // sm ekrani
+  const isMd = useMediaQuery(theme.breakpoints.up("md")); // md ekrani
   // Ref za pristup svim Option elementima
   const optionRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const prevStatusValue = useRef(statusValue);
@@ -382,12 +387,15 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
             color: themeM.palette.primary.main,
           }}
         >
-          {(user?.role=="Student" &&( themeF.course==null || (themeF.course &&
-            themeF.course.usersCourse &&
-            themeF.course.usersCourse.some(
-              (uc) =>
-                uc.user?.username === user?.username && uc.withdrawDate == null
-            )))) && (
+          {user?.role == "Student" &&
+            (themeF.course == null ||
+              (themeF.course &&
+                themeF.course.usersCourse &&
+                themeF.course.usersCourse.some(
+                  (uc) =>
+                    uc.user?.username === user?.username &&
+                    uc.withdrawDate == null
+                ))) && (
               <>
                 <MenuItem
                   sx={{
@@ -410,12 +418,15 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                 <Divider />
               </>
             )}
-            {(user?.role=="Profesor" &&( themeF.course==null || (themeF.course &&
-            themeF.course.professorsCourse &&
-            themeF.course.professorsCourse.some(
-              (pc) =>
-                pc.user?.username === user?.username && pc.withdrawDate == null
-            )))) && (
+          {user?.role == "Profesor" &&
+            (themeF.course == null ||
+              (themeF.course &&
+                themeF.course.professorsCourse &&
+                themeF.course.professorsCourse.some(
+                  (pc) =>
+                    pc.user?.username === user?.username &&
+                    pc.withdrawDate == null
+                ))) && (
               <>
                 <MenuItem
                   sx={{
@@ -658,7 +669,8 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                 sx={{
                   borderRadius: "sm",
                   py: 0,
-                  display: { xs: "none", sm: "flex" },
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "column", md: "row" },
                   flexWrap: "wrap",
                   gap: 1.5,
                   "& > *": {
@@ -697,7 +709,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
             className="ThemesContainer"
             variant="outlined"
             sx={{
-              display: { xs: "none", sm: "initial" },
+              display: "initial",
               width: "100%",
               borderRadius: "sm",
               flexShrink: 1,
@@ -720,7 +732,7 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                 "--TableCell-paddingX": "12px",
                 backgroundColor: themeM.palette.background.paper,
                 display: "block",
-                tableLayout: "auto", // Dodajemo fixed layout za preciznije pozicioniranje
+                tableLayout: "auto",
                 width: "100%",
               }}
             >
@@ -730,13 +742,16 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                     width: "100%",
                     display: "flex",
                     flexDirection: "row",
-                    justifyContent: "space-between", // Koristimo space-between da rasporedimo sadržaj
-                    alignItems: "center", // Osiguravamo da su stavke poravnate
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
+                  {/* Kolona "Naslov teme" (uvijek vidljiva) */}
                   <th
                     style={{
-                      width: "25%",
+                      width: isMd ? "25%" : "50%",
+                      // minWidth: !isMd ? "50%" : "25%",
+
                       flex: 1,
                       display: "flex",
                       justifyContent: "flex-start",
@@ -763,76 +778,89 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                       {order === "asc" ? "Najstarije" : "Najnovije"}
                     </JoyLink>
                   </th>
+
+                  {/* Kolona "Datum" (sakrivena za xs i sm) */}
+                  {isMd && (
+                    <th
+                      style={{
+                        color: themeM.palette.primary.main,
+                        flex: 1,
+                        display: "flex",
+                        justifyContent: "flex-start",
+                      }}
+                    >
+                      Datum
+                    </th>
+                  )}
+
+                  {/* Kolona "Kategorija" (sakrivena za xs i sm) */}
+                  {isMd && (
+                    <th
+                      style={{
+                        color: themeM.palette.primary.main,
+                        flex: 1,
+                        display: "flex",
+                        justifyContent: "flex-start",
+                      }}
+                    >
+                      Kategorija
+                    </th>
+                  )}
+
+                  {/* Kolona "Kreator" (sakrivena za xs i sm) */}
+                  {isMd && (
+                    <th
+                      style={{
+                        color: themeM.palette.primary.main,
+                        flex: 1,
+                        display: "flex",
+                        justifyContent: "flex-start",
+                      }}
+                    >
+                      Kreator
+                    </th>
+                  )}
+
+                  {/* Kolona "Status" (uvijek vidljiva) */}
                   <th
                     style={{
-                      // padding: "12px 12px",
                       color: themeM.palette.primary.main,
-                      // width: "25%",
-                      flex: 1,
-                      display: "flex",
-                      justifyContent: "flex-start",
-                    }}
-                  >
-                    Datum
-                  </th>
-                  <th
-                    style={{
-                      color: themeM.palette.primary.main,
-                      //  width: "25%",
-                      flex: 1,
-                      display: "flex",
-                      justifyContent: "flex-start",
-                    }}
-                  >
-                    Kategorija
-                  </th>
-                  <th
-                    style={{
-                      color: themeM.palette.primary.main,
-                      // width: "25%",
-                      flex: 1,
-                      display: "flex",
-                      justifyContent: "flex-start",
-                    }}
-                  >
-                    Kreator
-                  </th>
-                  <th
-                    style={{
-                      // padding: "12px 12px",
-                      color: themeM.palette.primary.main,
-                      width: "10%",
-                      // flex: 1,
+                      width: isMd ? "10%" : "50%",
                       display: "flex",
                       justifyContent: "center",
                     }}
                   >
                     Status
                   </th>
-                  <th
-                    style={{
-                      // padding: "12px 12px",
-                      color: themeM.palette.primary.main,
-                      width: "10%",
-                      // flex: 1,
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  >
-                    Broj poruka
-                  </th>
 
-                  <th
-                    style={{
-                      color: themeM.palette.primary.main,
-                      width: "10%",
-                      // flex: 1,
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  ></th>
+                  {/* Kolona "Broj poruka" (sakrivena za xs i sm) */}
+                  {isMd && (
+                    <th
+                      style={{
+                        color: themeM.palette.primary.main,
+                        width: "10%",
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
+                      Broj poruka
+                    </th>
+                  )}
+
+                  {/* Kolona "Akcije" (sakrivena za xs i sm) */}
+                  {isMd && (
+                    <th
+                      style={{
+                        color: themeM.palette.primary.main,
+                        width: "10%",
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    ></th>
+                  )}
                 </tr>
               </thead>
+
               <TableBody
                 sx={{
                   maxHeight: "50vh",
@@ -844,14 +872,14 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                     width: "8px",
                   },
                   "&::-webkit-scrollbar-thumb": {
-                    backgroundColor: themeM.palette.background.paper, // Boja skrola
+                    backgroundColor: themeM.palette.background.paper,
                     borderRadius: "8px",
                   },
                   "&::-webkit-scrollbar-thumb:hover": {
-                    backgroundColor: themeM.palette.primary.dark, // Boja hvataljke na hover
+                    backgroundColor: themeM.palette.primary.dark,
                   },
                   "&::-webkit-scrollbar-track": {
-                    backgroundColor: "transparent", // Prozirna pozadina skrola
+                    backgroundColor: "transparent",
                   },
                 }}
               >
@@ -868,19 +896,19 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                           width: "100%",
                           display: "flex",
                           flexDirection: "row",
-                          justifyContent: "space-between", // Koristimo space-between da rasporedimo sadržaj
-                          alignItems: "center", // Osiguravamo da su stavke poravnate
-                          padding: "8px 0", // Povećavamo visinu redova za bolju vidljivost
-                          transition: "background-color 0.3s ease", // Efekat prelaza boje
-                          // "&:hover": {
-                          //   backgroundColor: "#f0f0f0", // Pozadina na hover (možeš promeniti boju)
-                          // },
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "8px 0",
+                          transition: "background-color 0.3s ease",
                         }}
                       >
+                        {/* Kolona "Naslov teme" (uvijek vidljiva) */}
                         <td
                           style={{
                             padding: "0 12px",
-                            flex: 1,
+                            width: isMd ? "auto" : "50%",
+
+                            flex:isMd?1:null,
                             height: "fit-content",
                             border: 0,
                             display: "flex",
@@ -896,17 +924,17 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                                 color: themeM.palette.action.active,
                                 cursor: "pointer",
                                 fontSize: "12pt",
-                                overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                                display: "-webkit-box", // Neophodno za multi-line truncation
-                                WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                                WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                                lineHeight: "1.3em", // Podešava razmak između linija
-                                height: "1.3em", // Fiksna visina: broj linija * lineHeight
-                                textOverflow: "ellipsis", // Dodaje tri tačke
-                                fontWeight: "normal", // Normalna težina teksta inicijalno
+                                overflow: "hidden",
+                                display: "-webkit-box",
+                                WebkitBoxOrient: "vertical",
+                                WebkitLineClamp: 1,
+                                lineHeight: "1.3em",
+                                height: "1.3em",
+                                textOverflow: "ellipsis",
+                                fontWeight: "normal",
                                 "&:hover": {
-                                  color: themeM.palette.primary.main, // Boja za hover stanje
-                                  fontWeight: "bold", // Boldovanje na hover
+                                  color: themeM.palette.primary.main,
+                                  fontWeight: "bold",
                                 },
                               }}
                             >
@@ -916,176 +944,187 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                               sx={{
                                 fontSize: "11pt",
                                 color: themeM.palette.action.active,
-                                overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                                display: "-webkit-box", // Neophodno za multi-line truncation
-                                WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                                WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                                lineHeight: "1.3em", // Podešava razmak između linija
-                                height: "1.3em", // Fiksna visina: broj linija * lineHeight
-                                textOverflow: "ellipsis", // Dodaje tri tačke
+                                overflow: "hidden",
+                                display: "-webkit-box",
+                                WebkitBoxOrient: "vertical",
+                                WebkitLineClamp: 1,
+                                lineHeight: "1.3em",
+                                height: "1.3em",
+                                textOverflow: "ellipsis",
                               }}
                             >
                               {theme1.description}
                             </MuiTypo>
                           </div>
                         </td>
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            flex: 1,
-                            height: "fit-content",
-                            border: 0,
-                            display: "flex",
-                            justifyContent: "flex-start",
-                          }}
-                        >
-                          <Typography
-                            level="body-xs"
-                            sx={{
-                              color: themeM.palette.action.active,
-                            }}
-                          >
-                            {new Date(theme1.date).toLocaleTimeString("sr-RS", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              second: "2-digit",
-                            })}
-                            <span style={{ color: "light" }}>{"  |  "}</span>
-                            {new Date(theme1.date).toLocaleDateString("sr-RS", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            })}
-                          </Typography>
-                        </td>
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            flex: 1,
-                            height: "fit-content",
-                            border: 0,
-                            display: "flex",
-                            justifyContent: "flex-start",
-                          }}
-                        >
-                          <Typography
-                            component={
-                              theme1.course != null ? Link : Typography
-                            }
-                            to={`/courses/${theme1.course?.id}`}
-                            sx={{
-                              textDecoration: "none",
-                              color: themeM.palette.action.active,
-                              "&:hover": {
-                                color:
-                                  theme1.course != null
-                                    ? themeM.palette.primary.main
-                                    : themeM.palette.action.active,
-                                fontWeight:
-                                  theme1.course != null ? "bold" : "normal",
-                              },
-                            }}
-                          >
-                            {" "}
-                            {theme1.course != null
-                              ? theme1.course.name
-                              : "Slobodna tema"}
-                          </Typography>
-                        </td>
 
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            flex: 1,
-                            height: "fit-content",
-                            border: 0,
-                            display: "flex",
-                            justifyContent: "flex-start",
-                          }}
-                        >
-                          <Box
-                            sx={{
+                        {/* Kolona "Datum" (sakrivena za xs i sm) */}
+                        {isMd && (
+                          <td
+                            style={{
+                              padding: "0 12px",
+                              flex: 1,
+                              height: "fit-content",
+                              border: 0,
                               display: "flex",
-                              gap: 2,
-                              alignItems: "center",
+                              justifyContent: "flex-start",
                             }}
                           >
-                            <Avatar
-                              size="sm"
-                              sx={{ bgcolor: themeM.palette.primary.main }}
+                            <Typography
+                              level="body-xs"
+                              sx={{
+                                color: themeM.palette.action.active,
+                              }}
                             >
-                              {theme1.user ? (
-                                theme1.user.firstName.charAt(0).toUpperCase()
-                              ) : (
-                                <PersonOffIcon />
+                              {new Date(theme1.date).toLocaleTimeString(
+                                "sr-RS",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  second: "2-digit",
+                                }
                               )}
-                            </Avatar>
-                            <div>
-                              {theme1.user ? (
+                              <span style={{ color: "light" }}>{"  |  "}</span>
+                              {new Date(theme1.date).toLocaleDateString(
+                                "sr-RS",
+                                {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                }
+                              )}
+                            </Typography>
+                          </td>
+                        )}
+
+                        {/* Kolona "Kategorija" (sakrivena za xs i sm) */}
+                        {isMd && (
+                          <td
+                            style={{
+                              padding: "0 12px",
+                              flex: 1,
+                              height: "fit-content",
+                              border: 0,
+                              display: "flex",
+                              justifyContent: "flex-start",
+                            }}
+                          >
+                            <Typography
+                              component={
+                                theme1.course != null ? Link : Typography
+                              }
+                              to={`/courses/${theme1.course?.id}`}
+                              sx={{
+                                textDecoration: "none",
+                                color: themeM.palette.action.active,
+                                "&:hover": {
+                                  color:
+                                    theme1.course != null
+                                      ? themeM.palette.primary.main
+                                      : themeM.palette.action.active,
+                                  fontWeight:
+                                    theme1.course != null ? "bold" : "normal",
+                                },
+                              }}
+                            >
+                              {" "}
+                              {theme1.course != null
+                                ? theme1.course.name
+                                : "Slobodna tema"}
+                            </Typography>
+                          </td>
+                        )}
+
+                        {/* Kolona "Kreator" (sakrivena za xs i sm) */}
+                        {isMd && (
+                          <td
+                            style={{
+                              padding: "0 12px",
+                              flex: 1,
+                              height: "fit-content",
+                              border: 0,
+                              display: "flex",
+                              justifyContent: "flex-start",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                              }}
+                            >
+                              <Avatar
+                                size="sm"
+                                sx={{ bgcolor: themeM.palette.primary.main }}
+                              >
+                                {theme1.user ? (
+                                  theme1.user.firstName.charAt(0).toUpperCase()
+                                ) : (
+                                  <PersonOffIcon />
+                                )}
+                              </Avatar>
+                              <div>
+                                {theme1.user ? (
+                                  <Typography
+                                    level="body-xs"
+                                    sx={{
+                                      color: themeM.palette.action.active,
+                                      textDecoration: "none",
+                                      fontSize: "10pt",
+                                      fontWeight: "normal",
+                                      "&:hover": {
+                                        cursor: "pointer",
+                                        color: themeM.palette.primary.main,
+                                        fontWeight: "bold",
+                                      },
+                                    }}
+                                    onClick={() => {
+                                      if (theme1.user.role === "Profesor") {
+                                        navigate(
+                                          `/professorInfo/${theme1.user.id}`
+                                        );
+                                      } else {
+                                        setUserSelected(theme1.user);
+                                        setOpenDialogInfo(true);
+                                      }
+                                    }}
+                                  >
+                                    {" "}
+                                    {theme1.user.firstName}{" "}
+                                    {theme1.user.lastName}
+                                  </Typography>
+                                ) : (
+                                  <Typography
+                                    level="body-xs"
+                                    sx={{
+                                      color: "gray",
+                                      textDecoration: "none",
+                                      fontSize: "10pt",
+                                      fontWeight: "normal",
+                                    }}
+                                  >
+                                    [Obrisan korisnik]
+                                  </Typography>
+                                )}
                                 <Typography
                                   level="body-xs"
                                   sx={{
                                     color: themeM.palette.action.active,
-                                    textDecoration: "none",
-                                    fontSize: "10pt",
-                                    fontWeight: "normal",
-                                    "&:hover": {
-                                      cursor: "pointer",
-                                      color: themeM.palette.primary.main, // Boja za hover stanje
-                                      fontWeight: "bold", // Boldovanje na hover
-                                    },
-                                  }}
-                                  //ovo raditi samo kad je profesor? i dodati da pise rola pored
-                                  // component={Link}
-                                  // to={
-                                  //   theme1.user.role == "Profesor"
-                                  //     ? `/professorInfo/${theme1.user.id}`
-                                  //     : `/profile/${theme1.user.id}`
-                                  // }
-                                  onClick={() => {
-                                    if (theme1.user.role === "Profesor") {
-                                      navigate(
-                                        `/professorInfo/${theme1.user.id}`
-                                      );
-                                    } else {
-                                      setUserSelected(theme1.user);
-                                      setOpenDialogInfo(true);
-                                    }
                                   }}
                                 >
-                                  {" "}
-                                  {theme1.user.firstName} {theme1.user.lastName}
+                                  {theme1.user ? theme1.user.email : ""}
                                 </Typography>
-                              ) : (
-                                <Typography
-                                  level="body-xs"
-                                  sx={{
-                                    color: "gray",
-                                    textDecoration: "none",
-                                    fontSize: "10pt",
-                                    fontWeight: "normal",
-                                  }}
-                                >
-                                  [Obrisan korisnik]
-                                </Typography>
-                              )}
-                              <Typography
-                                level="body-xs"
-                                sx={{
-                                  color: themeM.palette.action.active,
-                                }}
-                              >
-                                {theme1.user ? theme1.user.email : ""}
-                              </Typography>
-                            </div>
-                          </Box>
-                        </td>
+                              </div>
+                            </Box>
+                          </td>
+                        )}
 
+                        {/* Kolona "Status" (uvijek vidljiva) */}
                         <td
                           style={{
                             padding: "0 12px",
-                            // flex: 1,
-                            width: "10%",
+                            width: isMd ? "10%" : "50%",
                             height: "fit-content",
                             border: 0,
                             display: "flex",
@@ -1112,9 +1151,9 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                                 ? "grey"
                                 : theme1.active
                                   ? themeM.palette.text.primaryChannel
-                                  : themeM.palette.text.secondaryChannel, // Prilagođene boje
-                              color: "#fff", // Tekst u beloj boji
-                              borderRadius: "16px", // Primer prilagođenog oblika
+                                  : themeM.palette.text.secondaryChannel,
+                              color: "#fff",
+                              borderRadius: "16px",
                               ".MuiChip-icon": {
                                 color: "#fff",
                               },
@@ -1127,58 +1166,67 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
                                 : "Zatvoreno"}
                           </Chip>
                         </td>
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            // flex: 1,
-                            width: "10%",
-                            height: "fit-content",
-                            border: 0,
-                            display: "flex",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <MuiTypo
-                            sx={{
-                              color: themeM.palette.action.active,
+
+                        {/* Kolona "Broj poruka" (sakrivena za xs i sm) */}
+                        {isMd && (
+                          <td
+                            style={{
+                              padding: "0 12px",
+                              width: "10%",
+                              height: "fit-content",
+                              border: 0,
+                              display: "flex",
+                              justifyContent: "center",
                             }}
                           >
-                            {theme1.messages.length.toString()}
-                          </MuiTypo>
-                        </td>
+                            <MuiTypo
+                              sx={{
+                                color: themeM.palette.action.active,
+                              }}
+                            >
+                              {theme1.messages.length.toString()}
+                            </MuiTypo>
+                          </td>
+                        )}
 
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            // flex: 1,
-                            width: "10%",
-                            height: "fit-content",
-                            border: 0,
-                            display: "flex",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {user ? (
-                            user.username == theme1.user?.username ? (
-                              RowMenu(theme1)
-                            ) : user && theme1.course ? (
-                              theme1.course.usersCourse?.some(
-                                (uc) => uc.user.username === user.username && uc.withdrawDate==null
-                              ) ||
-                              theme1.course.professorsCourse.some(
-                                (pc) => pc.user.username === user.username && pc.withdrawDate==null
-                              ) ? (
-                                <LockOpenIcon sx={{ fontSize: "13pt" }} />
+                        {/* Kolona "Akcije" (sakrivena za xs i sm) */}
+                        {isMd && (
+                          <td
+                            style={{
+                              padding: "0 12px",
+                              width: "10%",
+                              height: "fit-content",
+                              border: 0,
+                              display: "flex",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {user ? (
+                              user.username == theme1.user?.username ? (
+                                RowMenu(theme1)
+                              ) : user && theme1.course ? (
+                                theme1.course.usersCourse?.some(
+                                  (uc) =>
+                                    uc.user.username === user.username &&
+                                    uc.withdrawDate == null
+                                ) ||
+                                theme1.course.professorsCourse.some(
+                                  (pc) =>
+                                    pc.user.username === user.username &&
+                                    pc.withdrawDate == null
+                                ) ? (
+                                  <LockOpenIcon sx={{ fontSize: "13pt" }} />
+                                ) : (
+                                  <LockIcon sx={{ fontSize: "13pt" }} />
+                                )
                               ) : (
-                                <LockIcon sx={{ fontSize: "13pt" }} />
+                                <LockOpenIcon sx={{ fontSize: "13pt" }} />
                               )
                             ) : (
-                              <LockOpenIcon sx={{ fontSize: "13pt" }} />
-                            )
-                          ) : (
-                            <LockIcon sx={{ fontSize: "13pt" }} />
-                          )}
-                        </td>
+                              <LockIcon sx={{ fontSize: "13pt" }} />
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))
                 )}

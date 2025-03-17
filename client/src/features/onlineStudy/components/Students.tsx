@@ -170,7 +170,7 @@ export default function Students() {
             sx={{
               borderRadius: "sm",
               py: 0,
-              display: { xs: "none", sm: "flex" },
+              display: "flex" ,
               flexWrap: "wrap",
               gap: 1.5,
               marginBottom:2,
@@ -346,7 +346,7 @@ export default function Students() {
                       <Divider />
                     </List>
                   ))}
-                <Box
+                {/* <Box
                   className="Pagination-mobile"
                   sx={{
                     display: { xs: "flex", md: "none" },
@@ -368,7 +368,7 @@ export default function Students() {
                   >
                     <KeyboardArrowRightIcon />
                   </IconButton>
-                </Box>
+                </Box> */}
               </Box>
             </>
           )}

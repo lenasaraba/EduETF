@@ -690,19 +690,27 @@ export const courseSlice = createSlice({
     builder.addCase(deleteMaterialAsync.rejected, (state) => {
       state.status = "rejectedDeleteMaterial";
     });
-    builder.addCase(uploadFile.pending, (state) => {
-      state.status = "pendingUploadMaterial";
-      // state.materialsLoaded = false;
+    builder.addCase(uploadFile.pending, (state, action) => {
+      console.log(action.meta.arg.weekNumber);
+      // if(state.currentCourse){
+      //   if(action.meta.arg.weekNumber<=state.currentCourse?.weekCount)
+      //     state.status = "pendingUploadMaterialExisting";
+      //   else
+      //   state.status = "pendingUploadMaterialNew";
+
+
+      // }
+      state.status="pendingUploadMaterial";
     });
     builder.addCase(uploadFile.fulfilled, (state, action) => {
-      state.status = "idle";
-      state.currentCourseMaterials?.push(action.payload); // Ažuriranje liste materijala
-      // state.currentCourse?.materials?.concat(action.payload);
-      console.log(action.payload);
-      if (action.payload.week > state.currentCourse!.weekCount)
+      state.currentCourseMaterials?.push(action.payload); 
+      if (action.payload.week > state.currentCourse!.weekCount){
         state.currentCourse!.weekCount = action.payload.week;
+        state.status = "idleUploadNewWeek";
+      }
       else {
-        // state.materialsLoaded = true;
+        state.status = "idleUploadExistingWeek";
+
       }
     });
     builder.addCase(uploadFile.rejected, (state) => {

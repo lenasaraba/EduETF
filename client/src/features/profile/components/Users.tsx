@@ -34,6 +34,8 @@ export default function Users() {
               marginTop: 5,
               display: "flex",
               justifyContent: "space-around",
+              flexDirection:{xs:"column", sm:"column", md:"row"},
+              gap:{xs:2, sm:2, md:3}
             }}
           >
             <Paper
@@ -45,6 +47,7 @@ export default function Users() {
                 display: "flex",
                 alignItems: "center",
                 "&:hover": { backgroundColor: "primary.dark" },
+                justifyContent:"center"
               }}
               onClick={() => navigate("/users/students")}
             >
@@ -64,6 +67,8 @@ export default function Users() {
                 alignItems: "center",
                 display: "flex",
                 "&:hover": { backgroundColor: "primary.dark" },
+                justifyContent:"center"
+
               }}
               onClick={() => navigate("/users/professors")}
             >

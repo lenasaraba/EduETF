@@ -28,25 +28,35 @@ export function Author({ authors }: AuthorProps) {
           </Avatar>
         ))}
       </AvatarGroup>
-      <Box sx={{margin:0, padding:0}}>
-      {authors
-        .map((author, index) => (
-          <Box key={index} sx={{margin:0, padding:0, display:"inline"}}>
-          <Typography
-            variant="body2"
-            component={Link}
-            to={`/professorInfo/${author.user.id}`}
-            sx={{ textDecoration: "none", color: "inherit",fontWeight:"normal", "&:hover":{
-              color:"primary.main", cursor:"pointer", fontWeight:"bold",
-            } }}
-          >{author.user.firstName} {author.user.lastName}</Typography>
-          {index < authors.length - 1 && <span>,</span>} {/* Dodaj zarez, osim za poslednji element */}
-
-          </Box>
-        ))
-        // .reduce((prev, curr) => [prev,", ",curr])
+      <Box sx={{ margin: 0, padding: 0 }}>
+        {
+          authors.map((author, index) => (
+            <Box key={index} sx={{ margin: 0, padding: 0, display: "inline" }}>
+              <Typography
+                variant="body2"
+                component={Link}
+                to={`/professorInfo/${author.user.id}`}
+                sx={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  fontWeight: "normal",
+                  fontSize: "clamp(5pt, 9pt, 12pt)",
+                  "&:hover": {
+                    color: "primary.main",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  },
+                }}
+              >
+                {author.user.firstName} {author.user.lastName}
+              </Typography>
+              {index < authors.length - 1 && <span>,</span>}{" "}
+              {/* Dodaj zarez, osim za poslednji element */}
+            </Box>
+          ))
+          // .reduce((prev, curr) => [prev,", ",curr])
         }
-</Box>
+      </Box>
       {/* <Typography variant="caption">
           {authors
             .map((author) => author.user.firstName + " " + author.user.lastName)

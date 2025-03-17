@@ -1241,7 +1241,7 @@ export default function Theme() {
                         {messages && messages.length > 0 ? (
                           messages.map((message, index) => (
                             <Box
-                              key={index} // Dodaj ključ da izbegneš React grešku
+                              key={index}
                               id={`message-${message.id}`}
                               sx={{
                                 marginTop: 2,
@@ -1250,30 +1250,24 @@ export default function Theme() {
                                 justifyContent:
                                   message.user?.email === user?.email
                                     ? "flex-end"
-                                    : "flex-start", // Poravnanje poruka
+                                    : "flex-start",
                                 marginBottom: 2,
-                                // backgroundColor:
-                                //   highlightedMessage === message.id
-                                //     ? "#f0f8ff"
-                                //     : "#fff",
                               }}
                             >
                               <Box
                                 sx={{
                                   backgroundColor:
-                                    // highlightedMessage === message.id
-                                    //   ? "background.paper" // Svetlija nijansa primarne boje za highlight
-                                    //   :
                                     message.user?.email === user?.email
                                       ? "common.background"
                                       : "common.onBackground",
-                                  padding: 2,
+                                  padding: { xs: 1, sm: 1.5, md: 2 }, 
                                   borderRadius: 2,
                                   maxWidth: {
-                                    xs: "100%",
-                                    sm: "100%",
-                                    md: "70%",
+                                    xs: "90%", 
+                                    sm: "80%", 
+                                    md: "70%", 
                                   },
+                                  width:"100%",
                                   border: "2px solid",
                                   borderColor:
                                     highlightedMessage === message.id
@@ -1281,22 +1275,24 @@ export default function Theme() {
                                       : "transparent",
                                   boxShadow: (theme) =>
                                     highlightedMessage === message.id
-                                      ? ` 0px 0px 15px 2px ${theme.palette.text.primary}`
+                                      ? `0px 0px 15px 2px ${theme.palette.text.primary}`
                                       : "none",
-                                  transition: "all 0.2s ease-in-out", // Glatka animacija promene stanja
+                                  transition: "all 0.2s ease-in-out",
                                 }}
                               >
                                 <Stack direction="row" alignItems="flex-start">
                                   <Box sx={{ margin: 0, padding: 0 }}>
                                     <Avatar
                                       sx={{
-                                        marginRight: 2,
+                                        marginRight: { xs: 1, sm: 1.5, md: 2 }, 
+                                        width: { xs: 32, sm: 40, md: 48 }, 
+                                        height: { xs: 32, sm: 40, md: 48 },
                                         backgroundColor:
                                           "common.backgroundChannel",
                                       }}
                                     />
                                   </Box>
-                                  <Box sx={{ width: "100vw" }}>
+                                  <Box sx={{ width: "100%" }}>
                                     <Typography
                                       variant="subtitle1"
                                       fontWeight={
@@ -1306,9 +1302,20 @@ export default function Theme() {
                                       }
                                       sx={{
                                         display: "flex",
+                                        flexDirection: {
+                                          xs: "column",
+                                          sm: "row",
+                                        }, // Vertikalni raspored za xs, horizontalni za veće ekrane
                                         justifyContent: "space-between",
-                                        alignItems: "center",
+                                        alignItems: {
+                                          xs: "flex-start",
+                                          sm: "center",
+                                        },
                                         color: "common.white",
+                                        fontSize: {
+                                          xs: "0.875rem",
+                                          sm: "1rem",
+                                        }, // Smanjen font za manje ekrane
                                       }}
                                     >
                                       <span>
@@ -1338,42 +1345,50 @@ export default function Theme() {
                                           </span>
                                         )}
                                       </span>
-                                      <span
-                                        style={{
-                                          fontSize: "12px",
+                                      <Typography
+                                        variant="caption"
+                                        sx={{
+                                          fontSize: {
+                                            xs: "0.75rem",
+                                            sm: "0.875rem",
+                                          }, // Smanjen font za manje ekrane
                                           color: "common.black",
-                                          display: "flex",
-                                          flexDirection: "column",
-                                          alignItems: "flex-end",
+                                          mt: { xs: 0.5, sm: 0 }, // Dodatni razmak za xs ekrane
                                         }}
                                       >
-                                        <Typography variant="caption">
-                                          {new Date(
-                                            message.creationDate
-                                          ).toLocaleTimeString("sr-RS", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            second: "2-digit",
-                                          })}{" "}
-                                          {new Date(
-                                            message.creationDate
-                                          ).toLocaleDateString("sr-RS", {
-                                            day: "2-digit",
-                                            month: "2-digit",
-                                            year: "numeric",
-                                          })}
-                                        </Typography>
-                                      </span>
+                                        {new Date(
+                                          message.creationDate
+                                        ).toLocaleTimeString("sr-RS", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                          second: "2-digit",
+                                        })}{" "}
+                                        {new Date(
+                                          message.creationDate
+                                        ).toLocaleDateString("sr-RS", {
+                                          day: "2-digit",
+                                          month: "2-digit",
+                                          year: "numeric",
+                                        })}
+                                      </Typography>
                                     </Typography>
 
                                     <Typography
                                       variant="body2"
                                       color="text.primary"
-                                      sx={{ textAlign: "left" }}
+                                      sx={{
+                                        textAlign: "left",
+                                        fontSize: {
+                                          xs: "0.875rem",
+                                          sm: "1rem",
+                                        }, // Smanjen font za manje ekrane
+                                        mt: 1,
+                                      }}
                                     >
                                       {message.content}
                                     </Typography>
 
+                                    {/* FormVote i materijali */}
                                     {formStatus == message.id?.toString() ? (
                                       <CircularProgress
                                         size={20}
@@ -1397,14 +1412,6 @@ export default function Theme() {
                                               marginBottom: 2,
                                             }}
                                           >
-                                            {/* <Typography
-                                              variant="body2"
-                                              sx={{
-                                                color: "background.default", ml:2
-                                              }}
-                                            >
-                                              {form.topic}
-                                            </Typography> */}
                                             <FormVote
                                               form={form}
                                               IsTheme={true}
@@ -1413,17 +1420,10 @@ export default function Theme() {
                                         ))
                                     )}
 
-                                    {/* Pregled materijala (ako postoje) */}
+                                    {/* Materijali */}
                                     {message.materials &&
                                       message.materials.length > 0 && (
-                                        <Box
-                                          sx={{
-                                            marginTop: 1,
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            flexDirection: "column",
-                                          }}
-                                        >
+                                        <Box sx={{ marginTop: 1 }}>
                                           {message.materials.map(
                                             (material, index) => {
                                               const fileExtension =
@@ -1443,36 +1443,24 @@ export default function Theme() {
                                                 return (
                                                   <Box
                                                     key={index}
-                                                    sx={{
-                                                      margin: 0,
-                                                      padding: 0,
-                                                      display: "flex",
-                                                      flexDirection: "column",
-                                                      alignItems: "center",
-                                                    }}
+                                                    sx={{ marginTop: 1 }}
                                                   >
-                                                    <a
-                                                      href={`http://localhost:5000//${material.filePath}`}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
+                                                    <img
+                                                      src={`http://localhost:5000//${material.filePath}`}
+                                                      alt="Materijal"
                                                       style={{
-                                                        textDecoration: "none",
-                                                        color: "primary.main",
+                                                        maxWidth: "100%",
+                                                        maxHeight: "150px", // Smanjena visina slika za manje ekrane
+                                                        borderRadius: "8px",
                                                       }}
-                                                      key={index}
+                                                    />
+                                                    <Typography
+                                                      variant="body2"
+                                                      sx={{
+                                                        mt: 0.5,
+                                                        wordBreak: "break-word",
+                                                      }}
                                                     >
-                                                      <img
-                                                        src={`http://localhost:5000//${material.filePath}`}
-                                                        alt="Materijal"
-                                                        style={{
-                                                          maxWidth: "100%",
-                                                          maxHeight: "200px",
-                                                          marginTop: "5px",
-                                                          borderRadius: "8px",
-                                                        }}
-                                                      />
-                                                    </a>
-                                                    <Typography variant="body2">
                                                       {material.title}
                                                     </Typography>
                                                   </Box>
@@ -1485,26 +1473,24 @@ export default function Theme() {
                                                 return (
                                                   <Box
                                                     key={index}
-                                                    sx={{
-                                                      margin: 0,
-                                                      padding: 0,
-                                                      display: "flex",
-                                                      flexDirection: "column",
-                                                      alignItems: "center",
-                                                    }}
+                                                    sx={{ marginTop: 1 }}
                                                   >
                                                     <video
-                                                      key={index}
                                                       controls
                                                       style={{
                                                         maxWidth: "100%",
-                                                        maxHeight: "200px",
-                                                        marginTop: "5px",
+                                                        maxHeight: "150px", // Smanjena visina videa za manje ekrane
                                                         borderRadius: "8px",
                                                       }}
                                                       src={`http://localhost:5000//${material.filePath}`}
                                                     />
-                                                    <Typography variant="body2">
+                                                    <Typography
+                                                      variant="body2"
+                                                      sx={{
+                                                        mt: 0.5,
+                                                        wordBreak: "break-word",
+                                                      }}
+                                                    >
                                                       {material.title}
                                                     </Typography>
                                                   </Box>
@@ -1518,16 +1504,13 @@ export default function Theme() {
                                                   <Box
                                                     key={index}
                                                     sx={{
-                                                      marginTop: "5px",
+                                                      marginTop: 1,
                                                       display: "flex",
                                                       alignItems: "center",
-                                                      width: "100%",
-                                                      justifyContent:
-                                                        "flex-start",
                                                     }}
                                                   >
-                                                    <DescriptionIcon fontSize="medium" />
-
+                                                    <DescriptionIcon fontSize="small" />{" "}
+                                                    {/* Smanjena ikonica */}
                                                     <a
                                                       href={`http://localhost:5000//${material.filePath}`}
                                                       target="_blank"
@@ -1535,6 +1518,8 @@ export default function Theme() {
                                                       style={{
                                                         textDecoration: "none",
                                                         color: "primary.main",
+                                                        marginLeft: "8px",
+                                                        wordBreak: "break-word",
                                                       }}
                                                     >
                                                       {material.title ||
@@ -1552,37 +1537,33 @@ export default function Theme() {
                                         </Box>
                                       )}
 
-                                    {/* Dugme za brisanje (samo ako je korisnik vlasnik poruke) */}
+                                    {/* Dugme za brisanje */}
                                     {user &&
                                       user.email === message.user?.email && (
-                                        <div
-                                          style={{
+                                        <Box
+                                          sx={{
                                             display: "flex",
                                             justifyContent: "flex-end",
+                                            mt: 1,
                                           }}
                                         >
-                                          <Box
-                                            aria-describedby={idMenu}
-                                            onClick={() =>
-                                              handleDeleteMessage(message)
-                                            }
+                                          <DeleteOutlineOutlinedIcon
                                             sx={{
-                                              display: "flex",
-                                              width: "fit-content",
-                                              borderRadius: "20pt",
-                                              padding: 0,
+                                              fontSize: {
+                                                xs: "14pt",
+                                                sm: "16pt",
+                                              }, // Smanjena ikonica za manje ekrane
                                               color: "text.disabled",
                                               "&:hover": {
                                                 cursor: "pointer",
                                                 color: "text.primary",
                                               },
                                             }}
-                                          >
-                                            <DeleteOutlineOutlinedIcon
-                                              sx={{ fontSize: "16pt" }}
-                                            />
-                                          </Box>
-                                        </div>
+                                            onClick={() =>
+                                              handleDeleteMessage(message)
+                                            }
+                                          />
+                                        </Box>
                                       )}
                                   </Box>
                                 </Stack>
@@ -1595,7 +1576,7 @@ export default function Theme() {
                             sx={{
                               mb: 2,
                               textAlign: "center",
-                              fontSize: "12pt",
+                              fontSize: { xs: "10pt", sm: "12pt" }, // Smanjen font za manje ekrane
                               fontFamily: "Raleway, sans-serif",
                             }}
                           >
@@ -1644,6 +1625,24 @@ export default function Theme() {
                         minHeight: "40px",
                         padding: "10px",
                         lineHeight: "20px",
+                        whiteSpace: "pre-wrap", // Omogućava tekstualni prelaz
+                        wordWrap: "break-word", // Omogućava prelaz reči
+                        resize: "vertical", // Omogućava korisniku da ručno podešava visinu
+                        // Prilagodba za xs i sm ekrane
+                        // "@media (max-width: 600px)": {
+                        //   minHeight: "60px", // Povećajte visinu za manje ekrane
+                        // },
+                        // "@media (max-width: 960px)": {
+                        //   minHeight: "50px", // Povećajte visinu za srednje ekrane
+                        // },
+                        fontSize: "clamp(12px, 14px, 16px)",
+                        overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
+                        display: "-webkit-box", // Neophodno za multi-line truncation
+                        WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
+                        WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
+                        // lineHeight: "1", // Podešava razmak između linija
+                        height: "1em", // Fiksna visina: broj linija * lineHeight
+                        textOverflow: "ellipsis", // Dodaje tri tačke
                       }}
                       placeholder={
                         theme.active
@@ -1700,20 +1699,19 @@ export default function Theme() {
 
                       {/* Dugme za slanje */}
                       <LoadingButton
-                        loading={
-                          statusMessage == "pendingCreateMessage" ||
-                          formStatus == "pendingCreateForm"
-                        }
+                        loading={statusMessage == "pendingCreateMessage"}
+                        color="primary"
                         variant="contained"
                         disabled={
                           !theme.active ||
                           (messageContent === "" &&
-                            selectedFiles.length == 0 &&
-                            newForms.length == 0 &&
-                            selectedForms.length == 0)
+                            selectedFiles.length === 0 &&
+                            newForms.length === 0 &&
+                            selectedForms.length === 0) ||
+                          statusMessage == "pendingCreateMessage"
                         }
                         loadingIndicator={
-                          <CircularProgress size={24} sx={{ color: "white" }} />
+                          <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
                         }
                         sx={{
                           textTransform: "none",
@@ -1739,8 +1737,6 @@ export default function Theme() {
                               creationDate: adjustedDate.toISOString(),
                               user: user!,
                               materials: [],
-                              // forms: selectedForms,
-                              // newForms: newForms,
                             };
 
                             if (selectedFiles && selectedFiles.length > 0) {
@@ -1750,7 +1746,6 @@ export default function Theme() {
                                   const response = await dispatch(
                                     uploadFile({ file, themeId: theme.id })
                                   ).unwrap();
-                                  console.log("Upload response:", response);
 
                                   return {
                                     title: file.name,
@@ -1762,16 +1757,13 @@ export default function Theme() {
                                 }
                               );
 
-                              // Sačekaj da se svi fajlovi uploaduju
                               newMessage.materials =
                                 await Promise.all(uploadPromises);
                             }
 
-                            // Pošalji poruku nakon što su fajlovi uploadovani
                             const responseMessage = await dispatch(
                               createMessage(newMessage)
                             ).unwrap();
-                            console.log(responseMessage);
 
                             if (newForms.length > 0)
                               newForms.map((form) => {
@@ -1789,7 +1781,6 @@ export default function Theme() {
                                 );
                               });
 
-                            // Skrolovanje do dna
                             if (bottomOfPageRef.current) {
                               bottomOfPageRef.current.scrollIntoView({
                                 behavior: "instant",
@@ -1797,7 +1788,6 @@ export default function Theme() {
                               });
                             }
 
-                            // Resetovanje input polja
                             setMessageContent("");
                             setSelectedFiles([]);
                             setSelectedForms([]);

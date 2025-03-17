@@ -9,7 +9,7 @@ import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import Table from "@mui/joy/Table";
 import Sheet from "@mui/joy/Sheet";
-import { CircularProgress, debounce, TableBody, Theme } from "@mui/material";
+import { CircularProgress, debounce, TableBody, Theme, useMediaQuery } from "@mui/material";
 import { Typography as MuiTypo } from "@mui/material";
 
 import { Avatar } from "@mui/joy";
@@ -39,10 +39,13 @@ interface ProfessorsTableProps {
   themeM: Theme; // Define the 'theme' prop type (tema izgled)
 }
 export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
-
   const [currentColor, setCurrentColor] = useState<string>("");
   const [yearValue, setYearValue] = useState<string>("");
   const [programValue, setProgramValue] = useState<string>("");
+
+  const isXs = useMediaQuery(themeM.breakpoints.down("xs")); // xs ekrani
+  const isSm = useMediaQuery(themeM.breakpoints.down("sm")); // sm ekrani
+  // const isMd = useMediaQuery(themeM.breakpoints.up("md")); // md ekrani
 
   // Ref za pristup svim Option elementima
   const optionRefs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -368,7 +371,8 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
               sx={{
                 borderRadius: "sm",
                 py: 0,
-                display: { xs: "none", sm: "flex" },
+                display: "flex",
+                flexDirection: { xs: "column", sm: "column", md: "row" },
                 flexWrap: "wrap",
                 gap: 1.5,
                 "& > *": {
@@ -432,7 +436,7 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
             className="ThemesContainer"
             variant="outlined"
             sx={{
-              display: { xs: "none", sm: "initial" },
+              display: "initial",
               width: "100%",
               borderRadius: "sm",
               flexShrink: 1,
@@ -455,7 +459,7 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                 "--TableCell-paddingX": "12px",
                 backgroundColor: themeM.palette.background.paper,
                 display: "block",
-                tableLayout: "fixed", // Dodajemo fixed layout za preciznije pozicioniranje
+                tableLayout: "fixed",
                 width: "100%",
               }}
             >
@@ -472,13 +476,13 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                     width: "100%",
                     display: "flex",
                     flexDirection: "row",
-                    justifyContent: "space-between", // Koristimo space-between da rasporedimo sadržaj
-                    alignItems: "center", // Osiguravamo da su stavke poravnate
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
+                  {/* Kolona "Ime i prezime" (uvijek vidljiva) */}
                   <th
                     style={{
-                      // width: "25%",
                       flex: 1,
                       color: themeM.palette.primary.main,
                     }}
@@ -486,22 +490,29 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                     Ime i prezime
                   </th>
 
+                  {/* Kolona "Godine" (sakrivena za xs i sm) */}
                   <th
                     style={{
                       color: themeM.palette.primary.main,
                       flex: 1,
+                      display: isXs || isSm ? "none" : "table-cell", // Sakriveno za xs i sm
                     }}
                   >
                     Godine
                   </th>
+
+                  {/* Kolona "Smjerovi" (sakrivena za xs i sm) */}
                   <th
                     style={{
                       color: themeM.palette.primary.main,
                       flex: 1,
+                      display: isXs || isSm ? "none" : "table-cell", // Sakriveno za xs i sm
                     }}
                   >
                     Smjerovi
                   </th>
+
+                  {/* Kolona "Email" (uvijek vidljiva) */}
                   <th
                     style={{
                       color: themeM.palette.primary.main,
@@ -512,6 +523,7 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                   </th>
                 </tr>
               </thead>
+
               <TableBody
                 sx={{
                   maxHeight: "50vh",
@@ -525,14 +537,14 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                     width: "8px",
                   },
                   "&::-webkit-scrollbar-thumb": {
-                    backgroundColor: themeM.palette.background.paper, // Boja skrola
+                    backgroundColor: themeM.palette.background.paper,
                     borderRadius: "8px",
                   },
                   "&::-webkit-scrollbar-thumb:hover": {
-                    backgroundColor: themeM.palette.primary.dark, // Boja hvataljke na hover
+                    backgroundColor: themeM.palette.primary.dark,
                   },
                   "&::-webkit-scrollbar-track": {
-                    backgroundColor: "transparent", // Prozirna pozadina skrola
+                    backgroundColor: "transparent",
                   },
                 }}
               >
@@ -540,206 +552,136 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                   <RowSkeleton themeM={themeM} />
                 ) : (
                   sortedProfessors &&
-                  [...sortedProfessors]
-                    // .sort(getComparator(order, "id"))
-                    .map((prof) => (
-                      <tr
-                        key={prof.id}
+                  [...sortedProfessors].map((prof) => (
+                    <tr
+                      key={prof.id}
+                      style={{
+                        borderBottom: "1px solid",
+                        borderColor: themeM.palette.background.paper,
+                        width: "100%",
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "16px 0",
+                        transition: "background-color 0.3s ease",
+                      }}
+                    >
+                      {/* Kolona "Ime i prezime" (uvijek vidljiva) */}
+                      <td
                         style={{
-                          borderBottom: "1px solid",
-                          borderColor: themeM.palette.background.paper,
-                          // borderWidth: "500px",
-                          // borderCollapse: "collapse",
-                          width: "100%",
-                          display: "flex",
-                          flexDirection: "row",
-                          justifyContent: "space-between", // Koristimo space-between da rasporedimo sadržaj
-                          alignItems: "center", // Osiguravamo da su stavke poravnate
-                          padding: "16px 0", // Povećavamo visinu redova za bolju vidljivost
-                          transition: "background-color 0.3s ease", // Efekat prelaza boje
-                          // "&:hover": {
-                          //   backgroundColor: "#f0f0f0", // Pozadina na hover (možeš promeniti boju)
-                          // },
+                          padding: "0 12px",
+                          flex: 1,
+                          height: "fit-content",
+                          border: 0,
                         }}
                       >
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            flex: 1,
-                            height: "fit-content",
-                            border: 0,
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 2,
+                            alignItems: "center",
                           }}
                         >
-                          <Box
-                            sx={{
-                              display: "flex",
-                              gap: 2,
-                              alignItems: "center",
-                            }}
-                          >
-                            <Avatar
-                              size="sm"
-                              sx={{ bgcolor: themeM.palette.primary.main }}
-                            >
-                              {prof.lastName.charAt(0).toUpperCase()}
-                            </Avatar>
-                            <MuiTypo
-                              component={Link}
-                              to={`/professorInfo/${prof.id}`}
-                              sx={{
-                                textDecoration: "none",
-                                color: themeM.palette.action.active,
-                                overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                                display: "-webkit-box", // Neophodno za multi-line truncation
-                                WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                                WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                                lineHeight: "1", // Podešava razmak između linija
-                                height: "1.2em", // Fiksna visina: broj linija * lineHeight
-                                textOverflow: "ellipsis", // Dodaje tri tačke
-                                fontWeight: "normal", // Normalna težina teksta inicijalno
-                                "&:hover": {
-                                  cursor: "pointer",
-                                  color: themeM.palette.text.primary,
-                                },
-                              }}
-                            >
-                              {prof.lastName} {prof.firstName}
-                            </MuiTypo>
-                          </Box>
-                        </td>
-                        {/* <td
-                          style={{
-                            padding: "0 12px",
-                            flex: 1,
-                            height: "fit-content",
-                            border: 0,
-                          }}
-                        >
-                          <Typography
-                            level="body-xs"
-                            sx={{
-                              color: themeM.palette.action.active,
-                            }}
-                          >
-                            {new Date(theme1.date).toLocaleTimeString("sr-RS", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              second: "2-digit",
-                            })}
-                            <span style={{ color: "light" }}>{"  |  "}</span>
-                            {new Date(theme1.date).toLocaleDateString("sr-RS", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            })} 
-                          </Typography>
-                        </td> */}
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            flex: 1,
-                            height: "fit-content",
-                            border: 0,
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: themeM.palette.action.active,
-                            }}
-                          >
-                            {/* {" "}
-                            {theme1.course != null
-                              ? theme1.course.name
-                              : "Slobodna tema"} */}
-                            {profYears?.[prof.id]
-                              ?.map((year) => year.name)
-                              .join(", ") || "Nema"}
-                          </Typography>
-                        </td>
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            flex: 1,
-                            height: "fit-content",
-                            border: 0,
-                          }}
-                        >
-                          {/* <Chip
-                            variant="soft"
+                          <Avatar
                             size="sm"
-                            startDecorator={
-                              {
-                                true: <CheckRoundedIcon />,
-                                false: <BlockIcon />,
-                              }[theme1.active]
-                            }
-                            sx={{
-                              backgroundColor: theme1.active
-                                ? themeM.palette.text.primaryChannel
-                                : themeM.palette.text.secondaryChannel, // Prilagođene boje
-                              color: "#fff", // Tekst u beloj boji
-                              borderRadius: "16px", // Primer prilagođenog oblika
-                            }}
+                            sx={{ bgcolor: themeM.palette.primary.main }}
                           >
-                            {theme1.active ? "Aktivno" : "Zatvoreno"}
-                          </Chip> */}
-                          <Typography
+                            {prof.lastName.charAt(0).toUpperCase()}
+                          </Avatar>
+                          <MuiTypo
+                            component={Link}
+                            to={`/professorInfo/${prof.id}`}
                             sx={{
+                              textDecoration: "none",
                               color: themeM.palette.action.active,
+                              overflow: "hidden",
+                              display: "-webkit-box",
+                              WebkitBoxOrient: "vertical",
+                              WebkitLineClamp: 1,
+                              lineHeight: "1.3em",
+                              height: "1.4em",
+                              textOverflow: "ellipsis",
+                              fontWeight: "normal",
+                              "&:hover": {
+                                cursor: "pointer",
+                                color: themeM.palette.text.primary,
+                              },
                             }}
                           >
-                            {profPrograms?.[prof.id]
-                              ?.map((program) => program.name)
-                              .join(", ") || "Nema"}
-                          </Typography>
-                        </td>
-                        <td
-                          style={{
-                            padding: "0 12px",
-                            flex: 1,
-                            height: "fit-content",
-                            border: 0,
+                            {prof.lastName} {prof.firstName}
+                          </MuiTypo>
+                        </Box>
+                      </td>
+
+                      {/* Kolona "Godine" (sakrivena za xs i sm) */}
+                      <td
+                        style={{
+                          padding: "0 12px",
+                          flex: 1,
+                          height: "fit-content",
+                          border: 0,
+                          display: isXs || isSm ? "none" : "table-cell", // Sakriveno za xs i sm
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            color: themeM.palette.action.active,
                           }}
                         >
-                          {/* <Box
-                            sx={{
-                              display: "flex",
-                              gap: 2,
-                              alignItems: "center",
-                            }}
-                          > */}
-                          {/* <Avatar
-                              size="sm"
-                              sx={{ bgcolor: themeM.palette.primary.main }}
-                            >
-                              {theme1.user.firstName.charAt(0).toUpperCase()}
-                            </Avatar> */}
-                          {/* <Typography
-                                level="body-xs"
-                                sx={{
-                                  color: themeM.palette.action.active,
-                                }}
-                              >
-                                {theme1.user.firstName} {theme1.user.lastName}
-                              </Typography> */}
-                          <MuiTypo
-                            sx={{
-                              color: themeM.palette.action.active,
-                              display: "-webkit-box", // Neophodno za multi-line truncation
-                              WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                              WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                              lineHeight: "1", // Podešava razmak između linija
-                              height: "1.2em", // Fiksna visina: broj linija * lineHeight
-                              textOverflow: "ellipsis", // Dodaje tri tačke
-                              fontWeight: "normal",
-                            }}
-                          >
-                            {prof.email}
-                          </MuiTypo>
-                          {/* </Box> */}
-                        </td>
-                      </tr>
-                    ))
+                          {profYears?.[prof.id]
+                            ?.map((year) => year.name)
+                            .join(", ") || "Nema"}
+                        </Typography>
+                      </td>
+
+                      {/* Kolona "Smjerovi" (sakrivena za xs i sm) */}
+                      <td
+                        style={{
+                          padding: "0 12px",
+                          flex: 1,
+                          height: "fit-content",
+                          border: 0,
+                          display: isXs || isSm ? "none" : "table-cell", // Sakriveno za xs i sm
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            color: themeM.palette.action.active,
+                          }}
+                        >
+                          {profPrograms?.[prof.id]
+                            ?.map((program) => program.name)
+                            .join(", ") || "Nema"}
+                        </Typography>
+                      </td>
+
+                      {/* Kolona "Email" (uvijek vidljiva) */}
+                      <td
+                        style={{
+                          padding: "0 12px",
+                          flex: 1,
+                          height: "fit-content",
+                          border: 0,
+                        }}
+                      >
+                        <MuiTypo
+                          sx={{
+                            color: themeM.palette.action.active,
+                            display: "-webkit-box",
+                            WebkitBoxOrient: "vertical",
+                            WebkitLineClamp: 1,
+                            lineHeight: "1",
+                            height: "1.2em",
+                            textOverflow: "ellipsis",
+                            fontWeight: "normal",
+                          }}
+                        >
+                          {prof.email}
+                        </MuiTypo>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </TableBody>
             </Table>

@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { store } from "../store/configureStore";
-// import { router } from "../router/Routes";
 import { toast } from "react-toastify";
-import { PaginatedResponse } from "../models/pagination";
 
 axios.defaults.baseURL = "http://localhost:5000/api";
 axios.defaults.withCredentials = true;
@@ -19,81 +17,29 @@ const sleep = () => new Promise((resolve) => setTimeout(resolve, 500));
 axios.interceptors.response.use(
   async (response) => {
     await sleep();
-    // console.log(response);
-    // const pagination=response.headers['pagination'];    //PAGINATION MORA MALIM SLOVIMA
-    // if(pagination){
-    //     response.data=new PaginatedResponse(response.data, JSON.parse(pagination))
-    //     //console.log(response);
-    // }
+
     if (response.status === 201) {
       if (response.data.method == "CreateTheme") toast.success("Tema kreirana");
       if (response.data.method == "CreateCourse") toast.success("Kurs kreiran");
       if (response.data.method == "AddMaterial")
         toast.success("Materijal dodat");
 
-      // Ako želite, možete dodati specifičnu logiku za status 201
-    } else if (response.status === 200) {
-      if (response.data.method == "DeleteTheme")
-        toast.success(response.data.message);
-      if (response.data.method == "DeleteCourse")
-        toast.success(response.data.message);
-      if (response.data.method == "DeleteMaterial")
-        toast.success(response.data.message);
-      if (response.data.method == "RemoveProfessorFromCourse")
-        toast.success(response.data.message);
-      if (response.data.method == "RemoveStudentFromCourse")
-        toast.success(response.data.message);
+      } else if (response.status === 200) {
+        if (response.data.method == "DeleteTheme")
+          toast.success(response.data.message);
+        if (response.data.method == "DeleteCourse")
+          toast.success(response.data.message);
+        if (response.data.method == "DeleteMaterial")
+          toast.success(response.data.message);
+        if (response.data.method == "RemoveProfessorFromCourse")
+          toast.success(response.data.message);
+        if (response.data.method == "RemoveStudentFromCourse")
+          toast.success(response.data.message);
     }
 
-    // const pagination = response.headers["pagination"];
-    // //console.log(response.headers);
-    // if (pagination) {
-    //   // response.data = new PaginatedResponse(
-    //   //   response.data,
-    //   //   JSON.parse(pagination)
-    //   // );
-    //   console.log(response);
-    //   return response;
-    // }
-    // console.log(response.data);
     return response;
   },
   (error: AxiosError) => {
-    //console.log('caught by interceptor');
-    //const
-    //destrukturiramo propertije koje uzimamo iz error response
-    const { data, status } = error.response as AxiosResponse;
-    switch (status) {
-      case 201:
-        // console.log(data.title);
-        break;
-      case 400:
-        // if(data.errors){
-        //    const modelStateErrors: string[]=[];
-        //    for(const key in data.errors){
-        //     if(data.errors[key]){
-        //         modelStateErrors.push(data.errors[key]);
-        //     }
-        //    }
-        //    throw modelStateErrors.flat();
-        // }
-        toast.error(data.title);
-        break;
-      case 401:
-        // toast.error("Neuspješna prijava");
-        toast.error(data.title);
-
-        break;
-      case 404:
-        toast.error("Resurs nije pronađen.");
-        break;
-      case 500:
-        toast.error(data.title);
-        //router.navigate('/server-error', {state: {error: data}});
-        break;
-      default:
-        break;
-    }
     return Promise.reject(error.response);
   }
 );
@@ -110,7 +56,6 @@ const Account = {
   login: (values: any) => requests.post("Account/login", values),
   register: (values: any) => requests.post("account/register", values),
   currentUser: () => requests.get("account/currentUser"),
-  // fetchAddress: ()=>requests.get('account/savedAddress'),
   updateUser: (userData: any) => requests.post("account/updateUser", userData),
 };
 
@@ -118,7 +63,6 @@ const Course = {
   list: (params: URLSearchParams) =>
     requests.get("course/getAllCourses", params),
   fullList: () => requests.get("course/getAllCoursesList"),
-  // getMy: (id: string) => requests.get(`course/getMyCourses/${id}`),
   getProfessorCourses: (id: number) =>
     requests.get(`course/getProfessorsCourses/${id}`),
   getCourse: (id: number) => requests.get(`course/getCourseById/${id}`),
@@ -201,6 +145,10 @@ const Message = {
   },
 };
 
+const Firebase = {
+  addToken: (values: any) => requests.post("firebase/addToken", values),
+};
+
 const agent = {
   Account,
   Course,
@@ -208,6 +156,7 @@ const agent = {
   Theme,
   Message,
   Form,
+  Firebase,
 };
 
 export default agent;

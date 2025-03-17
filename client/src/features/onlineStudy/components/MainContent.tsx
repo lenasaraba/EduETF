@@ -208,6 +208,7 @@ export default function MainContent() {
           gap: 4,
           margin: 0,
           padding: 0,
+          mb:2
         }}
       >
         <div>

@@ -1,74 +1,61 @@
-Latest.tsx -- mozda za forum
-                
-                // function RowMenu() {
-//   return (
-//     <Dropdown>
-//       <MenuButton
-//         slots={{ root: IconButton }}
-//         slotProps={{ root: { variant: "plain", color: "neutral", size: "sm" } }}
-//       >
-//         <MoreHorizRoundedIcon />
-//       </MenuButton>
-//       <Menu size="sm" sx={{ minWidth: 140 }}>
-//         <MenuItem>Edit</MenuItem>
-//         <MenuItem>Rename</MenuItem>
-//         <MenuItem>Move</MenuItem>
-//         <Divider />
-//         <MenuItem color="danger">Delete</MenuItem>
-//       </Menu>
-//     </Dropdown>
-//   );
-// }
+<Box
+                      sx={{
+                        maxHeight: { xs: "100%", md: "60vh" },
+                        //  maxHeight: "60vh",
+                        // height:"40vh",
+                        backgroundColor: "transparent",
+                        width: { xs: "100%", sm: "100%", md: "50%" },
+                        // paddingX: 1,
+                        display: fileVisible ? "block" : "none",
 
+                        minHeight: fileVisible ? "40vh" : "0", // Ako su sve zatvorene, minHeight je auto
+                        // Skrol samo ovde
 
-
-
-<th style={{ textAlign: "center", padding: 1 }}>
-                <Checkbox
-                  size="sm"
-                  indeterminate={
-                    selected.length > 0 && selected.length !== allThemes!.length
-                  }
-                  checked={selected.length === allThemes!.length}
-                  onChange={(event) => {
-                    setSelected(
-                      event.target.checked
-                        ? allThemes!.map((row) => row.id.toString())
-                        : []
-                    );
-                  }}
-                  color={
-                    selected.length > 0 || selected.length === allThemes!.length
-                      ? "primary"
-                      : undefined
-                  }
-                  sx={{ verticalAlign: "text-bottom" }}
-                />
-              </th>
-
-
-
-
-<td style={{ textAlign: "center", width: 120 }}>
-                    <Checkbox
-                      size="sm"
-                      checked={selected.includes(theme.id.toString())}
-                      color={
-                        selected.includes(theme.id.toString())
-                          ? "primary"
-                          : undefined
-                      }
-                      onChange={(event) => {
-                        setSelected((ids) =>
-                          event.target.checked
-                            ? ids.concat(theme.id.toString())
-                            : ids.filter(
-                                (itemId) =>
-                                  itemId.toString() !== theme.id.toString()
-                              )
-                        );
+                        // mb: 2,
                       }}
-                      slotProps={{ checkbox: { sx: { textAlign: "left" } } }}
-                      sx={{ verticalAlign: "text-bottom" }}
-                    />
-                  </td>
+                    >
+                      <Box
+                        sx={{
+                          margin: 0,
+                          padding: 0,
+                          height:"100%",
+                          minHeight: "40vh",
+                          maxHeight: "60vh", // Sprečava preveliko širenje
+                          overflowY: "auto",
+                        }}
+                      >
+                        {getFilePreview(currentMat.filePath)}
+                      </Box>
+                      <Button
+                        type="button" // Ovo je važno da se formular ne pošalje pritiskom na ovo dugme
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => {
+                          //   reset();
+                          setIsAddingExistingForm(false);
+                        }}
+                        sx={{
+                          width: "fit-content",
+                          color: "text.primary",
+                          borderRadius: "8px", // Zaobljene ivice
+                          textTransform: "none", // Bez velikih slova
+                          borderColor: "primary.dark",
+                          "&:hover": {
+                            cursor: "pointer",
+                            backgroundColor: "action.acive",
+                            color: "primary.light",
+                          },
+                          fontSize: "10pt",
+                          height: "fit-content",
+                          // mr: 1,
+                          mt: 1,
+                        }}
+                      >
+                        Zatvori
+                        <CloseIcon
+                          sx={{ ml: 1 }}
+                          color="inherit" // Ovo sprečava preklapanje sa default stilovima
+                          onClick={() => hideFile()}
+                        />
+                      </Button>
+                    </Box>

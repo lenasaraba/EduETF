@@ -6,18 +6,19 @@ import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
-import { styled, useTheme } from "@mui/material/styles";
+import { styled } from "@mui/material/styles";
 import { Grid } from "@mui/material";
 import logo from "../../assets/etf.png";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { FieldValues, useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { signInUser } from "./accountSlice";
+import MicrosoftIcon from '@mui/icons-material/Microsoft';
 import Alert from "@mui/material/Alert";
 
 import { LoadingButton } from "@mui/lab";
+import { LoginButton } from "./components/LoginButton";
 
 const Card = styled(MuiCard)(() => ({
   display: "flex",
@@ -28,7 +29,6 @@ const Card = styled(MuiCard)(() => ({
   padding: "3rem",
   maxWidth: "550px",
   backgroundColor: "secondary.main",
-
   margin: "auto",
 }));
 
@@ -54,11 +54,8 @@ export default function Login() {
     }
   }
 
-  // const theme = useTheme();
-  //props: { disableCustomTheme?: boolean }
 
   return (
-    // <AppTheme {...props}>
     <>
       <CssBaseline />
 
@@ -66,11 +63,9 @@ export default function Login() {
         container
         sx={{
           flexGrow: 1,
-          // padding: 2,
           backgroundImage: `url(${logo})`,
           backgroundSize: "contain",
           backgroundPosition: "right",
-          // height: "100vh",
           width: "100%",
           filter: "blur(8px)",
           backgroundRepeat: "no-repeat",
@@ -188,27 +183,23 @@ export default function Login() {
               Prijavi se
             </LoadingButton>
           </Box>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {/* <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => alert("Sign in with Google")}
-            //   startIcon={<GoogleIcon />}
-            >
-              Sign in with Google
-            </Button>
+          <Box sx={{ display: "flex", flexDirection: "column", mt:2}}>
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => alert("Sign in with Facebook")}
-              startIcon={<FacebookIcon />}
+              onClick={() => alert("Registruj se koristeći Microsoft nalog")}
+              startIcon={<MicrosoftIcon />}
             >
-              Sign in with Facebook
-            </Button> */}
+              Registruj se 
+            </Button>
+            
           </Box>
+
+          {/* -----------------OPEN ID---------------- */}
+
+          {/* <LoginButton/> */}
         </Card>
       </Grid>
     </>
-    // </AppTheme>
   );
 }

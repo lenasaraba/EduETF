@@ -7,9 +7,9 @@ import HomeIcon from "@mui/icons-material/Home";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ForumIcon from "@mui/icons-material/Forum";
-import { Router, type Navigation, type Session } from "@toolpad/core";
+import { type Navigation, type Session } from "@toolpad/core";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import LoadingComponent from "./LoadingComponent";
 import { fetchCurrentUser, signOut } from "../../features/account/accountSlice";
 import lightLogo from "../../assets/lightLogo.png";
@@ -18,97 +18,11 @@ import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
 import BadgeTwoToneIcon from "@mui/icons-material/BadgeTwoTone";
 import GroupsTwoToneIcon from "@mui/icons-material/GroupsTwoTone";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import { requestForToken } from "../../../firebase-initialize";
 
 import "./app.css"; //
 import { BrandingContext } from "./BrandingContext";
-import FormPage from "../../features/form/FormPage";
-import { ScheduleRounded, SchoolOutlined } from "@mui/icons-material";
-import { router } from "../router/Routes";
-
-// const NAVIGATION: Navigation = [
-//   {
-//     kind: "header",
-//     title: "Meni",
-//   },
-//   {
-//     segment: "",
-//     title: "Početna",
-//     icon: <HomeIcon />,
-//   },
-
-//   {
-//     kind: "divider",
-//   },
-//   {
-//     kind: "header",
-//     title: "EduETF",
-//   },
-//   {
-//     //provjeriti segment
-//     segment: "onlineStudy",
-//     title: "Online učenje",
-//     icon: <AutoStoriesIcon />,
-//   },
-
-//   {
-//     segment: "forum",
-//     title: "Forum",
-//     icon: <ForumIcon />,
-//   },
-//   {
-//     kind: "divider",
-//   },
-//   {
-//     kind: "header",
-//     title: "Korisnici",
-//   },
-
-//   {
-//     //provjera
-//     segment: "profile",
-//     title: "Moj profil",
-//     icon: <PersonOutlineIcon />,
-//   },
-//   {
-//     segment: " ",
-//     title: "Korisnici",
-//     icon: <PeopleOutlineIcon />,
-//     children: [
-//       {
-//         segment: "../professors", // Dodajemo "/" ispred da se tretira kao apsolutna putanja
-//         title: "Profesori",
-//         icon: <BadgeTwoToneIcon />,
-//       },
-//       {
-//         segment: "../students", // Isto za studente
-//         title: "Studenti",
-//         icon: <GroupsTwoToneIcon />,
-//       },
-//     ],
-//   },
-
-//   {
-//     kind: "divider",
-//   },
-//   // {
-//   //   kind: 'header',
-//   //   title: 'Analytics',
-//   // },
-
-//   {
-//     segment: "etfis",
-//     title: "ETFIS",
-//     icon: <LaunchIcon />,
-//   },
-//   {
-//     segment: "about",
-//     title: "O nama",
-//     icon: <InfoIcon />,
-//   },
-//   {
-//     kind: "divider",
-//   },
-// ];
+import { useAccessToken } from "../../features/account/useAccessToken";
 
 const BRANDINGL = {
   title: "",
@@ -133,8 +47,6 @@ const demoTheme = extendTheme({
       styleOverrides: {
         root: {
           fontSize: "5px !important",
-
-          // padding: "160px", // ili p: 2, ovisno o tvojoj preferenciji
           marginBottom: "0px!important",
         },
         padding: { marginBottom: "0px !important", fontSize: "5px !important" },
@@ -181,47 +93,39 @@ const demoTheme = extendTheme({
     dark: {
       palette: {
         text: {
-          primary: "#DCD7C9", // Osvetljeniji tekst na tamnoj pozadini
-          secondary: "#A0B1A8", // Neutralniji sekundarni tekst
-          disabled: "#6c859d", // Osvetljeni onemogućeni tekst
-          primaryChannel: "#3A7D44", // Smanjena zelena za kanale
-          secondaryChannel: "#D04B47", // Crvena, zadržana
+          primary: "#DCD7C9",
+          secondary: "#A0B1A8",
+          disabled: "#6c859d",
+          primaryChannel: "#3A7D44",
+          secondaryChannel: "#D04B47",
         },
 
         action: {
-          active: "#A2B7B0", // Neutralnija nijansa za aktivne elemente
+          active: "#A2B7B0",
 
-          hover: "#5A524699", // 60% providnosti (99 u heksadecimalnom formatu)
-          disabled: "#4A525880", // 50% providnosti (80)
-          disabledBackground: "#2E333666", // 40% providnosti (66)
+          hover: "#5A524699",
+          disabled: "#4A525880",
+          disabledBackground: "#2E333666",
           focus: "#75655499",
         },
-
-        // action: {
-        //   active: "#A2B7B0", // Neutralnija nijansa za aktivne elemente
-        //   hover: "#1B2422", // Duboki kontrast za hover efekat
-        //   disabled: "#6c859d", // Osvetljeniji za onemogućene elemente
-        //   disabledBackground: "#B5BCC5", // Pozadina za onemogućene
-        //   focus: "#5E6E43", // Fokus sa toplijom nijansom
-        // },
         background: {
-          default: "#0f100f", // Zadržana tvoja tamna pozadina
-          paper: "#2C3639", // Zadržana tvoja boja za `paper`
+          default: "#0f100f",
+          paper: "#2C3639",
         },
-        divider: "#3D4A4F", // Tamna linija razdvajanja sa kontrastom
+        divider: "#3D4A4F",
         primary: {
-          main: "#A59D84", // Topla, neutralna primarna boja
+          main: "#A59D84",
         },
-        secondary: { main: "#1B242280" }, // Tamna, poluprovidna sekundarna boja
+        secondary: { main: "#1B242280" },
         common: {
-          background: "#3D655D", // Pozadina poruka, sa toplinom
-          white: "#F1F1F1", // Svetli tekst na tamnim pozadinama
-          black: "#1A2B3C", // Suptilni crni za istaknute elemente
-          onBackground: "#7E99A3", // Osvetljeni tekst na pozadini
-          backgroundChannel: "#5E4B2F", // Topla pozadina za kanale
+          background: "#3D655D",
+          white: "#F1F1F1",
+          black: "#1A2B3C",
+          onBackground: "#7E99A3",
+          backgroundChannel: "#5E4B2F",
         },
         Tooltip: {
-          bg: "#8E8C5F", // Osvetljeni, zlatni Tooltip
+          bg: "#8E8C5F",
         },
       },
     },
@@ -237,9 +141,13 @@ export default function App() {
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
   const user = useAppSelector((state) => state.account.user);
-  const [pathname, setPathname] = useState("/dashboard");
 
-  console.log(router);
+  useEffect(() => {
+    if (user) {
+      requestForToken(user.id, dispatch);
+    }
+  }, [user]);
+
   const NAVIGATION = useMemo(() => {
     const baseNavigation: Navigation = [
       {
@@ -282,23 +190,20 @@ export default function App() {
       },
       {
         segment: "users",
-
-        // action: <PeopleOutlineIcon />,
         title: "Korisnici",
         icon: <PeopleOutlineIcon />,
         children: [
           {
-            segment: "/professors",
+            segment: "professors",
             title: "Profesori",
             icon: <BadgeTwoToneIcon />,
           },
           {
-            segment: "/students",
+            segment: "students",
             title: "Studenti",
             icon: <GroupsTwoToneIcon />,
           },
         ],
-        // action: () => {},
       },
       {
         kind: "divider",
@@ -322,25 +227,24 @@ export default function App() {
       (item) => item.title === "EduETF"
     );
 
-    // Ako je pronađen, umetnite nove stavke ispod njega
     if (eduETFIndex !== -1) {
       if (user) {
         baseNavigation.splice(eduETFIndex + 1, 0, {
           segment: "forms",
           title: "Ankete",
-          icon: <SummarizeIcon />, // Dodajte odgovarajuću ikonu
+          icon: <SummarizeIcon />,
         });
       }
     }
 
     return baseNavigation;
-  }, [user]); // Ovisi o `user` stanju
+  }, [user]);
 
   const currentSession = {
     user: {
       name: user?.firstName + " " + user?.lastName,
       email: user?.email,
-      image: user?.firstName ? user.firstName[0].toUpperCase() : "", // Prvo slovo imena
+      image: user?.firstName ? user.firstName[0].toUpperCase() : "",
     },
   };
 
@@ -384,24 +288,25 @@ export default function App() {
     initApp().then(() => setLoading(false));
   }, [initApp]);
 
-  // useEffect(()=>{
-  //   if (user) {
-  //     NAVIGATION.push({
-  //       segment: "forms",
-  //       title: "Ankete",
-  //       icon: <SummarizeIcon />, // Dodajte odgovarajuću ikonu
-  //     });
-  //   }
-
-  // }, [])
-
   window.scrollTo(0, 0);
+
+
+//-----------------OPEN ID----------------
+  // const token = useAccessToken();
+  // console.log("Access token:", token);
+
+  // const token = useAccessToken(); // Uzima token iz hook-a
+
+  // useEffect(() => {
+  //   // Pozivamo fetchProtectedData kada je token dostupan
+  //   if (token) {
+  //     fetchProtectedData();
+  //   }
+  // }, [token]); // Reaguje na promenu tokena
 
   if (loading) return <LoadingComponent message="EduETF"></LoadingComponent>;
   return (
     <>
-      {/* <ThemeProvider theme={demoTheme}> */}
-
       <BrandingContext.Provider value={{ branding, setBranding }}>
         <AppProvider
           theme={demoTheme}
@@ -409,9 +314,8 @@ export default function App() {
           branding={branding}
           authentication={authentication}
           session={session}
-          // router={router}
         >
-          <Outlet/>
+          <Outlet />
         </AppProvider>
       </BrandingContext.Provider>
     </>

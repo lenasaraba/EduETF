@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -25,33 +28,33 @@ namespace API.Controllers
             _userManager = userManager;
         }
 
-        [HttpPost("login")]
-        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
-        {
-            var user = await _userManager.FindByEmailAsync(loginDto.Email);
-            if (user == null)
-            {
-                return BadRequest(new { title = "Nalog sa unesenim e-mailom ne postoji." });
-            }
+        // [HttpPost("login")]
+        // public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+        // {
+        //     var user = await _userManager.FindByEmailAsync(loginDto.Email);
+        //     if (user == null)
+        //     {
+        //         return BadRequest(new { title = "Nalog sa unesenim e-mailom ne postoji." });
+        //     }
 
-            if (!await _userManager.CheckPasswordAsync(user, loginDto.Password))
-            {
-                return Unauthorized(new { title = "Pogrešna lozinka!" });
-            }
+        //     if (!await _userManager.CheckPasswordAsync(user, loginDto.Password))
+        //     {
+        //         return Unauthorized(new { title = "Pogrešna lozinka!" });
+        //     }
 
-            var roles = await _userManager.GetRolesAsync(user);
-            var role = roles.FirstOrDefault();
-            return new UserDto
-            {
-                Email = user.Email,
-                Username = user.UserName,
-                Token = await _tokenService.GenerateToken(user),
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Id = user.Id,
-                Role = role,
-            };
-        }
+        //     var roles = await _userManager.GetRolesAsync(user);
+        //     var role = roles.FirstOrDefault();
+        //     return new UserDto
+        //     {
+        //         Email = user.Email,
+        //         Username = user.UserName,
+        //         Token = await _tokenService.GenerateToken(user),
+        //         FirstName = user.FirstName,
+        //         LastName = user.LastName,
+        //         Id = user.Id,
+        //         Role = role,
+        //     };
+        // }
 
         [HttpPost("register")]
         public async Task<ActionResult> Register(RegisterDto registerDto)
@@ -147,5 +150,44 @@ namespace API.Controllers
 
             return Ok(new { message = "User deleted successfully" });
         }
+
+        // [Authorize]
+        // [HttpGet("loginOpenId")]
+        // public IActionResult LoginOpenId() 
+        // { 
+        //     return Challenge(new AuthenticationProperties { RedirectUri = "/" }, "OpenIdConnect"); 
+        // }
+
+        // [HttpGet("login")]
+        // public async Task<IActionResult> Login()
+        // {
+        //     var redirectUri = "/account/profile";  // Where to redirect after successful login
+
+        //     // Challenge for authentication
+        //     return Challenge(new AuthenticationProperties { RedirectUri = redirectUri }, OpenIdConnectDefaults.AuthenticationScheme);
+        // }
+        [HttpGet("login")]
+        public IActionResult Login()
+        {
+            return Challenge(new AuthenticationProperties { RedirectUri = "/api/account/userinfo" }, OpenIdConnectDefaults.AuthenticationScheme);
+        }
+        // // Method for fetching user profile after authentication
+        [HttpGet("userinfo")]
+        [Authorize]
+        public IActionResult GetUserInfo()
+        {
+            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            return Ok(claims);
+        }
+
+
+        // [HttpGet("signin-oidc")]
+        // public IActionResult SigninOidc()
+        // {
+        //     // Obrađujte specifičnu logiku ako je potrebno.
+        //     return RedirectToAction("Profile", "Account");
+        //     // return RedirectToAction();
+        // }
+
     }
 }

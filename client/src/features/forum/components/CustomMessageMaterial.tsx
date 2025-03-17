@@ -8,9 +8,7 @@ import { MessageMaterial } from "../../../app/models/theme";
 
 const MaterialComponent = ({
   material,
-  //   showFile,
-  //   handleDelete,
-  //   isEditing,
+
 }: ComponentProps) => {
   const theme = useTheme();
 
@@ -123,34 +121,34 @@ const MaterialComponent = ({
           overflow: "hidden", // Sprečava prekoračenje teksta
         }}
       >
-        <a
-          href={`http://localhost:5000//${material.filePath}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            textDecoration: "none",
-            color: "primary.main",
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{
-              // fontWeight: "bold",
-              whiteSpace: "normal", // Omogućava prelazak u novi red
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              display: "-webkit-box",
-              WebkitLineClamp: 2, // Ograničava na 2 reda
-              WebkitBoxOrient: "vertical",
-              ":&hover": {
-                cursor: "pointer",
-                color: "primary.dark",
-              },
-            }}
-          >
-            {material.title}
-          </Typography>
-        </a>
+       <a
+  href={`http://localhost:5000//${material.filePath}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{
+    textDecoration: "none",
+    color: "inherit", // Koristi boju roditeljskog elementa
+  }}
+>
+  <Typography
+    variant="body2"
+    sx={{
+      whiteSpace: "normal",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical",
+      color: "primary.main", // Postavite boju ovdje
+      "&:hover": {
+        cursor: "pointer",
+        color: "primary.dark", // Boja na hover
+      },
+    }}
+  >
+    {material.title}
+  </Typography>
+</a>
         <Typography
           variant="caption"
           sx={{

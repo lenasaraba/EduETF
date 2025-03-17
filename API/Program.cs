@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,23 +96,36 @@ builder.Services.AddIdentityCore<User>(opt =>
 // Authentication - Consolidate configuration
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    // Default scheme that handles everything if no other scheme is specified.
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    // Default scheme for challenges.
     options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
+.AddCookie() // Add cookie middleware to handle sessions.
+.AddOpenIdConnect(options => // OpenID Connect middleware
 {
-    opt.TokenValidationParameters = new TokenValidationParameters
+    //  options.Authority = $"{builder.Configuration["AzureAd:Instance"]}{builder.Configuration["AzureAd:TenantId"]}/v2.0";  // Pravilno formirajte Authority URL
+    options.Authority="https://login.microsoftonline.com/05a9f20c-f437-4a35-8448-3827e15dd882/v2.0";
+    options.ClientId = builder.Configuration["AzureAd:ClientId"];
+    options.ClientSecret = builder.Configuration["AzureAd:ClientSecret"];
+    options.ResponseType = "code";
+    options.CallbackPath = new PathString(builder.Configuration["AzureAd:CallbackPath"]);
+    options.Scope.Add("openid");
+    options.Scope.Add("profile");
+    options.SaveTokens = true;
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => // JWT bearer middleware
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = false,
         ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["JWTSettings:TokenKey"])
-        )
+            Encoding.UTF8.GetBytes(builder.Configuration["JWTSettings:TokenKey"]))
     };
-})
-.AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+});
 
 
 builder.Services.AddAuthorization();

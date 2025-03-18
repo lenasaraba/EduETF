@@ -6,7 +6,6 @@ export default function ScrollToTop (){
     const location = useLocation();
 
     useEffect(() => {
-      // Pomeri stranicu na vrh pri svakoj promeni rute
       window.scrollTo(0, 0);
     }, [location]);
 

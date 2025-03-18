@@ -6,34 +6,23 @@ import {
 import {
   Avatar,
   Box,
-  Button,
-  Collapse,
-  Divider,
   IconButton,
-  Stack,
   Tooltip,
   Typography,
   useColorScheme,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { useAppDispatch, useAppSelector } from "../store/configureStore";
-import { logout, signOut } from "../../features/account/accountSlice";
-import React, { useEffect, useMemo, useState } from "react";
+import {useAppSelector } from "../store/configureStore";
+import React, { useMemo } from "react";
 import NightsStayTwoToneIcon from "@mui/icons-material/NightsStayTwoTone";
 import LightModeTwoToneIcon from "@mui/icons-material/LightModeTwoTone";
-import MenuIcon from "@mui/icons-material/Menu";
-import SchoolIcon from "@mui/icons-material/School";
 
 import { useBranding } from "./BrandingContext";
 import lightLogo from "../../assets/lightLogo.png";
 import darkLogo from "../../assets/darkLogo.png";
 import {
   AccountPreviewProps,
-  AccountPreview,
   Account,
-  Session,
-  AccountPopoverFooter,
-  SignOutButton,
 } from "@toolpad/core";
 import { Login } from "@mui/icons-material";
 
@@ -75,70 +64,8 @@ function CustomThemeToggle(): JSX.Element {
 }
 
 export default function Layout() {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.account);
-
-  // function AccountSidebarPreview(mini: boolean) {
-  //   //const { handleClick, open, mini, slotProps } = props;
-  //   // const updatedSlotProps = {
-  //   //   ...slotProps,
-  //   //   moreIconButton: {
-  //   //     ...slotProps?.moreIconButton,
-  //   //     sx: {
-  //   //       ...(slotProps?.moreIconButton?.sx || {}),
-  //   //       backgroundColor: "red",
-  //   //       padding: "10px",
-  //   //       display: "block",
-  //   //     },
-  //   //     icon: CustomLogOutButton, // Tvoja nova ikonica
-  //   //     onClick: () => {
-  //   //       console.log("More Icon clicked");
-  //   //     },
-  //   //   },
-  //   //   avatarIconButton: {
-  //   //     ...slotProps?.avatarIconButton,
-  //   //     sx: {
-  //   //       ...(slotProps?.avatarIconButton?.sx || {}),
-  //   //       backgroundColor: "yellow", // Na primer, možeš postaviti stil
-  //   //       // padding: '10px', // Dodavanje padding-a
-  //   //       display: "block",
-  //   //     },
-  //   //     onClick: () => {
-  //   //       console.log("More Icon clicked");
-  //   //       // Dodaj željenu funkcionalnost
-  //   //     },
-  //   //   },
-  //   //   avatar: {
-  //   //     ...slotProps?.avatar,
-  //   //     sx: {
-  //   //       ...(slotProps?.avatar?.sx || {}),
-  //   //       backgroundColor: "green", // Na primer, možeš postaviti stil
-  //   //       // padding: '10px', // Dodavanje padding-a
-  //   //       // display:"block",
-  //   //     },
-  //   //     onClick: () => {
-  //   //       console.log("avatar clicked");
-  //   //       // Dodaj željenu funkcionalnost
-  //   //     },
-  //   //   },
-  //   // };
-  //   return user ? (
-  //     <>
-  //       <Stack direction="column" p={0}>
-  //         <Divider />
-  //         <AccountPreview
-  //           variant={mini ? "condensed" : "expanded"}
-  //           // handleClick={handleClick}
-  //           open={open}
-  //           // slotProps={updatedSlotProps}
-  //         />
-  //       </Stack>
-  //     </>
-  //   ) : (
-  //     <></>
-  //   );
-  // }
 
   const AccountPreview1: React.FC<AccountPreviewProps> = ({
     slots = {},
@@ -167,9 +94,6 @@ export default function Layout() {
           height: "10vh",
           maxHeight: "10vh",
           minHeight: "10vh",
-          // position:"fixed",
-          // bottom:0,
-          // zIndex:20,
         }}
       >
         <AvatarComponent
@@ -200,11 +124,8 @@ export default function Layout() {
             >
               <Typography variant="body2" sx={{ color: "text.primary" }}>
                 {user?.firstName + " " + user?.lastName} 
-                {/* &bull; */}
               </Typography>
               <Typography variant="caption" sx={{ color: "primary.main" }}>
-                {/* {user?.email}
-                 */}
                 {user?.username}
               </Typography>
             </Box>
@@ -228,12 +149,11 @@ export default function Layout() {
 
   const createPreviewComponent = (mini: boolean) => {
     function PreviewComponent(props: AccountPreviewProps) {
-      // console.log("USAO U CREATE PREVIEW");
-      // console.log({ ...props });
+
       return (
         <AccountPreview1
           variant={mini ? "condensed" : "expanded"}
-          handleClick={() => console.log("click")}
+          handleClick={() => {}}
         />
       );
     }
@@ -244,7 +164,6 @@ export default function Layout() {
     return <></>;
   }
   function SidebarFooterAccount({ mini }: SidebarFooterProps) {
-    // console.log("Mini state:", mini);
 
     const PreviewComponent = useMemo(
       () => createPreviewComponent(mini),
@@ -263,10 +182,8 @@ export default function Layout() {
             anchorOrigin: { horizontal: "right", vertical: "top" },
             disableAutoFocus: false,
             onClick: () => {
-              // console.log("aaaaaaaaaaaaaaa");
             },
             onClose: () => {
-              // console.log("AAAAA");
             },
 
             slotProps: {
@@ -346,7 +263,6 @@ export default function Layout() {
         sidebarFooter: user ? SidebarFooterAccount : CustomLoginButton,
       }}
     >
-      {/* <PageContainer> */}
       <Box
         sx={{
           overflowY: "auto",
@@ -357,8 +273,6 @@ export default function Layout() {
       >
         <Outlet />
       </Box>
-
-      {/* </PageContainer> */}
     </DashboardLayout>
   );
 }

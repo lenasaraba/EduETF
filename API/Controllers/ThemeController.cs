@@ -17,7 +17,6 @@ namespace API.Controllers
         private readonly UserManager<User> _userManager;
         private readonly FirebaseService _firebaseService;
 
-
         private readonly IMapper _mapper;
         public ThemeController(StoreContext context, IMapper mapper, UserManager<User> userManager, FirebaseService firebaseService)
         {
@@ -25,7 +24,6 @@ namespace API.Controllers
             _userManager = userManager;
             _mapper = mapper;
             _firebaseService = firebaseService;
-
         }
 
         [HttpGet("GetAllThemes")]
@@ -33,20 +31,20 @@ namespace API.Controllers
         {
 
             var query = _context.Themes
-     .Include(u => u.User)
-     .Include(c => c.Course)
-         .ThenInclude(y => y.Year)
-     .Include(c => c.Course)
-         .ThenInclude(s => s.StudyProgram)
-     .Include(m => m.Messages)
-         .ThenInclude(u => u.User)
-     .Include(c => c.Course)
-         .ThenInclude(p => p.ProfessorsCourse)
-             .ThenInclude(u => u.User)
-     .Include(c => c.Course)
-         .ThenInclude(uc => uc.UsersCourse) // Dodato UsersCourse
-             .ThenInclude(u => u.User) // Ako User postoji u UserCourse
-     .AsQueryable();
+            .Include(u => u.User)
+            .Include(c => c.Course)
+                .ThenInclude(y => y.Year)
+            .Include(c => c.Course)
+                .ThenInclude(s => s.StudyProgram)
+            .Include(m => m.Messages)
+                .ThenInclude(u => u.User)
+            .Include(c => c.Course)
+                .ThenInclude(p => p.ProfessorsCourse)
+                    .ThenInclude(u => u.User)
+            .Include(c => c.Course)
+                .ThenInclude(uc => uc.UsersCourse) 
+                    .ThenInclude(u => u.User)
+            .AsQueryable();
 
 
             if (themeParams.Type == "my")
@@ -54,17 +52,15 @@ namespace API.Controllers
             var userEmail = User.FindFirst("preferred_username")?.Value;
             var user = await _userManager.FindByEmailAsync(userEmail);
                 query = _context.Themes.Where(c => c.User.Email == user!.Email)
-           .Include(u => u.User)
+            .Include(u => u.User)
             .Include(c => c.Course).ThenInclude(y => y.Year)
             .Include(c => c.Course).ThenInclude(s => s.StudyProgram)
             .Include(m => m.Messages).ThenInclude(u => u.User)
             .Include(c => c.Course).ThenInclude(p => p.ProfessorsCourse).ThenInclude(u => u.User).Include(c => c.Course)
-         .ThenInclude(uc => uc.UsersCourse) // Dodato UsersCourse
-             .ThenInclude(u => u.User) // Ako User postoji u UserCourse
-     .AsQueryable();
-                // .Include(c => c.Course).ThenInclude(u => u.UsersCourse).ThenInclude(u => u.User)
+            .ThenInclude(uc => uc.UsersCourse) 
+             .ThenInclude(u => u.User) 
+            .AsQueryable();
             }
-            // Filtriranje prema searchTerm
             if (!string.IsNullOrEmpty(themeParams.SearchTerm))
             {
                 query = query.Where(t =>
@@ -83,8 +79,6 @@ namespace API.Controllers
                 }
             }
 
-
-            // Filtriranje prema kategoriji
             if (themeParams.Category == "Slobodna tema")
             {
                 query = query.Where(t =>
@@ -92,7 +86,7 @@ namespace API.Controllers
             }
             else if ((themeParams.Category != "all" && themeParams.Category != "Sve") && !string.IsNullOrEmpty(themeParams.Category))
             {
-                query = query.Where(t => t.Course!.Name == themeParams.Category); // Teme sa specifičnim kursom
+                query = query.Where(t => t.Course!.Name == themeParams.Category);
             }
 
             var themes = await query.ToListAsync();
@@ -118,19 +112,14 @@ namespace API.Controllers
             var user = await _userManager.FindByEmailAsync(userEmail);
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault();
-            // if(user==null)
-            // {
-            //     return Unauthorized();
-            // }
+         
             if (theme == null)
             {
                 return NotFound();
             }
 
-
             if (theme.Course != null)
             {
-                //pravo pristupa
                 if (role == "Student")
                 {
                     bool isStudentEnrolled = theme.Course.UsersCourse.Any(uc => uc.User.Id == user.Id && uc.WithdrawDate == null);
@@ -177,7 +166,6 @@ namespace API.Controllers
                     .Distinct()
                     .ToListAsync();
 
-            // Dodavanje "SVE" na početak liste
             categories.Insert(0, "Sve");
             var activeStatus = await _context.Themes
                         .Select(t => t.Active ? "Aktivno" : "Zatvoreno")
@@ -185,7 +173,6 @@ namespace API.Controllers
                         .ToListAsync();
 
             activeStatus.Insert(0, "Sve");
-
 
             return Ok(new { categories, activeStatus });
         }
@@ -199,7 +186,6 @@ namespace API.Controllers
             var theme = _mapper.Map<Theme>(newTheme);
             theme.UserId = user.Id;
 
-            //POGLEDATI
             theme.User = user;
             if (newTheme.CourseId != 0)
             {
@@ -219,14 +205,10 @@ namespace API.Controllers
 
             theme.Active = true;
 
-            //nema poente jer themeDto nema kurs (ne dozvoljava jer i kurs ima teme pa se pravi ciklus)
-            //nekako ucitati kurs ako postoji?
-            // theme.Course=_context.Courses.FirstOrDefault<Course>(c=>c.Id==newTheme.CourseId);
             _context.Themes.Add(theme);
             await _context.SaveChangesAsync();
-            // var themes = await _context.Themes.Include(u => u.User).Include(c => c.Course).ThenInclude(y => y.Year).Include(c => c.Course).ThenInclude(s => s.StudyProgram).Include(m=>m.Messages).ThenInclude(u=>u.User);
             var themeDto = _mapper.Map<GetThemeDto>(theme);
-            // return CreatedAtAction(nameof(GetTheme), new { id = themeDto.Id }, themeDto);
+
             var response = new
             {
                 Method = "CreateTheme",
@@ -283,7 +265,7 @@ namespace API.Controllers
                         Url = m.Url,
                         MaterialTypeId = m.MaterialTypeId,
                         CreationDate = m.CreationDate,
-                        MaterialType = _context.MaterialTypes.FirstOrDefault(mt => mt.Id == m.MaterialTypeId) // Sinhrono preuzimanje
+                        MaterialType = _context.MaterialTypes.FirstOrDefault(mt => mt.Id == m.MaterialTypeId) 
                     }).ToList();
             }
             _context.Messages.Add(message);
@@ -324,7 +306,7 @@ namespace API.Controllers
         private List<string> FindMentionedUsernames(string content)
         {
             var mentionedUsernames = new List<string>();
-            var regex = new Regex(@"@(\w+)");
+var regex = new Regex(@"@([\w]+\.[\w]+\.\d+)");
             var matches = regex.Matches(content);
             foreach (Match match in matches)
             {
@@ -338,14 +320,13 @@ namespace API.Controllers
         public async Task<IActionResult> UploadMessageFile(IFormFile file)
         {
             var themeId = int.Parse(Request.Form["themeId"]);
-            // var weekNumber = int.Parse(Request.Form["weekNumber"]);
             if (file == null || file.Length == 0)
             {
                 return BadRequest("No file uploaded.");
             }
 
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-            Directory.CreateDirectory(uploadsFolder); // Kreira folder ako ne postoji
+            Directory.CreateDirectory(uploadsFolder); 
 
             var fileExtension = Path.GetExtension(file.FileName);
 
@@ -359,7 +340,6 @@ namespace API.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            // Vraćamo relativnu putanju fajla (bez root putanje)
             return Ok(new { filePath = $"uploads/{uniqueFileName}" });
         }
 
@@ -409,7 +389,7 @@ namespace API.Controllers
                 Id = id
             };
 
-            return Ok(response); // Vraćamo JSON sa ID-jem i porukom
+            return Ok(response); 
         }
 
         [Authorize]
@@ -458,7 +438,7 @@ namespace API.Controllers
                 Id = id
             };
 
-            return Ok(response); // Vraćamo JSON sa ID-jem i porukom
+            return Ok(response); 
         }
 
         [HttpGet("search")]
@@ -466,7 +446,7 @@ namespace API.Controllers
         {
             if (string.IsNullOrEmpty(query))
             {
-                return Ok(new List<GetMessageDto>()); // Vrati prazan niz umesto 404
+                return Ok(new List<GetMessageDto>()); 
             }
 
             var results = await _context.Messages

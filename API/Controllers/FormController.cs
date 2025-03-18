@@ -162,7 +162,6 @@ namespace API.Controllers
                 };
                 _context.UserOption.Add(userOption);
                 await _context.SaveChangesAsync();
-
             }
 
             var form = await _context.Form.Include(u => u.User).Include(f => f.Options).ThenInclude(o => o.UsersOption).ThenInclude(u => u.User).FirstOrDefaultAsync(f => f.Id == formId);
@@ -176,8 +175,8 @@ namespace API.Controllers
                 await _firebaseService.SendNotificationAsync(tokens, "Poruka", "Imate novo glasanje na anketi " + form.Topic);
 
             return _mapper.Map<GetFormDto>(form);
-
         }
+
         [HttpGet("getOptionById/{id}")]
         public async Task<ActionResult<GetOptionDto>> GetOption(int id)
         {
@@ -217,7 +216,7 @@ namespace API.Controllers
                 .Include(u => u.User)
                 .Include(m => m.Message).ThenInclude(t => t.Theme)
                 .Include(o => o.Options).ThenInclude(o => o.UsersOption).ThenInclude(u => u.User)
-                .Where(u => u.Message.Theme.Id == themeId)  // Filtriranje preko themeId
+                .Where(u => u.Message.Theme.Id == themeId)  
                 .AsQueryable();
 
             var forms = await query.ToListAsync();

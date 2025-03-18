@@ -24,13 +24,10 @@ export default function ForumPage() {
     dispatch(fetchThemesAsync());
   }, [dispatch]);
 
-  const { themes, themesLoaded, status } = useAppSelector(
+  const { themes, status } = useAppSelector(
     (state) => state.theme
   );
-  //POGLEDATI KURS I RADITI SVE STO SE TICE UPLOADA, I NA KURS I NA FORUM
 
-  //DODATI MOZDA UPLOAD FAJLOVA U PORUKU NA FORUMU,
-  // KAO AKO IMAJU NEKO PITANJE ZA NEKI FAJL
 
   const newArray = [...(themes || [])];
   const topThemes = newArray
@@ -39,8 +36,6 @@ export default function ForumPage() {
   const firstFourThemes = topThemes.slice(0, 4);
   const lastThreeThemes = topThemes.slice(-3);
 
-  // if (!themesLoaded || status.includes("pending"))
-  //   return <LoadingComponent message="Učitavanje tema..." />;
   return (
     <>
       <Grid

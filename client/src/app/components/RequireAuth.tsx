@@ -2,7 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAppSelector } from "../store/configureStore";
 
 interface RequireAuthProps {
-  children?: JSX.Element; // Dodajemo children kao opcionalni prop
+  children?: JSX.Element; 
 }
 
 const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {

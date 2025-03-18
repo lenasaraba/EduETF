@@ -5,7 +5,7 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
 
 import DeleteIcon from "@mui/icons-material/Delete";
-import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline"; // Play ikonica
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline"; 
 
 const MaterialComponent = ({
   material,
@@ -21,9 +21,9 @@ const MaterialComponent = ({
         return (
           <Box
             sx={{
-              width: "150px", // Fiksna širina
+              width: "150px", 
               height: "100%",
-              background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.dark} 90%)`, // Gradijent pozadina
+              background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.dark} 90%)`,
               borderRadius: "8px",
               display: "flex",
               justifyContent: "center",
@@ -48,7 +48,7 @@ const MaterialComponent = ({
             src={`http://localhost:5000/${material.filePath}`}
             alt={material.title}
             style={{
-              width: "150px", // Fiksna širina
+              width: "150px", 
               height: "100%",
               objectFit: "cover",
               borderRadius: "8px",
@@ -62,7 +62,7 @@ const MaterialComponent = ({
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              width: "150px", // Fiksna širina
+              width: "150px", 
               height: "100%",
               backgroundColor: theme.palette.primary.dark,
               borderRadius: "8px",
@@ -80,7 +80,7 @@ const MaterialComponent = ({
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              width: "150px", // Fiksna širina
+              width: "150px",
               height: "100%",
               backgroundColor: theme.palette.primary.dark,
               borderRadius: "8px",
@@ -99,7 +99,6 @@ const MaterialComponent = ({
       sx={{
         display: "flex",
         flexDirection: "row",
-        // width: "100%",
         height: "15vh",
         borderRadius: "8px",
         overflow: "hidden",
@@ -108,7 +107,7 @@ const MaterialComponent = ({
           boxShadow: 6,
           cursor: "pointer",
         },
-        marginBottom: "16px", // Dodajemo marginu između elemenata
+        marginBottom: "16px", 
         margin: 2,
         boxSizing: "border-box",
       }}
@@ -117,23 +116,22 @@ const MaterialComponent = ({
       {renderContent()}
       <Box
         sx={{
-          flex: 1, // Omogućava da tekst zauzme preostali prostor
+          flex: 1, 
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           padding: "8px",
-          overflow: "hidden", // Sprečava prekoračenje teksta
+          overflow: "hidden",
         }}
       >
         <Typography
           variant="body2"
           sx={{
-            // fontWeight: "bold",
-            whiteSpace: "normal", // Omogućava prelazak u novi red
+            whiteSpace: "normal",
             overflow: "hidden",
             textOverflow: "ellipsis",
             display: "-webkit-box",
-            WebkitLineClamp: 2, // Ograničava na 2 reda
+            WebkitLineClamp: 2, 
             WebkitBoxOrient: "vertical",
           }}
         >
@@ -143,11 +141,11 @@ const MaterialComponent = ({
           variant="caption"
           sx={{
             color: "text.secondary",
-            whiteSpace: "normal", // Omogućava prelazak u novi red
+            whiteSpace: "normal", 
             overflow: "hidden",
             textOverflow: "ellipsis",
             display: "-webkit-box",
-            WebkitLineClamp: 2, // Ograničava na 2 reda
+            WebkitLineClamp: 2, 
             WebkitBoxOrient: "vertical",
           }}
         >
@@ -161,11 +159,11 @@ const MaterialComponent = ({
       {isEditing && (
         <IconButton
           sx={{
-            alignSelf: "center", // Centrira ikonicu za brisanje
+            alignSelf: "center",
             color: "error.main",
           }}
           onClick={(e) => {
-            e.stopPropagation(); // Sprečava propagaciju klikova na roditeljski element
+            e.stopPropagation(); 
             handleDelete(material);
           }}
         >
@@ -197,7 +195,6 @@ export default function CustomTimeline({
   isEditing,
 }: Props) {
 
-  console.log(...materials);
   return (
     <Box
       sx={{
@@ -210,7 +207,6 @@ export default function CustomTimeline({
         materials.map((material, index) => (
           <Box key={index} sx={{margin:0, padding:0}}>
             <MaterialComponent
-              // key={index}
               material={material}
               showFile={showFile}
               handleDelete={handleDelete}

@@ -1,58 +1,30 @@
-import * as React from "react";
+
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
-import FormLabel from "@mui/material/FormLabel";
-import FormControl from "@mui/material/FormControl";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
-import { Grid } from "@mui/material";
+import { Grid, useTheme } from "@mui/material"; 
 import logo from "../../assets/etf.png";
-import { useAppDispatch } from "../../app/store/configureStore";
-import { FieldValues, useForm } from "react-hook-form";
-import { useLocation, useNavigate } from "react-router-dom";
-import { signInUser } from "./accountSlice";
 import MicrosoftIcon from "@mui/icons-material/Microsoft";
 import Alert from "@mui/material/Alert";
-
-import { LoadingButton } from "@mui/lab";
-import { LoginButton } from "./components/LoginButton";
+import lightLogo from "../../assets/lightLogo.png";
+import darkLogo from "../../assets/darkLogo.png";
 
 const Card = styled(MuiCard)(() => ({
   display: "flex",
   borderRadius: 10,
   flexDirection: "column",
-  alignSelf: "center",
   width: "100%",
   padding: "3rem",
   maxWidth: "550px",
-  backgroundColor: "secondary.main",
-  margin: "auto",
+  backgroundColor: "background.paper", 
+  boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)", 
+  marginLeft: "2rem", 
 }));
 
 export default function Login() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const dispatch = useAppDispatch();
-  const {
-    register,
-    handleSubmit,
-    formState: { isSubmitting, errors, isValid },
-  } = useForm({
-    mode: "onChange",
-  });
-
-  async function submitForm(data: FieldValues) {
-    try {
-      await dispatch(signInUser(data));
-
-      navigate(location.state?.from || "/");
-    } catch (error: any) {
-      console.log(error.data);
-    }
-  }
+  const theme = useTheme(); 
 
   return (
     <>
@@ -75,7 +47,16 @@ export default function Login() {
         }}
       ></Grid>
 
-      <Grid sx={{ display: "flex", height: "100vh", flexDirection: "column" }}>
+      <Grid
+        sx={{
+          display: "flex",
+          height: "100vh",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          justifyContent: "center",
+          boxSizing: "border-box",
+        }}
+      >
         <Alert
           severity="info"
           variant="filled"
@@ -87,118 +68,84 @@ export default function Login() {
             display: "flex",
             flexDirection: "row",
             justifyContent: "center",
+            position: "absolute",
+            top: 0,
+            width: "100%",
           }}
         >
           Za prijavu koristite Microsoft nalog koji vam je dodijeljen od strane
           fakulteta.
         </Alert>
-        <Card variant="outlined" sx={{ backgroundColor: "secondary.main" }}>
-          {/* <SitemarkIcon /> */}
-          <Typography
-            component="h1"
-            variant="h4"
-            sx={{
-              width: "100%",
-              fontSize: "clamp(2rem, 10vw, 2.15rem)",
-              mb: 2,
-              fontFamily: "Raleway, sans-serif",
-            }}
-          >
-            Prijava
-          </Typography>
+        <Card
+          variant="outlined"
+          sx={{
+            p: 6,
+            borderRadius: "16px", 
+            boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)", 
+            border: "1px solid rgba(0, 0, 0, 0.12)",
+            ml: 15, 
+            width: "40vw", 
+            maxWidth: "40vw", 
+            backgroundColor: "background.paper", 
+            backdropFilter: "blur(8px)", 
+          }}
+        >
           <Box
-            component="form"
-            onSubmit={handleSubmit(submitForm)}
-            noValidate
             sx={{
               display: "flex",
-              flexDirection: "column",
-              width: "100%",
-              gap: 2,
+              justifyContent: "center",
+              mb: 4,
             }}
           >
-            <FormControl sx={{ height: "5.5rem", maxHeight: "5.5rem" }}>
-              <FormLabel
-                htmlFor="email"
-                sx={{ fontFamily: "Raleway, sans-serif" }}
-              >
-                Email
-              </FormLabel>
-              <TextField
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                autoFocus
-                fullWidth
-                variant="outlined"
-                {...register("email", { required: "Email je obavezan." })}
-                error={!!errors.email}
-                helperText={errors?.email?.message as string}
-              />
-            </FormControl>
-            <FormControl sx={{ height: "5.5rem", maxHeight: "5.5rem" }}>
-              <FormLabel
-                htmlFor="password"
-                sx={{ fontFamily: "Raleway, sans-serif" }}
-              >
-                Lozinka
-              </FormLabel>
-              <TextField
-                placeholder="••••••"
-                type="password"
-                id="password"
-                variant="outlined"
-                {...register("password", { required: "Lozinka je obavezna." })}
-                fullWidth
-                error={!!errors.password}
-                helperText={errors?.password?.message as string}
-              />
-            </FormControl>
-            <br />
-            <LoadingButton
-              loading={isSubmitting}
-              disabled={!isValid}
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{
-                fontFamily: "Raleway, sans-serif",
-                backgroundColor: "common.background",
-                color: "common.onBackground",
-                border: "1px solid",
-                borderColor: "transparent",
-                "&:hover": {
-                  backgroundColor: "secondary.main",
-                  border: "1px solid",
-                  borderColor: "common.onBackground",
-                },
-                "&.MuiLoadingButton-loading": {
-                  backgroundColor: "background.paper", // Boja tokom učitavanja
-                  border: "2px solid",
-                  borderColor: "background.default",
-                },
+            <img
+              style={{
+                height: "12vh",
+                opacity: 0.9,
+                filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))",
               }}
-            >
-              Prijavi se
-            </LoadingButton>
+              src={theme.palette.mode === "dark" ? darkLogo : lightLogo}
+              alt="Logo"
+            />
           </Box>
-          <Box sx={{ display: "flex", flexDirection: "column", mt: 2 }}>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 4, 
+            }}
+          >
             <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => {
-                window.location.href =
-                  "http://localhost:5000/api/account/login";
-              }}
+              variant="contained"
+              onClick={() =>
+                (window.location.href =
+                  "http://localhost:5000/api/account/login")
+              }
               startIcon={<MicrosoftIcon />}
+              sx={{
+                padding: "12px 28px", 
+                fontSize: "1.1rem",
+                fontWeight: 600, 
+                borderRadius: "12px", 
+                textTransform: "none",
+                backgroundColor: "primary.main",
+                color: "text.primary", 
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)", 
+                transition: "all 0.3s ease", 
+                "&:hover": {
+                  backgroundColor: "primary.dark",
+                  transform: "translateY(-2px)", 
+                  boxShadow: "0 6px 16px rgba(0, 0, 0, 0.2)",
+                },
+                "&:active": {
+                  transform: "translateY(0)", 
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)", 
+                },
+              }}
             >
-              Registruj se
+              Prijavi se putem Microsofta
             </Button>
           </Box>
-
-          {/* -----------------OPEN ID---------------- */}
-
-          {/* <LoginButton/> */}
         </Card>
       </Grid>
     </>

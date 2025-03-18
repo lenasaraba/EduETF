@@ -1,6 +1,5 @@
 namespace API.RequestHelpers
 {
-    //ovdje naslijediti pagination params kad to bude trebalo
     public class CourseParams:PaginationParams{
     public string Type { get; set; }="all";
     

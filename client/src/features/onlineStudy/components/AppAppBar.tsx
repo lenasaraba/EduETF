@@ -20,8 +20,6 @@ export default function AppAppBar() {
         borderRadius: "22px",
 
         backgroundImage: "none",
-        // mt: 10,
-        //textAlign: "center",
         padding: 0,
         display: "flex",
         flexDirection: "column",
@@ -29,11 +27,8 @@ export default function AppAppBar() {
       }}
     >
       <Grid
-        // maxWidth="lg"
         sx={{
-          // position: "fixed",
           display: "flex",
-          // flexDirection: {xs:"column", sm:"column",md:"row"},
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
@@ -43,13 +38,8 @@ export default function AppAppBar() {
         }}
       >
         <Toolbar
-          // disableGutters
           variant="dense"
           sx={{
-            // backdropFilter: "blur(36px)",
-            // backgroundColor: "secondary.main",
-            // border: "1px solid ",
-            // borderColor: "text.secondary",
             padding: 0,
             width: "70%",
           }}
@@ -72,7 +62,6 @@ export default function AppAppBar() {
                 display: "flex",
                 margin: 0,
                 padding: 0,
-                // flexDirection: { xs: "column", sm: "column", md: "row" },
               }}
             >
               <Button
@@ -83,10 +72,10 @@ export default function AppAppBar() {
                   borderRadius: "25pt",
                   color: "text.primary",
                   fontWeight: "bold",
-                  transition: "all 0.5s ease", // Dodaje animaciju
+                  transition: "all 0.5s ease", 
                   backgroundColor: "transparent",
                   "&:hover": {
-                    color: "action.hover", // Promijeni boju na hover
+                    color: "action.hover", 
                     backgroundColor: "action.active",
                   },
                   fontFamily: "Raleway, sans-serif",
@@ -104,9 +93,9 @@ export default function AppAppBar() {
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    cursor: "pointer", // Dodano da miš postane pointer
+                    cursor: "pointer", 
                     "&:hover": {
-                      cursor: "pointer", // Osigurano i za hover stanje
+                      cursor: "pointer", 
                     },
                   }}
                 >
@@ -116,10 +105,9 @@ export default function AppAppBar() {
                       fontWeight: "bold",
                       margin: 0,
                       padding: 0,
-                      transition: "all 0.5s ease", // Dodaje animaciju
-                      // backgroundColor: "transparent",
+                      transition: "all 0.5s ease", 
                       "&:hover": {
-                        color: "primary.main", // Promijeni boju na hover
+                        color: "primary.main", 
                       },
                       fontFamily: "Raleway, sans-serif",
                     }}
@@ -141,10 +129,10 @@ export default function AppAppBar() {
                       borderRadius: "25pt",
                       color: "text.primary",
                       fontWeight: "bold",
-                      transition: "all 0.5s ease", // Dodaje animaciju
+                      transition: "all 0.5s ease",
                       backgroundColor: "transparent",
                       "&:hover": {
-                        color: "action.hover", // Promijeni boju na hover
+                        color: "action.hover", 
                         backgroundColor: "action.active",
                       },
                       fontFamily: "Raleway, sans-serif",
@@ -164,9 +152,9 @@ export default function AppAppBar() {
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    cursor: "pointer", // Dodano da miš postane pointer
+                    cursor: "pointer", 
                     "&:hover": {
-                      cursor: "pointer", // Osigurano i za hover stanje
+                      cursor: "pointer", 
                     },
                   }}
                 >
@@ -176,10 +164,9 @@ export default function AppAppBar() {
                       fontWeight: "bold",
                       margin: 0,
                       padding: 0,
-                      transition: "all 0.5s ease", // Dodaje animaciju
-                      // backgroundColor: "transparent",
+                      transition: "all 0.5s ease", 
                       "&:hover": {
-                        color: "primary.main", // Promijeni boju na hover
+                        color: "primary.main", 
                       },
                       fontFamily: "Raleway, sans-serif",
                     }}
@@ -200,10 +187,10 @@ export default function AppAppBar() {
                       borderRadius: "25pt",
                       color: "text.primary",
                       fontWeight: "bold",
-                      transition: "all 0.5s ease", // Dodaje animaciju
+                      transition: "all 0.5s ease", 
                       backgroundColor: "transparent",
                       "&:hover": {
-                        color: "action.hover", // Promijeni boju na hover
+                        color: "action.hover", 
                         backgroundColor: "action.active",
                       },
                       fontFamily: "Raleway, sans-serif",

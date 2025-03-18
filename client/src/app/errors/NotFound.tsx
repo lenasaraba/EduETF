@@ -1,5 +1,4 @@
 import { Button, Container, Divider, Paper, Typography } from "@mui/material";
-import { Link } from "react-router-dom";
 
 export default function NotFound() {
   return (
@@ -13,7 +12,6 @@ export default function NotFound() {
       }}
     >
       <Paper
-        // elevation={8}
         sx={{
           display: "flex",
           flexDirection: "column",

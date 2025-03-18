@@ -16,7 +16,7 @@ export interface Form {
     endDate: string;
     multipleAnswer: boolean;
     options: CreateOption[];
-    courseId?: number;
+    courseId?: number | null;
     messageId?: number;
   }
   

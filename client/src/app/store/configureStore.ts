@@ -18,7 +18,6 @@ export const store = configureStore({
   },
 });
 
-// Ovo omogućava da se RootState koristi za tipizaciju funkcija kao što su selektori, čime se osigurava da se radi sa pravim strukturama podataka u Redux store-u.
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 

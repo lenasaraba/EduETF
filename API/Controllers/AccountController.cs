@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-// using Microsoft.Graph.Models;
 
 namespace API.Controllers
 {
@@ -58,8 +57,7 @@ namespace API.Controllers
             .Select(ur => ur.RoleId)
             .FirstOrDefaultAsync();
 
-            var role = await _context.Roles.FindAsync(roleId);
-        
+            var role = await _context.Roles.FindAsync(roleId);        
 
             return new UserDto
             {
@@ -68,12 +66,10 @@ namespace API.Controllers
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Id = user.Id,
-                Role = role.Name, // Vraćamo naziv role
-                Token = accessToken // Token ne možemo direktno dohvatiti ovde
+                Role = role.Name, 
+                Token = accessToken 
             };
         }
-
-
 
         [HttpPost("updateUser")]
         public async Task<ActionResult<UserDto>> UpdateUser([FromBody] UpdateUserDto userData)
@@ -105,8 +101,6 @@ namespace API.Controllers
                 Id = user.Id,
 
             };
-
-
         }
 
         [HttpDelete("deleteUser/{id}")]
@@ -132,38 +126,14 @@ namespace API.Controllers
         public IActionResult Login()
         {
 
-            return Challenge(new AuthenticationProperties {RedirectUri = "http://localhost:5000/api/account/registerUser"
-}, OpenIdConnectDefaults.AuthenticationScheme);
+            return Challenge(new AuthenticationProperties {RedirectUri = "http://localhost:5000/api/account/registerUser"},     OpenIdConnectDefaults.AuthenticationScheme);
         }
-
-
-        [HttpGet("userinfo")]
-        [Authorize]
-        public async Task<IActionResult> GetUserInfo()
-        {
-          
-            var idToken = await HttpContext.GetTokenAsync("id_token");
-            var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;  // Ime korisnika
-            var emailClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;  // Email adresa
-            var preferredUsernameClaim = User.Claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;  // Preferred username (često email)
-            // Vraćanje ID tokena i access tokena
-            return Ok(new { IDToken = idToken, 
-                            AccessToken = accessToken ,        
-                            Name = nameClaim,
-                            Email = emailClaim,
-                            PreferredUsername = preferredUsernameClaim
-                            }
-                    );
-        }
-
-     
+  
 
         [Authorize]
         [HttpGet("registerUser")]
         public async Task<IActionResult> RegisterUser()
         {
-            // var userId = User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
             var userName = User.FindFirst(ClaimTypes.Name)?.Value;
             var userEmail = User.FindFirst("preferred_username")?.Value;
             var accessToken = await HttpContext.GetTokenAsync("access_token");
@@ -175,7 +145,6 @@ namespace API.Controllers
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(accessToken);
 
-            // Čitanje claimova iz tokena
             var familyName = jwtToken.Claims.FirstOrDefault(c => c.Type == "family_name")?.Value;
             var givenName = jwtToken.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
 
@@ -205,7 +174,7 @@ namespace API.Controllers
                 return BadRequest(result.Errors);
             }
 
-            await _userManager.AddToRoleAsync(user, isStudent ? "Student" : "Profesor");
+            await _userManager.AddToRoleAsync(user, !isStudent ? "Student" : "Profesor");
 
             
             var redirectNewUserUrl = "http://localhost:5173/";
@@ -223,7 +192,7 @@ namespace API.Controllers
                 Response.Cookies.Delete(cookie);
             }
 
-            var redirectUri = "http://localhost:5173"; // Putanja nakon što se korisnik odjavi
+            var redirectUri = "http://localhost:5173"; 
             var openIdLogoutUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/logout";
             var logoutUrl = $"{openIdLogoutUrl}?post_logout_redirect_uri={Uri.EscapeDataString(redirectUri)}";
             

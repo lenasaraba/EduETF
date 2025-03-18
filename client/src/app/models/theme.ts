@@ -126,11 +126,8 @@ export interface User {
 }
 
 export interface ThemesParams {
-  // orderBy: string;
   searchTerm?: string;
   themeStatus?: string;
   category?: string;
   type: string;
-  // pageNumber:number
-  // pageSize:number
 }

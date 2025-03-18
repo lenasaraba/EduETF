@@ -103,7 +103,6 @@ export interface MaterialType {
 }
 
 export interface CoursesParams {
-  // orderBy: string;
   type?: string;
   searchTerm?: string;
   years: string[];

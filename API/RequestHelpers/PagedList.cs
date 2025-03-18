@@ -5,7 +5,7 @@ namespace API.RequestHelpers
     public class PagedList<T> : List<T>
     {
         public MetaData MetaData { get; set; }
-        public List<T> Items { get; set; }=new List<T>();// Eksplicitno čuvanje podataka
+        public List<T> Items { get; set; }=new List<T>();
 
         public PagedList(List<T> items, int count, int pageNumber, int pageSize)
         {

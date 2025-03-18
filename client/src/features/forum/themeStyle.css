@@ -1,6 +1,5 @@
 .ssky-mention-input__suggestions {
-  /* color: #dcd7c9 !important;
-  background-color: #2e3b4e !important; */
+
   background-color: white !important;
   color: #736d5c !important;
   padding-left: 10px;
@@ -11,12 +10,9 @@
   border-radius: 8pt;
   bottom: 100px !important;
   height: fit-content;
-  /* margin-top: 100px; */
 }
 .ssky-mention-input__input {
   border-radius: 5pt;
-  /* display: flex;
-  align-items: center; */
   padding-left: 10px;
   padding-right: 10px;
 

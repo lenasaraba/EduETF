@@ -3,7 +3,6 @@ import {
   CardActions,
   CardContent,
   CardHeader,
-  Grid,
   Skeleton,
 } from "@mui/material";
 
@@ -11,7 +10,7 @@ export default function CourseCardSkeleton() {
   return (
     <Card
       sx={{
-        width: "100%", // Kartica zauzima 100% širine roditelja
+        width: "100%", 
         borderRadius: "20pt",
         boxSizing: "border-box",
       }}

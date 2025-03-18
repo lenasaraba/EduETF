@@ -13,9 +13,9 @@ import { useAppSelector } from "../../../app/store/configureStore";
 interface DeleteDialogProps {
   openDialog: boolean;
   handleCloseDialog: () => void;
-  handleConfirmDelete: (item: any, itemType: string) => void; // Ovdje proslediš objekat koji brišeš, može biti kurs ili tema
-  itemType: "course" | "theme"; // Tip stavke koja se briše
-  itemData: any; // Podaci o kursu ili temi koji se brišu
+  handleConfirmDelete: (item: any, itemType: string) => void; 
+  itemType: "course" | "theme"; 
+  itemData: any; 
   isLastProf: boolean;
 }
 
@@ -76,7 +76,7 @@ const DeleteDialog: React.FC<DeleteDialogProps> = ({
           color="error"
           variant="contained"
           loadingIndicator={
-            <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+            <CircularProgress size={18} sx={{ color: "white" }} /> 
           }
         >
           Obriši

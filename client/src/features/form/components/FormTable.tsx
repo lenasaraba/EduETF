@@ -14,7 +14,6 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
   Button,
   FormControl,
@@ -34,21 +33,20 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import CloseIcon from "@mui/icons-material/Close";
 
-import { useEffect, useState } from "react";
-import { Form, User, Option, UsersOption } from "../../../app/models/form";
+import { useState } from "react";
+import { Form } from "../../../app/models/form";
 import { LoadingButton } from "@mui/lab";
 import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
 import { assignToCourse } from "../formSlice";
-import { fetchCourseAsync } from "../../onlineStudy/courseSlice";
 
 interface Props {
   forms: Form[];
   courseId?: number;
   messageId?: number;
-  setIsAddingExistingForm?: (value: boolean) => void; // Funkcija za ažuriranje upita
+  setIsAddingExistingForm?: (value: boolean) => void; 
   setSelectedMessageForms?: (
     value: Form[] | ((prevForms: Form[]) => Form[])
   ) => void;
@@ -68,14 +66,7 @@ const FormTable = ({
   const rowsPerPage = 5;
   const status = useAppSelector((state) => state.form.status);
   const dispatch = useAppDispatch();
-  //   console.log(courseId, messageId);
 
-  // useEffect(()=>{
-  //   if(selectedForm?.courseId)
-  //     dispatch(fetchCourseAsync(selectedForm?.courseId))
-  //   else
-  //     dispatch(fetchMess)
-  // }, [selectedForm])
 
   const getFormStatus = (endDate: string) => {
     const currentDate = new Date();
@@ -125,22 +116,13 @@ const FormTable = ({
     );
   };
   const handleAddSurvey = () => {
-    console.log(selectedForms);
     if (messageId != 0) {
       selectedForms.forEach((formId) => {
-        console.log("Čekirana anketa ID:", formId);
         if (courseId)
           dispatch(assignToCourse({ formId: formId, courseId: courseId }));
       });
       if (setIsAddingExistingForm) setIsAddingExistingForm(false);
-    } else {
-      console.log("Poruka");
-      // if (setSelectedMessageForms) {
-      //   setSelectedMessageForms((prevForms: Form[]) => [
-      //     ...prevForms,
-      //     selectedForms,
-      //   ]);
-      // }
+    } else {     
       selectedForms.forEach((formId) => {
         if (setSelectedMessageForms) {
           setSelectedMessageForms((prevForms: Form[]) => [
@@ -177,13 +159,13 @@ const FormTable = ({
               marginBottom: 1,
               fontFamily: "Raleway,sans-serif",
               fontSize: "clamp(12px, 14px, 16px)",
-              overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-              display: "-webkit-box", // Neophodno za multi-line truncation
-              WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-              WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-              lineHeight: "1", // Podešava razmak između linija
-              height: "1em", // Fiksna visina: broj linija * lineHeight
-              textOverflow: "ellipsis", // Dodaje tri tačke
+              overflow: "hidden", 
+              display: "-webkit-box", 
+              WebkitBoxOrient: "vertical", 
+              WebkitLineClamp: 1,
+              lineHeight: "1",
+              height: "1em", 
+              textOverflow: "ellipsis",
             }}
           >
             Pretraži prema ključnoj riječi
@@ -221,10 +203,10 @@ const FormTable = ({
                   borderColor: "background.default",
                 },
                 "&:hover fieldset": {
-                  borderColor: "action.hover", // Promeni samo obrub, ako želiš
+                  borderColor: "action.hover", 
                 },
                 "&:hover": {
-                  backgroundColor: "action.hover", // Ovdje se menja pozadina celog inputa
+                  backgroundColor: "action.hover", 
                 },
                 "&.Mui-focused fieldset": {
                   borderColor: "primary.main",
@@ -237,7 +219,7 @@ const FormTable = ({
                 paddingLeft: 0,
               },
               "& input": {
-                color: "primary.main", // Osnovna boja teksta
+                color: "primary.main", 
                 fontSize: 14,
               },
             }}
@@ -260,7 +242,7 @@ const FormTable = ({
             borderRadius: "8px",
             overflow: "hidden",
             boxShadow: 3,
-            tableLayout: "fixed", // Fiksna širina stupaca
+            tableLayout: "fixed", 
           }}
         >
           <TableHead
@@ -270,11 +252,10 @@ const FormTable = ({
             }}
           >
             <TableRow sx={{ height: "42px" }}>
-              {/* Kolona "Pitanje" */}
               <TableCell
                 sx={{
                   padding: "12px",
-                  width: { xs: "50%", sm: "50%", md: "20%" }, // Širina za različite ekrane
+                  width: { xs: "50%", sm: "50%", md: "20%" }, 
                 }}
               >
                 <Typography
@@ -287,12 +268,11 @@ const FormTable = ({
                 </Typography>
               </TableCell>
 
-              {/* Kolona "Autor" (sakrivena za xs i sm) */}
               <TableCell
                 sx={{
                   padding: "12px",
-                  width: { md: "20%" }, // Širina samo za md
-                  display: { xs: "none", sm: "none", md: "table-cell" }, // Sakriveno za xs i sm
+                  width: { md: "20%" }, 
+                  display: { xs: "none", sm: "none", md: "table-cell" }, 
                 }}
               >
                 <Typography
@@ -305,12 +285,11 @@ const FormTable = ({
                 </Typography>
               </TableCell>
 
-              {/* Kolona "Datum kreiranja" (sakrivena za xs i sm) */}
               <TableCell
                 sx={{
                   padding: "12px",
-                  width: { md: "20%" }, // Širina samo za md
-                  display: { xs: "none", sm: "none", md: "table-cell" }, // Sakriveno za xs i sm
+                  width: { md: "20%" }, 
+                  display: { xs: "none", sm: "none", md: "table-cell" }, 
                 }}
               >
                 <Button
@@ -341,13 +320,12 @@ const FormTable = ({
                 </Button>
               </TableCell>
 
-              {/* Kolona "Status" (sakrivena za xs i sm) */}
               <TableCell
                 align="center"
                 sx={{
                   padding: "12px",
-                  width: { md: "20%" }, // Širina samo za md
-                  display: { xs: "none", sm: "none", md: "table-cell" }, // Sakriveno za xs i sm
+                  width: { md: "20%" }, 
+                  display: { xs: "none", sm: "none", md: "table-cell" },
                 }}
               >
                 <Typography
@@ -360,12 +338,11 @@ const FormTable = ({
                 </Typography>
               </TableCell>
 
-              {/* Kolona "Pregled" (uvijek vidljiva) */}
               <TableCell
                 align="center"
                 sx={{
                   padding: "12px",
-                  width: { xs: "50%", sm: "50%", md: "20%" }, // Širina za različite ekrane
+                  width: { xs: "50%", sm: "50%", md: "20%" }, 
                 }}
               >
                 <Typography
@@ -378,14 +355,13 @@ const FormTable = ({
                 </Typography>
               </TableCell>
 
-              {/* Kolona "Označi" (samo ako je ispunjen uslov) */}
               {(courseId || messageId == 0) && (
                 <TableCell
                   align="center"
                   sx={{
                     padding: "12px",
-                    width: { md: "20%" }, // Širina samo za md
-                    display: { xs: "none", sm: "none", md: "table-cell" }, // Sakriveno za xs i sm
+                    width: { md: "20%" }, 
+                    display: { xs: "none", sm: "none", md: "table-cell" }, 
                   }}
                 >
                   <Typography
@@ -417,7 +393,6 @@ const FormTable = ({
                   },
                 }}
               >
-                {/* Kolona "Pitanje" */}
                 <TableCell
                   sx={{
                     padding: "12px",
@@ -429,7 +404,6 @@ const FormTable = ({
                   </Typography>
                 </TableCell>
 
-                {/* Kolona "Autor" (sakrivena za xs i sm) */}
                 <TableCell
                   sx={{
                     padding: "12px",
@@ -442,7 +416,6 @@ const FormTable = ({
                   </Typography>
                 </TableCell>
 
-                {/* Kolona "Datum kreiranja" (sakrivena za xs i sm) */}
                 <TableCell
                   sx={{
                     padding: "12px",
@@ -455,7 +428,6 @@ const FormTable = ({
                   </Typography>
                 </TableCell>
 
-                {/* Kolona "Status" (sakrivena za xs i sm) */}
                 <TableCell
                   align="center"
                   sx={{
@@ -480,7 +452,6 @@ const FormTable = ({
                   />
                 </TableCell>
 
-                {/* Kolona "Pregled" (uvijek vidljiva) */}
                 <TableCell
                   align="center"
                   sx={{
@@ -506,7 +477,6 @@ const FormTable = ({
                   </IconButton>
                 </TableCell>
 
-                {/* Kolona "Označi" (samo ako je ispunjen uslov) */}
                 {(courseId || messageId == 0) && (
                   <TableCell
                     align="center"
@@ -558,20 +528,19 @@ const FormTable = ({
               }}
             >
               <Button
-                type="button" // Ovo je važno da se formular ne pošalje pritiskom na ovo dugme
+                type="button" 
                 variant="outlined"
                 color="secondary"
                 onClick={() => {
-                  //   reset();
                   setIsAddingExistingForm(false);
                 }}
                 sx={{
-                  borderRadius: "8px", // Zaobljene ivice
-                  textTransform: "none", // Bez velikih slova
+                  borderRadius: "8px", 
+                  textTransform: "none", 
                   borderColor: "text.secondaryChannel",
                   color: "text.secondaryChannel",
                   "&:hover": {
-                    backgroundColor: "secondary.light", // Hover efekat
+                    backgroundColor: "secondary.light", 
                   },
                   fontSize: "10pt",
                   height: "fit-content",
@@ -586,17 +555,17 @@ const FormTable = ({
                 variant="contained"
                 disabled={selectedForms.length == 0}
                 loadingIndicator={
-                  <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+                  <CircularProgress size={18} sx={{ color: "white" }} /> 
                 }
                 sx={{
                   backgroundColor: "primary.main",
                   color: "white",
-                  borderRadius: "8px", // Zaobljene ivice
-                  textTransform: "none", // Bez velikih slova
+                  borderRadius: "8px",
+                  textTransform: "none", 
                   fontSize: "10pt",
                   height: "fit-content",
                   "&:hover": {
-                    backgroundColor: "primary.dark", // Hover efekat
+                    backgroundColor: "primary.dark",
                   },
                 }}
                 onClick={handleAddSurvey}
@@ -693,7 +662,7 @@ const FormTable = ({
                         : "error.light",
                     color: "white",
                     fontWeight: "bold",
-                    ml: 1, // Margin lijevo
+                    ml: 1, 
                   }}
                 />
               </Typography>
@@ -709,7 +678,7 @@ const FormTable = ({
                   bgcolor: "background.paper",
                   borderRadius: 1,
                   boxShadow: 1,
-                  p: 0, // Bez paddinga
+                  p: 0, 
                 }}
               >
                 {selectedForm?.options.map((option) => (
@@ -719,7 +688,7 @@ const FormTable = ({
                       borderBottom: "1px solid",
                       borderColor: "divider",
                       "&:last-child": {
-                        borderBottom: "none", // Ukloni border za zadnji element
+                        borderBottom: "none", 
                       },
                     }}
                   >
@@ -741,12 +710,12 @@ const FormTable = ({
             variant="contained"
             sx={{
               fontWeight: "bold",
-              textTransform: "none", // Bez velikih slova
-              borderRadius: 1, // Zaobljeni rubovi dugmeta
+              textTransform: "none", 
+              borderRadius: 1, 
               backgroundColor: "primary.main",
               color: "text.primary",
               "&:hover": {
-                backgroundColor: "primary.dark", // Promeni samo obrub, ako želiš
+                backgroundColor: "primary.dark", 
               },
             }}
           >

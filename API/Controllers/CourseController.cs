@@ -53,12 +53,10 @@ namespace API.Controllers
             var query = _context.Courses
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
-            .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
-            .Include(c => c.UsersCourse).ThenInclude(pu => pu.User)
+            .Include(c => c.ProfessorsCourse!)?.ThenInclude(pu => pu.User)?
+            .Include(c => c.UsersCourse)?.ThenInclude(pu => pu.User)
             .Include(t => t.Themes)
-
             .AsQueryable();
-
 
             var courses = await query.ToListAsync();
 
@@ -76,9 +74,7 @@ namespace API.Controllers
             .Include(s => s.StudyProgram)
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
             .Include(c => c.UsersCourse).ThenInclude(uc => uc.User)
-            // .Include(t => t.Themes)
             .AsQueryable();
-
 
             if (!string.IsNullOrEmpty(studentsParams.SearchTerm))
             {
@@ -86,9 +82,6 @@ namespace API.Controllers
                     c.Name.Contains(studentsParams.SearchTerm) ||
                     c.Description.Contains(studentsParams.SearchTerm));
             }
-
-
-
             var coursesMy = await courses.ToListAsync();
 
             return coursesMy.Select(c => _mapper.Map<CourseDto>(c)).ToList();
@@ -106,14 +99,12 @@ namespace API.Controllers
             .Include(t => t.Themes)
             .AsQueryable();
 
-
-            //trenutno prikazuje samo kurseve koje je neko napravio, a ne na koje je upisan
             if (coursesParams.Type == "my")
             {
             var userEmail = User.FindFirst("preferred_username")?.Value;
             var user = await _userManager.FindByEmailAsync(userEmail);
 
-                query = _context.Courses.Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == user!.Id && pc.WithdrawDate == null))
+            query = _context.Courses.Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == user!.Id && pc.WithdrawDate == null))
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
@@ -121,12 +112,13 @@ namespace API.Controllers
             .Include(t => t.Themes)
             .AsQueryable();
             }
+
             if (coursesParams.Type == "myLearning")
             {
             var userEmail = User.FindFirst("preferred_username")?.Value;
             var user = await _userManager.FindByEmailAsync(userEmail);
 
-                query = _context.Courses.Where(c => c.UsersCourse!.Any(uc => uc.UserId == user!.Id && uc.WithdrawDate == null))
+            query = _context.Courses.Where(c => c.UsersCourse!.Any(uc => uc.UserId == user!.Id && uc.WithdrawDate == null))
             .Include(y => y.Year)
             .Include(s => s.StudyProgram)
             .Include(c => c.ProfessorsCourse!).ThenInclude(pu => pu.User)
@@ -151,27 +143,20 @@ namespace API.Controllers
                 query = query.Where(c => coursesParams.StudyPrograms.Contains(c.StudyProgram!.Name));
             }
 
-
-            // Mapiranje na ProductDto
             var pagedCourses = await PagedList<Course>.ToPagedList(query, coursesParams.PageNumber, coursesParams.PageSize);
             var coursesDto = _mapper.Map<List<CourseDto>>(pagedCourses.Items);
 
-            // Dodavanje paginacije u HTTP header
             Response.AddPaginationHeader(pagedCourses.MetaData);
 
-            // Vraćanje mapiranih podataka bez dodatne paginacije
-            return Ok(new { coursesDto, pagedCourses.MetaData });  // Samo mapirani podaci
+            return Ok(new { coursesDto, pagedCourses.MetaData });  
         }
 
         [HttpGet("getProfessorsCourses/{id}")]
         public async Task<IActionResult> getProfessorsCourses(int id)
         {
-            //VRACAJU SE SVI KURSEVI
             var courses = await _context.Courses
             .Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == id))
             .Include(y => y.Year).Include(s => s.StudyProgram).Include(pc => pc.ProfessorsCourse).ThenInclude(u => u.User).Include(uc => uc.UsersCourse).ThenInclude(u => u.User).ToListAsync();
-
-
 
             var coursesDto = courses.Select(c => _mapper.Map<CourseDto>(c)).ToList();
             return Ok(new
@@ -255,7 +240,6 @@ namespace API.Controllers
                     s.LastName.Contains(studentsParams.SearchTerm));
             }
 
-
             var students = await query.ToListAsync();
 
             return students.Select(p => _mapper.Map<UserDto>(p)).ToList();
@@ -268,7 +252,6 @@ namespace API.Controllers
             var years = await _context.Courses.Select(c => c.Year!).Distinct().ToListAsync();
             var programs = await _context.Courses.Select(c => c.StudyProgram!).Distinct().ToListAsync();
 
-
             return Ok(new { years, programs });
         }
 
@@ -277,7 +260,6 @@ namespace API.Controllers
         {
             var years = await _context.Years.ToListAsync();
             var programs = await _context.StudyPrograms.ToListAsync();
-
 
             return Ok(new { years, programs });
         }
@@ -319,8 +301,8 @@ namespace API.Controllers
             };
 
             return CreatedAtAction(nameof(GetCourse), new { id = courseDto.Id }, response);
-
         }
+
         [Authorize]
         [HttpDelete("DeleteCourse/{id}")]
         public async Task<IActionResult> DeleteCourse(int id)
@@ -364,7 +346,6 @@ namespace API.Controllers
             if (course == null)
                 return NotFound("Course not found");
 
-
             var m = _mapper.Map<CourseMaterial>(material);
             m.MaterialType = await _context.MaterialTypes.FirstOrDefaultAsync(mt => mt.Id == m.MaterialTypeId);
             m.Course = course;
@@ -373,7 +354,6 @@ namespace API.Controllers
             _context.CourseMaterials.Add(m);
             await _context.SaveChangesAsync();
             m.FilePath = material.FilePath;
-
 
             await _context.SaveChangesAsync();
 
@@ -538,7 +518,6 @@ namespace API.Controllers
                 }
             }
 
-
             var studentDto = new UserDto
             {
                 Email = student.Email,
@@ -558,9 +537,8 @@ namespace API.Controllers
         }
 
 
-        [Authorize(Roles = "Student")]
+        [Authorize]
         [HttpPost("removeStudentFromCourse")]
-
         public async Task<IActionResult> RemoveStudentFromCourse([FromBody] RemoveRequest request)
         {
             int courseId = request.CourseId;

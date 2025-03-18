@@ -31,20 +31,17 @@ namespace API.Controllers
             _roleManager = roleManager;
             _userManager = userManager;
             _firebaseService = firebaseService;
-
         }
 
         public class AddRequest
         {
             public int CourseId { get; set; }
             public int ProfessorId { get; set; }
-
         }
 
         public class RemoveRequestP
         {
             public int CourseId { get; set; }
-
         }
 
         [HttpGet("GetAllProfessors")]
@@ -106,8 +103,6 @@ namespace API.Controllers
             }
 
             return Ok(_mapper.Map<UserDto>(user));
-
-
         }
 
         [HttpGet("getProfessorYearsPrograms/{id}")]
@@ -119,18 +114,15 @@ namespace API.Controllers
                 .Distinct()
                 .ToListAsync();
 
-
             var programs = await _context.ProfessorCourses
                 .Where(pc => pc.UserId == id && pc.WithdrawDate == null)
                 .Select(pc => pc.Course!.StudyProgram)
                 .Distinct()
                 .ToListAsync();
 
-
-
             return Ok(new { years, programs });
-
         }
+
         [HttpGet("filters")]
         public async Task<IActionResult> GetFilters()
         {
@@ -140,12 +132,10 @@ namespace API.Controllers
             years.Insert(0, "Sve");
             programs.Insert(0, "Sve");
 
-
             return Ok(new { years, programs });
         }
 
-
-        [Authorize(Roles = "Profesor")]
+        [Authorize]
         [HttpPost("addProfessorToCourse")]
         public async Task<IActionResult> AddProfessorToCourse([FromBody] AddRequest request)
         {
@@ -155,7 +145,6 @@ namespace API.Controllers
             var course = await _context.Courses.Include(c => c.Year).Include(c => c.StudyProgram).FirstOrDefaultAsync(c => c.Id == courseId);
 
             var professor = await _context.Users.FirstOrDefaultAsync(m => m.Id == professorId);
-
 
             if (professor == null)
                 return NotFound("Profesor nije pronađen");
@@ -174,12 +163,10 @@ namespace API.Controllers
                 UserId = professor.Id,
                 CourseId = courseId,
                 EnrollDate = DateTime.UtcNow
-
             };
 
             _context.ProfessorCourses.Add(enrollment);
             await _context.SaveChangesAsync();
-
 
             var addedProfessor = await _context.Users.Include(u => u.FcmTokens).FirstOrDefaultAsync(i => i.Id == professor.Id);
             var token = addedProfessor.FcmTokens.Select(t => t.Token).ToList();
@@ -206,7 +193,7 @@ namespace API.Controllers
             });
         }
 
-        [Authorize(Roles = "Profesor")]
+        [Authorize]
         [HttpPost("removeProfessorFromCourse")]
         public async Task<IActionResult> RemoveProfessorFromCourse([FromBody] RemoveRequestP request)
         {
@@ -240,6 +227,5 @@ namespace API.Controllers
                 withdrawDate = enrollment.WithdrawDate
             });
         }
-
     }
 }

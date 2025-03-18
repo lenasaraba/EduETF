@@ -176,7 +176,6 @@ const status=useAppSelector((state)=>state.course.status)
             sx={{
               display: "flex",
               flexDirection: "column",
-              // flex: 1, // Prilagodljiva širina
               gap: 2,
             }}
           >
@@ -219,8 +218,6 @@ const status=useAppSelector((state)=>state.course.status)
                 ))}
               </List>
             </Paper>
-
-            {/* Dugmad "Otkaži" i "Sačuvaj" */}
             <Box
               sx={{
                 display: "flex",

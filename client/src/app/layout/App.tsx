@@ -13,8 +13,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import LoadingComponent from "./LoadingComponent";
 import {
   fetchCurrentUser,
-  logout,
-  signOut,
 } from "../../features/account/accountSlice";
 import lightLogo from "../../assets/lightLogo.png";
 import darkLogo from "../../assets/darkLogo.png";
@@ -26,7 +24,6 @@ import { requestForToken } from "../../../firebase-initialize";
 
 import "./app.css"; //
 import { BrandingContext } from "./BrandingContext";
-import { useAccessToken } from "../../features/account/useAccessToken";
 
 const BRANDINGL = {
   title: "",
@@ -56,13 +53,6 @@ const demoTheme = extendTheme({
         padding: { marginBottom: "0px !important", fontSize: "5px !important" },
       },
     },
-    // MuiDrawer: {
-    //   styleOverrides: {
-    //     docked: {
-    //       width: "fit-content ",
-    //     },
-    //   },
-    // },
   },
   colorSchemes: {
     light: {
@@ -301,20 +291,8 @@ export default function App() {
 
   window.scrollTo(0, 0);
 
-  //-----------------OPEN ID----------------
-  // const token = useAccessToken();
-  // console.log("Access token:", token);
 
-  // const token = useAccessToken(); // Uzima token iz hook-a
-
-  // useEffect(() => {
-  //   // Pozivamo fetchProtectedData kada je token dostupan
-  //   if (token) {
-  //     fetchProtectedData();
-  //   }
-  // }, [token]); // Reaguje na promenu tokena
-
-  if (loading) return <LoadingComponent message="EduETF"></LoadingComponent>;
+  if (loading) return <LoadingComponent></LoadingComponent>;
   return (
     <>
       <BrandingContext.Provider value={{ branding, setBranding }}>

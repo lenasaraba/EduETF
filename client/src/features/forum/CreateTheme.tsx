@@ -1,7 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { LoadingButton } from "@mui/lab";
 import {
-  Modal,
   Grid,
   TextField,
   Checkbox,
@@ -18,12 +17,9 @@ import { useEffect, useState } from "react";
 import { Controller, FieldValues, useForm } from "react-hook-form";
 import { validationSchema } from "./forumpageValidation";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-// import Theme from "./Theme";
 import { createThemeAsync } from "./themeSlice";
 import { useNavigate } from "react-router-dom";
 import { fetchCoursesListAsync } from "../onlineStudy/courseSlice";
-import Course from "../onlineStudy/Course";
-import { Course } from "../../app/models/theme";
 
 export default function CreateTheme() {
   const dispatch = useAppDispatch();
@@ -47,13 +43,10 @@ export default function CreateTheme() {
     formState: { errors },
   } = methods;
 
-  //   const { control, setValue, clearErrors, trigger, register } = methods; // Koristite methods iz roditeljskog komponenta
   const [loading, setLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  //   const {formState: { isSubmitting, errors, isValid }}=useForm();
   const onSubmit = async (data: FieldValues) => {
-    console.log(data);
     const localDate = new Date();
     const offset = localDate.getTimezoneOffset();
 
@@ -64,11 +57,9 @@ export default function CreateTheme() {
       date: adjustedDate.toISOString(),
       courseId: data.courseId,
     };
-    console.log(newTheme);
     const resultAction = await dispatch(createThemeAsync(newTheme));
 
     if (createThemeAsync.fulfilled.match(resultAction)) {
-      console.log(resultAction.payload);
       navigate(`/forum/${resultAction.payload.id}`);
     } else {
       console.error("Failed to create theme:", resultAction.payload);
@@ -77,7 +68,6 @@ export default function CreateTheme() {
   useEffect(() => {
     if (isInitialized) {
       trigger();
-      console.log(isInitialized);
     } else {
       setIsInitialized(true);
     }
@@ -92,7 +82,6 @@ export default function CreateTheme() {
     dispatch(fetchCoursesListAsync());
   }, []);
 
-  console.log(window.history);
 
   let courses: typeof enrolledCourses = [];
 
@@ -139,7 +128,6 @@ export default function CreateTheme() {
             borderColor: "primary.main",
             display: "flex",
             flexDirection: "column",
-            // boxSizing: "border-box",
             height: "75%",
             maxHeight: "75%",
           }}
@@ -234,14 +222,14 @@ export default function CreateTheme() {
               fullWidth
               disabled={isFreeTopic}
               sx={{ height: "3rem", maxHeight: "3rem" }}
-              error={!!errors.courseId} // Dinamičko upravljanje greškom na FormControl
+              error={!!errors.courseId}
             >
               <InputLabel id="courseId-label">Kurs</InputLabel>
               <Controller
                 name="courseId"
                 control={control}
                 rules={{
-                  required: "Izbor kursa je obavezan!", // Pravilo validacije
+                  required: "Izbor kursa je obavezan!", 
                 }}
                 render={({ field, fieldState }) => (
                   <>
@@ -249,9 +237,8 @@ export default function CreateTheme() {
                       {...field}
                       labelId="courseId-label"
                       value={field.value || "0"}
-                      // disabled={status == "pendingFetchCoursesList"}
                       label="Kurs"
-                      error={!!fieldState.error} // Dinamičko upravljanje greškom na Select komponenti
+                      error={!!fieldState.error} 
                       onChange={(e) => {
                         setValue("courseId", e.target.value || "0", {
                           shouldValidate: true,
@@ -270,9 +257,9 @@ export default function CreateTheme() {
                         },
                       }}
                       sx={{
-                        color: fieldState.error ? "error.main" : "inherit", // Menja boju teksta
+                        color: fieldState.error ? "error.main" : "inherit", 
                         "& .MuiSelect-icon": {
-                          color: fieldState.error ? "error.main" : "inherit", // Menja boju ikone
+                          color: fieldState.error ? "error.main" : "inherit", 
                         },
                       }}
                     >

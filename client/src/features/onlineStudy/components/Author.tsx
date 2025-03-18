@@ -21,7 +21,6 @@ export function Author({ authors }: AuthorProps) {
           <Avatar
             key={index}
             alt={author.user.firstName}
-            // src={author.avatar}
             sx={{ width: 24, height: 24, backgroundColor: "text.primary" }}
           >
             {author.user.firstName.charAt(0).toUpperCase()}
@@ -51,17 +50,10 @@ export function Author({ authors }: AuthorProps) {
                 {author.user.firstName} {author.user.lastName}
               </Typography>
               {index < authors.length - 1 && <span>,</span>}{" "}
-              {/* Dodaj zarez, osim za poslednji element */}
             </Box>
           ))
-          // .reduce((prev, curr) => [prev,", ",curr])
         }
       </Box>
-      {/* <Typography variant="caption">
-          {authors
-            .map((author) => author.user.firstName + " " + author.user.lastName)
-            .join(", ")}
-        </Typography> */}
     </Box>
   );
 }

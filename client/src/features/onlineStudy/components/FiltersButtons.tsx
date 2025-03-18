@@ -10,21 +10,18 @@ interface Props {
 export default function FiltersButtons({ items, checked, onChange }: Props) {
   const [checkedItems, setCheckedItems] = useState<string[]>(checked || []);
 
-  // Funkcija za rukovanje selektovanjem/odabiranjem chip-ova
   const handleChipClick = (value: string) => {
     const currentIndex = checkedItems.findIndex(item => item === value);
     let newChecked: string[] = [];
     
     if (currentIndex === -1) {
-      // Dodaj stavku ako nije već selektovana
       newChecked = [...checkedItems, value];
     } else {
-      // Ukloni stavku ako je već selektovana
       newChecked = checkedItems.filter(item => item !== value);
     }
 
     setCheckedItems(newChecked);
-    onChange(newChecked);  // Poziv funkcije za obaveštavanje roditeljske komponente
+    onChange(newChecked);  
   };
 
   return (
@@ -44,7 +41,7 @@ export default function FiltersButtons({ items, checked, onChange }: Props) {
           size="medium"
           label={name}
           sx={{
-            backgroundColor: checkedItems.indexOf(name) !== -1 ? "background.paper" : "transparent", // Promeni boju kad je selektovan
+            backgroundColor: checkedItems.indexOf(name) !== -1 ? "background.paper" : "transparent", 
             border: "none",
             cursor: "pointer",
           }}

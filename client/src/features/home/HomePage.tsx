@@ -107,14 +107,10 @@ export default function HomePage() {
               </Typography>
               <br />
               <Box
-                // variant="h1"
                 sx={{
                   fontFamily: "Raleway, sans-serif",
                   textAlign: "center",
                   margin: 0,
-                  // width: "100%",
-                  // fontWeight: 700,
-                  // textShadow: "2px 2px 4px rgba(0, 0, 0, 0.3)",
                 }}
               >
                 <img

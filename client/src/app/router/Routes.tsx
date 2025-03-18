@@ -9,13 +9,11 @@ import OnlineStudy from "../../features/onlineStudy/OnlineStudy";
 import CourseList from "../../features/onlineStudy/CourseList";
 import Course from "../../features/onlineStudy/Course";
 import RequireAuth from "../components/RequireAuth";
-import ProfilePage from "../../features/profile/ProfilePage";
 import ForumPage from "../../features/forum/ForumPage";
 import Theme from "../../features/forum/Theme";
 import Themes from "../../features/forum/Themes";
 import CreateTheme from "../../features/forum/CreateTheme";
 import CreateCourse from "../../features/onlineStudy/CreateCourse";
-import ProfessorsTable from "../../features/onlineStudy/components/ProfessorsTable";
 import Professors from "../../features/onlineStudy/Professors";
 import ProfessorInfo from "../../features/onlineStudy/ProfessorInfo";
 import Students from "../../features/onlineStudy/components/Students";
@@ -61,7 +59,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "courses",
-            element: <CourseList />, // Komponenta koja prikazuje kurseve
+            element: <CourseList />, 
           },
           {
             path: "courses/:id",
@@ -72,7 +70,6 @@ export const router = createBrowserRouter([
             element: <Users />,
           },
           {
-            //popraviti u kodu, zamijeniti profile
             path: "myProfile",
             element: (
               <RequireAuth>
@@ -90,7 +87,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "themes",
-            element: <Themes />, // Komponenta koja prikazuje teme
+            element: <Themes />,
           },
           {
             path: "createTheme",

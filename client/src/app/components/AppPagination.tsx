@@ -7,12 +7,7 @@ interface Props {
 }
 export default function AppPagination({ metaData, onPageChange }: Props) {
   const { currentPage, pageSize, totalCount, totalPages } = metaData;
-  console.log(
-    "METADATA ....................................   " + currentPage,
-    pageSize,
-    totalCount,
-    totalPages
-  );
+ 
   return (
     <Box display="flex" justifyContent="space-between" alignItems="center" sx={{flexDirection:{xs:"column", sm:"column", md:"row"}}}>
       <Typography
@@ -33,8 +28,8 @@ export default function AppPagination({ metaData, onPageChange }: Props) {
         onChange={(e, page) => onPageChange(page)}
         sx={{
           "& .MuiPaginationItem-root.Mui-selected": {
-            backgroundColor: "background.paper", // Boja pozadine za selektovani broj stranice
-            color: "text.primary", // Boja broja stranice
+            backgroundColor: "background.paper", 
+            color: "text.primary", 
           },
         }}
       />

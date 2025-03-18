@@ -45,12 +45,21 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // CORS policy
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy("AllowLocalhost",
+//         policy => policy.WithOrigins("http://localhost:5173")
+//             .AllowAnyMethod()
+//             .AllowAnyHeader());
+// });
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost",
-        policy => policy.WithOrigins("http://localhost:5173")
-            .AllowAnyMethod()
-            .AllowAnyHeader());
+        policy => policy
+            .WithOrigins("http://localhost:5173")  // Frontend domena
+            .AllowAnyMethod()                      // Dozvoljava sve HTTP metode
+            .AllowAnyHeader()                      // Dozvoljava sve zaglavlja
+            .AllowCredentials());                  // Dozvoljava autentifikaciju
 });
 
 builder.Services.AddDbContext<StoreContext>(opt =>
@@ -108,10 +117,12 @@ builder.Services.AddAuthentication(options =>
     options.Authority="https://login.microsoftonline.com/05a9f20c-f437-4a35-8448-3827e15dd882/v2.0";
     options.ClientId = builder.Configuration["AzureAd:ClientId"];
     options.ClientSecret = builder.Configuration["AzureAd:ClientSecret"];
-    options.ResponseType = "code";
+    options.ResponseType = "code id_token";
     options.CallbackPath = new PathString(builder.Configuration["AzureAd:CallbackPath"]);
     options.Scope.Add("openid");
     options.Scope.Add("profile");
+    options.Scope.Add("email");
+
     options.SaveTokens = true;
 })
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => // JWT bearer middleware
@@ -159,7 +170,7 @@ app.UseCors(opt =>
 {
     opt.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:5173");
 });
-
+app.UseCors("AllowLocalhost");
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -186,6 +197,15 @@ app.MapGet("/profile", (HttpContext context) =>
     }
     return Results.Unauthorized(); // If not authenticated
 });
+app.MapGet("/signout-oidc", async context =>
+{
+    var redirectUri = "http://localhost:5173"; // URL na koji se korisnik vraća nakon odjave
+    await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme, new AuthenticationProperties
+    {
+        RedirectUri = redirectUri
+    });
+});
+
 
 app.UseStaticFiles();
 app.MapControllers();

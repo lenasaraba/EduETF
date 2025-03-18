@@ -11,7 +11,11 @@ import { type Navigation, type Session } from "@toolpad/core";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import LoadingComponent from "./LoadingComponent";
-import { fetchCurrentUser, signOut } from "../../features/account/accountSlice";
+import {
+  fetchCurrentUser,
+  logout,
+  signOut,
+} from "../../features/account/accountSlice";
 import lightLogo from "../../assets/lightLogo.png";
 import darkLogo from "../../assets/darkLogo.png";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
@@ -52,6 +56,13 @@ const demoTheme = extendTheme({
         padding: { marginBottom: "0px !important", fontSize: "5px !important" },
       },
     },
+    // MuiDrawer: {
+    //   styleOverrides: {
+    //     docked: {
+    //       width: "fit-content ",
+    //     },
+    //   },
+    // },
   },
   colorSchemes: {
     light: {
@@ -184,7 +195,7 @@ export default function App() {
         title: "Korisnici",
       },
       {
-        segment: "profile",
+        segment: "myProfile",
         title: "Moj profil",
         icon: <PersonOutlineIcon />,
       },
@@ -259,7 +270,7 @@ export default function App() {
       },
       signOut: () => {
         setSession(null);
-        dispatch(signOut());
+        window.location.href = "http://localhost:5000/api/account/logout";
       },
     };
   }, []);
@@ -290,8 +301,7 @@ export default function App() {
 
   window.scrollTo(0, 0);
 
-
-//-----------------OPEN ID----------------
+  //-----------------OPEN ID----------------
   // const token = useAccessToken();
   // console.log("Access token:", token);
 

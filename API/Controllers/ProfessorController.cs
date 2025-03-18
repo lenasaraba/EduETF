@@ -154,7 +154,7 @@ namespace API.Controllers
 
             var course = await _context.Courses.Include(c => c.Year).Include(c => c.StudyProgram).FirstOrDefaultAsync(c => c.Id == courseId);
 
-            var professor = await _userManager.FindByIdAsync(professorId.ToString());
+            var professor = await _context.Users.FirstOrDefaultAsync(m => m.Id == professorId);
 
 
             if (professor == null)
@@ -212,7 +212,8 @@ namespace API.Controllers
         {
             int courseId = request.CourseId;
 
-            var professor = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var professor = await _userManager.FindByEmailAsync(userEmail);
             if (professor == null)
                 return NotFound("Profesor nije pronađen");
 

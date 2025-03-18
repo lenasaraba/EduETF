@@ -57,6 +57,7 @@ const Account = {
   register: (values: any) => requests.post("account/register", values),
   currentUser: () => requests.get("account/currentUser"),
   updateUser: (userData: any) => requests.post("account/updateUser", userData),
+  logout: ()=>requests.get("account/logout"),
 };
 
 const Course = {

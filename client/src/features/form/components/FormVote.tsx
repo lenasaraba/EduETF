@@ -151,7 +151,7 @@ export default function FormVote({ form, IsTheme }: FormVoteProps) {
                       (user &&
                       ((user.role === "Profesor" &&
                         (form.courseId || form.user.id == user.id)) ||
-                        (user.role == "Student" && form.user.id == user.id))
+                        (user.role == "Student" && form.user?.id == user.id))
                         ? ` (${option.usersOption.length} glasalo)`
                         : "")
                     }

@@ -37,37 +37,56 @@ export const signInUser = createAsyncThunk<User, FieldValues>(
 export const fetchCurrentUser = createAsyncThunk<User>(
   "account/fetchCurrentUser",
   async (_, thunkAPI) => {
-    thunkAPI.dispatch(setUser(JSON.parse(localStorage.getItem("user")!)));
-    try {
-      const userDto = await agent.Account.currentUser();
-      const { ...user } = userDto;
-      localStorage.setItem("user", JSON.stringify(user));
-      return user;
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue({ error: error.data });
-    }
-  },
-  {
-    condition: () => {
-      if (!localStorage.getItem("user")) {
-        return false;
+    // thunkAPI.dispatch(setUser(JSON.parse(localStorage.getItem("user")!)));
+    // if (localStorage.getItem("user")) {
+      try {
+        const userDto = await agent.Account.currentUser();
+        const { ...user } = userDto;
+        localStorage.setItem("user", JSON.stringify(user));
+        return user;
+      } catch (error: any) {
+        return thunkAPI.rejectWithValue({ error: error.data });
       }
-    },
+    
+
+    // },
+    // {
+    //   condition: () => {
+    //     if (!localStorage.getItem("user")) {
+    //       return false;
+    //     }
+    //   },
   }
 );
 
-interface UserToken{
-  userId:number,
-  token:string
+export const logout = createAsyncThunk(
+  "account/logout",
+  async (_, thunkAPI) => {
+    // thunkAPI.dispatch(setUser(JSON.parse(localStorage.getItem("user")!)));
+    try {
+      await agent.Account.logout();
+      localStorage.removeItem("user");
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
+  }
+);
+
+interface UserToken {
+  userId: number;
+  token: string;
 }
 
 export const sendTokenToBackend = createAsyncThunk<void, UserToken>(
-  'firebase/sendTokenToBackend',
+  "firebase/sendTokenToBackend",
   async (userToken, { rejectWithValue }) => {
     try {
-      const response = await agent.Firebase.addToken({ userId: userToken.userId, token: userToken.token });
+      const response = await agent.Firebase.addToken({
+        userId: userToken.userId,
+        token: userToken.token,
+      });
       console.log("Odgovor od backenda:", response);
-      
+
       if (response.status === 200 && response.data === "Token već postoji.") {
         console.log("Token već postoji u bazi.");
       } else {
@@ -100,11 +119,11 @@ export const accountSlice = createSlice({
   name: "account",
   initialState,
   reducers: {
-    signOut: (state) => {
-      state.user = null;
-      localStorage.removeItem("user");
-      router.navigate("/");
-    },
+    // signOut: (state) => {
+    //   state.user = null;
+    //   localStorage.removeItem("user");
+    //   router.navigate("/");
+    // },
     setUser: (state, action) => {
       state.user = action.payload;
     },
@@ -120,7 +139,7 @@ export const accountSlice = createSlice({
       localStorage.removeItem("user");
 
       router.navigate("/");
-      toast.error("Sesija istekla - prijavite se ponovo.");
+      // toast.error("Odjavljeni ste.");
     });
 
     builder.addCase(updateUser.rejected, (state) => {
@@ -128,7 +147,7 @@ export const accountSlice = createSlice({
       localStorage.removeItem("user");
 
       router.navigate("/");
-      toast.error("Sesija istekla - prijavite se ponovo.");
+      // toast.error("Odjavljeni ste.");
     });
     builder.addCase(updateUser.fulfilled, (state, action) => {
       state.status = "idle";

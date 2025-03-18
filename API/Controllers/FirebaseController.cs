@@ -14,13 +14,11 @@ namespace API.Controllers
     public class FirebaseController : BaseAPIController
     {
         private readonly StoreContext _context;
-        private readonly UserManager<User> _userManager;
 
 
-        public FirebaseController(StoreContext context, UserManager<User> userManager)
+        public FirebaseController(StoreContext context)
         {
             _context = context;
-            _userManager = userManager;
         }
 
         [HttpPost("addToken")]

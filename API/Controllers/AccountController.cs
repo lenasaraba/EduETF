@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -8,10 +9,12 @@ using API.DTOs;
 using API.Entities;
 using API.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 // using Microsoft.Graph.Models;
 
 namespace API.Controllers
@@ -28,77 +31,49 @@ namespace API.Controllers
             _userManager = userManager;
         }
 
-        // [HttpPost("login")]
-        // public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
-        // {
-        //     var user = await _userManager.FindByEmailAsync(loginDto.Email);
-        //     if (user == null)
-        //     {
-        //         return BadRequest(new { title = "Nalog sa unesenim e-mailom ne postoji." });
-        //     }
-
-        //     if (!await _userManager.CheckPasswordAsync(user, loginDto.Password))
-        //     {
-        //         return Unauthorized(new { title = "Pogrešna lozinka!" });
-        //     }
-
-        //     var roles = await _userManager.GetRolesAsync(user);
-        //     var role = roles.FirstOrDefault();
-        //     return new UserDto
-        //     {
-        //         Email = user.Email,
-        //         Username = user.UserName,
-        //         Token = await _tokenService.GenerateToken(user),
-        //         FirstName = user.FirstName,
-        //         LastName = user.LastName,
-        //         Id = user.Id,
-        //         Role = role,
-        //     };
-        // }
-
-        [HttpPost("register")]
-        public async Task<ActionResult> Register(RegisterDto registerDto)
-        {
-            var user = new User
-            {
-                UserName = registerDto.Username,
-                Email = registerDto.Email
-            };
-
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
-            if (!result.Succeeded)
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(error.Code, error.Description);
-                }
-                return ValidationProblem();
-            }
-            await _userManager.AddToRoleAsync(user, "Student");
-
-            return StatusCode(201);
-        }
-
+            
         [Authorize]
         [HttpGet("currentUser")]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
-            //ovim cemo dobiti name claim iz tokena
-            var roles = await _userManager.GetRolesAsync(user);
-            var role = roles.FirstOrDefault();
+            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.FindFirst("email")?.Value;
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return Unauthorized("Nema email claim-a, korisnik nije prijavljen.");
+            }
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                return NotFound("Korisnik nije pronađen.");
+            }
+
+            var roleId = await _context.UserRoles
+            .Where(ur => ur.UserId == user.Id)
+            .Select(ur => ur.RoleId)
+            .FirstOrDefaultAsync();
+
+            var role = await _context.Roles.FindAsync(roleId);
+        
 
             return new UserDto
             {
                 Email = user.Email,
-                Token = Request.Headers["Authorization"].ToString().Replace("Bearer ", ""),
                 Username = user.UserName,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Id = user.Id,
-                Role = role,
+                Role = role.Name, // Vraćamo naziv role
+                Token = accessToken // Token ne možemo direktno dohvatiti ovde
             };
         }
+
+
 
         [HttpPost("updateUser")]
         public async Task<ActionResult<UserDto>> UpdateUser([FromBody] UpdateUserDto userData)
@@ -108,7 +83,8 @@ namespace API.Controllers
                 return BadRequest("Invalid data.");
             }
 
-            var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
             user!.FirstName = userData.FirstName;
             user.LastName = userData.LastName;
 
@@ -151,43 +127,108 @@ namespace API.Controllers
             return Ok(new { message = "User deleted successfully" });
         }
 
-        // [Authorize]
-        // [HttpGet("loginOpenId")]
-        // public IActionResult LoginOpenId() 
-        // { 
-        //     return Challenge(new AuthenticationProperties { RedirectUri = "/" }, "OpenIdConnect"); 
-        // }
-
-        // [HttpGet("login")]
-        // public async Task<IActionResult> Login()
-        // {
-        //     var redirectUri = "/account/profile";  // Where to redirect after successful login
-
-        //     // Challenge for authentication
-        //     return Challenge(new AuthenticationProperties { RedirectUri = redirectUri }, OpenIdConnectDefaults.AuthenticationScheme);
-        // }
+    
         [HttpGet("login")]
         public IActionResult Login()
         {
-            return Challenge(new AuthenticationProperties { RedirectUri = "/api/account/userinfo" }, OpenIdConnectDefaults.AuthenticationScheme);
+
+            return Challenge(new AuthenticationProperties {RedirectUri = "http://localhost:5000/api/account/registerUser"
+}, OpenIdConnectDefaults.AuthenticationScheme);
         }
-        // // Method for fetching user profile after authentication
+
+
         [HttpGet("userinfo")]
         [Authorize]
-        public IActionResult GetUserInfo()
+        public async Task<IActionResult> GetUserInfo()
         {
-            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
-            return Ok(claims);
+          
+            var idToken = await HttpContext.GetTokenAsync("id_token");
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var nameClaim = User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;  // Ime korisnika
+            var emailClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;  // Email adresa
+            var preferredUsernameClaim = User.Claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;  // Preferred username (često email)
+            // Vraćanje ID tokena i access tokena
+            return Ok(new { IDToken = idToken, 
+                            AccessToken = accessToken ,        
+                            Name = nameClaim,
+                            Email = emailClaim,
+                            PreferredUsername = preferredUsernameClaim
+                            }
+                    );
         }
 
+     
 
-        // [HttpGet("signin-oidc")]
-        // public IActionResult SigninOidc()
-        // {
-        //     // Obrađujte specifičnu logiku ako je potrebno.
-        //     return RedirectToAction("Profile", "Account");
-        //     // return RedirectToAction();
-        // }
+        [Authorize]
+        [HttpGet("registerUser")]
+        public async Task<IActionResult> RegisterUser()
+        {
+            // var userId = User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
+            var userName = User.FindFirst(ClaimTypes.Name)?.Value;
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+
+            if (userEmail == null)
+            {
+                return BadRequest(new { title = "Email korisnika nije pronađen." });
+            }
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(accessToken);
+
+            // Čitanje claimova iz tokena
+            var familyName = jwtToken.Claims.FirstOrDefault(c => c.Type == "family_name")?.Value;
+            var givenName = jwtToken.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
+
+            bool isStudent = userEmail.EndsWith("@student.etf.ues.rs.ba");
+
+            var existingUser = await _userManager.FindByEmailAsync(userEmail);
+            
+            if (existingUser != null)
+            {
+             
+                var redirectUrl = $"http://localhost:5173/";
+                return Redirect(redirectUrl);
+            }
+
+            var user = new User
+            {
+                UserName = userEmail.Split('@')[0],
+                Email = userEmail,
+                FirstName=givenName,
+                LastName=familyName
+            };
+
+            var result = await _userManager.CreateAsync(user, "DefaultPassword123!");
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            await _userManager.AddToRoleAsync(user, isStudent ? "Student" : "Profesor");
+
+            
+            var redirectNewUserUrl = "http://localhost:5173/";
+            return Redirect(redirectNewUserUrl);
+        }
+
+        [HttpGet("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+
+            foreach (var cookie in Request.Cookies.Keys)
+            {
+                Response.Cookies.Delete(cookie);
+            }
+
+            var redirectUri = "http://localhost:5173"; // Putanja nakon što se korisnik odjavi
+            var openIdLogoutUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/logout";
+            var logoutUrl = $"{openIdLogoutUrl}?post_logout_redirect_uri={Uri.EscapeDataString(redirectUri)}";
+            
+            return Redirect(logoutUrl);
+        }
 
     }
 }

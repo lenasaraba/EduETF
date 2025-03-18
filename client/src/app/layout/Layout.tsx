@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
-import { signOut } from "../../features/account/accountSlice";
+import { logout, signOut } from "../../features/account/accountSlice";
 import React, { useEffect, useMemo, useState } from "react";
 import NightsStayTwoToneIcon from "@mui/icons-material/NightsStayTwoTone";
 import LightModeTwoToneIcon from "@mui/icons-material/LightModeTwoTone";
@@ -199,16 +199,23 @@ export default function Layout() {
               }}
             >
               <Typography variant="body2" sx={{ color: "text.primary" }}>
-                {user?.firstName + " " + user?.lastName}
+                {user?.firstName + " " + user?.lastName} 
+                {/* &bull; */}
               </Typography>
               <Typography variant="caption" sx={{ color: "primary.main" }}>
-                {user?.email} &bull; {user?.username}
+                {/* {user?.email}
+                 */}
+                {user?.username}
               </Typography>
             </Box>
             <Tooltip title="Odjavi se">
               <MoreIconButton
                 {...slotProps.moreIconButton}
-                onClick={() => dispatch(signOut())}
+                onClick={() => {
+                  localStorage.removeItem("user");
+                  window.location.href =
+                    "http://localhost:5000/api/account/logout";
+                }}
               >
                 <LogoutIcon sx={{ color: "primary.main" }} />
               </MoreIconButton>

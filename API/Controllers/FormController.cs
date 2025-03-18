@@ -33,7 +33,8 @@ namespace API.Controllers
         [HttpGet("getAllForms")]
         public async Task<ActionResult<List<GetFormDto>>> GetAllForms()
         {
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
 
             var query = _context.Form
             .Where(u => u.User.Email == user.Email)
@@ -68,7 +69,8 @@ namespace API.Controllers
         [HttpPost("createForm")]
         public async Task<ActionResult<GetFormDto>> CreateForm(CreateFormDto createFormDto)
         {
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
             if (user == null) return NotFound("Korisnik nije pronađen");
 
             if (createFormDto.CourseId > 0)
@@ -142,7 +144,8 @@ namespace API.Controllers
         [HttpPut("vote")]
         public async Task<ActionResult<GetFormDto>> Vote([FromBody] VoteRequest request)
         {
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
             if (user == null) return NotFound("Korisnik nije pronađen");
             var userDto = _mapper.Map<UserDto>(user);
             var formId = 0;

@@ -1260,14 +1260,14 @@ export default function Theme() {
                                     message.user?.email === user?.email
                                       ? "common.background"
                                       : "common.onBackground",
-                                  padding: { xs: 1, sm: 1.5, md: 2 }, 
+                                  padding: { xs: 1, sm: 1.5, md: 2 },
                                   borderRadius: 2,
                                   maxWidth: {
-                                    xs: "90%", 
-                                    sm: "80%", 
-                                    md: "70%", 
+                                    xs: "90%",
+                                    sm: "80%",
+                                    md: "70%",
                                   },
-                                  width:"100%",
+                                  width: "100%",
                                   border: "2px solid",
                                   borderColor:
                                     highlightedMessage === message.id
@@ -1284,8 +1284,8 @@ export default function Theme() {
                                   <Box sx={{ margin: 0, padding: 0 }}>
                                     <Avatar
                                       sx={{
-                                        marginRight: { xs: 1, sm: 1.5, md: 2 }, 
-                                        width: { xs: 32, sm: 40, md: 48 }, 
+                                        marginRight: { xs: 1, sm: 1.5, md: 2 },
+                                        width: { xs: 32, sm: 40, md: 48 },
                                         height: { xs: 32, sm: 40, md: 48 },
                                         backgroundColor:
                                           "common.backgroundChannel",
@@ -1443,7 +1443,11 @@ export default function Theme() {
                                                 return (
                                                   <Box
                                                     key={index}
-                                                    sx={{ marginTop: 1 }}
+                                                    sx={{
+                                                      marginTop: 1,
+                                                      display: "flex",
+                                                      justifyContent: "center",flexDirection:"column", alignItems:"center"
+                                                    }}
                                                   >
                                                     <img
                                                       src={`http://localhost:5000//${material.filePath}`}

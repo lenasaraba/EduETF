@@ -9,7 +9,13 @@ import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
 import Table from "@mui/joy/Table";
 import Sheet from "@mui/joy/Sheet";
-import { CircularProgress, debounce, TableBody, Theme, useMediaQuery } from "@mui/material";
+import {
+  CircularProgress,
+  debounce,
+  TableBody,
+  Theme,
+  useMediaQuery,
+} from "@mui/material";
 import { Typography as MuiTypo } from "@mui/material";
 
 import { Avatar } from "@mui/joy";
@@ -25,7 +31,6 @@ import { ThemeProvider as MuiThemeProvider } from "@mui/material";
 import { CssVarsProvider as JoyCssVarsProvider } from "@mui/joy";
 
 import RowSkeleton from "./RowSkeleton";
-import LoadingComponentJoy from "../../../app/layout/LoadingComponentJoy";
 import { extendTheme } from "@mui/joy/styles";
 import {
   fetchFilters,
@@ -101,14 +106,15 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
   );
 
   useEffect(() => {
-    sortedProfessors.forEach((professor) => {
-      dispatch(
-        fetchProfessorYearsProgramsAsync({
-          id: professor.id,
-          totalCount: allProfessors.length,
-        })
-      );
-    });
+    if (sortedProfessors.length > 0)
+      sortedProfessors.forEach((professor) => {
+        dispatch(
+          fetchProfessorYearsProgramsAsync({
+            id: professor.id,
+            totalCount: allProfessors.length,
+          })
+        );
+      });
   }, [dispatch, allProfessors]);
 
   useEffect(() => {
@@ -548,7 +554,7 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                   },
                 }}
               >
-                {!coursesLoaded ? (
+                {( sortedProfessors.length>0 && !coursesLoaded)  ? (
                   <RowSkeleton themeM={themeM} />
                 ) : (
                   sortedProfessors &&

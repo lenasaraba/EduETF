@@ -51,7 +51,8 @@ namespace API.Controllers
 
             if (themeParams.Type == "my")
             {
-                var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
                 query = _context.Themes.Where(c => c.User.Email == user!.Email)
            .Include(u => u.User)
             .Include(c => c.Course).ThenInclude(y => y.Year)
@@ -113,8 +114,8 @@ namespace API.Controllers
         {
             var theme = await _context.Themes.Include(u => u.User).Include(c => c.Course).ThenInclude(y => y.Year).Include(c => c.Course).ThenInclude(s => s.StudyProgram).Include(c => c.Course).ThenInclude(p => p.ProfessorsCourse).ThenInclude(u => u.User).Include(c => c.Course).ThenInclude(u => u.UsersCourse).ThenInclude(uu => uu.User).FirstOrDefaultAsync(t => t.Id == id);
 
-
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault();
             // if(user==null)
@@ -193,7 +194,8 @@ namespace API.Controllers
         [HttpPost("CreateTheme")]
         public async Task<ActionResult<GetThemeDto>> CreateTheme(CreateThemeDto newTheme)
         {
-            var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
             var theme = _mapper.Map<Theme>(newTheme);
             theme.UserId = user.Id;
 
@@ -258,7 +260,8 @@ namespace API.Controllers
         [HttpPost("CreateMessage")]
         public async Task<ActionResult<GetMessageDto>> CreateMessage(CreateMessageDto newMessage)
         {
-            var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
             var creator = await _context.Users.Include(t => t.FcmTokens).FirstOrDefaultAsync(t => t.Id == user.Id);
             var message = _mapper.Map<Message>(newMessage);
             message.UserId = creator.Id;
@@ -478,51 +481,5 @@ namespace API.Controllers
 
             return Ok(results.Select(c => _mapper.Map<GetMessageDto>(c)).ToList());
         }
-
-
-        //  public class MessageRequest
-        // {
-        //     public int ThemeId { get; set; }
-        //     public string Query { get; set; }=string.Empty;
-
-
-        // }
-
-        // [HttpGet("search")]
-        // public async Task<ActionResult<List<GetMessageDto>>> SearchMessages(MessageRequest request)
-        // {
-        //     var themeId=request.ThemeId;
-        //     var query=request.Query;
-        //     if (string.IsNullOrEmpty(query))
-        //     {
-        //         return Ok(new List<GetMessageDto>()); // Vrati prazan niz umesto 404
-        //     }
-
-        //     var results = await _context.Messages
-        //         .Where(m => m.ThemeId == themeId && m.Content.ToLower().Contains(query.ToLower()))
-        //         .ToListAsync();
-
-        //     return Ok(results.Select(c => _mapper.Map<GetMessageDto>(c)).ToList());
-        // }
-
-        // private readonly List<Message> _messages = new List<Message>
-        // {
-        //     new Message { Id = 1, Content = "Zdravo, kako si?", CreationDate = DateTime.Now },
-        //     new Message { Id = 2, Content = "Dobro sam, hvala! A ti?", CreationDate = DateTime.Now },
-        //     new Message { Id = 3, Content = "I ja sam dobro. Šta ima novo?", CreationDate = DateTime.Now },
-        //     new Message { Id = 4, Content = "Ništa posebno, samo radim na projektu.", CreationDate = DateTime.Now },
-        //     new Message { Id = 5, Content = "Super, sretno s projektom!", CreationDate = DateTime.Now }
-        // };
-
-        // [HttpGet("search")]
-        // public IActionResult SearchMessages(string query)
-        // {
-        //     var results = _messages
-        //         .Where(m => m.Content.Contains(query, StringComparison.OrdinalIgnoreCase))
-        //         .ToList();
-
-        //     return Ok(results);
-        // }
-
     }
 }

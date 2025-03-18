@@ -68,7 +68,8 @@ namespace API.Controllers
         [HttpGet("getMyCourses")]
         public async Task<ActionResult<List<CourseDto>>> GetMyCourses([FromQuery] MyCoursesParams studentsParams)
         {
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
 
             var courses = _context.Courses.Where(c => c.UsersCourse!.Any(uc => uc.UserId == user!.Id))
             .Include(y => y.Year)
@@ -109,7 +110,8 @@ namespace API.Controllers
             //trenutno prikazuje samo kurseve koje je neko napravio, a ne na koje je upisan
             if (coursesParams.Type == "my")
             {
-                var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
 
                 query = _context.Courses.Where(c => c.ProfessorsCourse!.Any(pc => pc.UserId == user!.Id && pc.WithdrawDate == null))
             .Include(y => y.Year)
@@ -121,7 +123,8 @@ namespace API.Controllers
             }
             if (coursesParams.Type == "myLearning")
             {
-                var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
 
                 query = _context.Courses.Where(c => c.UsersCourse!.Any(uc => uc.UserId == user!.Id && uc.WithdrawDate == null))
             .Include(y => y.Year)
@@ -181,7 +184,8 @@ namespace API.Controllers
         [HttpGet("getCourseById/{id}")]
         public async Task<ActionResult<CourseDto>> GetCourse(int id)
         {
-            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault();
 
@@ -282,7 +286,8 @@ namespace API.Controllers
         [HttpPost("CreateCourse")]
         public async Task<ActionResult<CourseDto>> CreateCourse(CreateCourseDto newCourse)
         {
-            var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
 
             var course = _mapper.Map<Course>(newCourse);
             course.Year = await _context.Years
@@ -352,7 +357,8 @@ namespace API.Controllers
         [HttpPost("AddMaterial")]
         public async Task<ActionResult<GetCourseMaterialDto>> AddMaterial(CreateCourseMaterialDto material)
         {
-            var user = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var user = await _userManager.FindByEmailAsync(userEmail);
             var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == material.CourseId);
 
             if (course == null)
@@ -493,7 +499,8 @@ namespace API.Controllers
                 .Distinct()
                 .ToList();
 
-            var student = await _userManager.FindByNameAsync(User!.Identity!.Name!);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var student = await _userManager.FindByEmailAsync(userEmail);
 
 
             if (student == null)
@@ -557,8 +564,8 @@ namespace API.Controllers
         public async Task<IActionResult> RemoveStudentFromCourse([FromBody] RemoveRequest request)
         {
             int courseId = request.CourseId;
-
-            var student = await _userManager.FindByNameAsync(User.Identity.Name);
+            var userEmail = User.FindFirst("preferred_username")?.Value;
+            var student = await _userManager.FindByEmailAsync(userEmail);
             if (student == null)
                 return NotFound("Student nije pronađen");
 

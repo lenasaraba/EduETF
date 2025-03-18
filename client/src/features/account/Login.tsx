@@ -14,7 +14,7 @@ import { useAppDispatch } from "../../app/store/configureStore";
 import { FieldValues, useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router-dom";
 import { signInUser } from "./accountSlice";
-import MicrosoftIcon from '@mui/icons-material/Microsoft';
+import MicrosoftIcon from "@mui/icons-material/Microsoft";
 import Alert from "@mui/material/Alert";
 
 import { LoadingButton } from "@mui/lab";
@@ -53,7 +53,6 @@ export default function Login() {
       console.log(error.data);
     }
   }
-
 
   return (
     <>
@@ -183,16 +182,18 @@ export default function Login() {
               Prijavi se
             </LoadingButton>
           </Box>
-          <Box sx={{ display: "flex", flexDirection: "column", mt:2}}>
+          <Box sx={{ display: "flex", flexDirection: "column", mt: 2 }}>
             <Button
               fullWidth
               variant="outlined"
-              onClick={() => alert("Registruj se koristeći Microsoft nalog")}
+              onClick={() => {
+                window.location.href =
+                  "http://localhost:5000/api/account/login";
+              }}
               startIcon={<MicrosoftIcon />}
             >
-              Registruj se 
+              Registruj se
             </Button>
-            
           </Box>
 
           {/* -----------------OPEN ID---------------- */}

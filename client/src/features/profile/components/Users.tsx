@@ -51,7 +51,6 @@ export default function Users() {
               }}
               onClick={() => navigate("/users/students")}
             >
-              {" "}
               <GroupsTwoToneIcon />
               <Typography variant="h6" sx={{ ml: 1, color: "text.primary" }}>
                 Spisak studenata

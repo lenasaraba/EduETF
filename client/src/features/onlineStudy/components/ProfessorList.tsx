@@ -26,21 +26,14 @@ export default function ProfessorList() {
     professors!.forEach((professor) => {
       dispatch(fetchProfessorCoursesAsync(professor.id));
     });
-    // console.log("aaa");
   }, [professors]);
 
   const professorCourses = useAppSelector(
     (state) => state.course.professorCourses
   );
 
-  if (professorCourses && professorCourses[5])
-    professorCourses![5].forEach((p) => console.log(p));
-
   const statusProf = useAppSelector((state) => state.professor.status);
   const profCoursestatus = useAppSelector((state) => state.course.status);
-  const loadedProf = useAppSelector(
-    (state) => state.professor.professorsLoaded
-  );
 
   return (
     <>
@@ -181,20 +174,9 @@ export default function ProfessorList() {
                       (pc) => {
                         const conditionMet =
                           pc.withdrawDate === null && pc.user.id === teacher.id;
-
-                        // console.log(
-                        //   "Course ID:", course.id,
-                        //   "| Professor ID:", pc.user.id,
-                        //   "| Withdraw Date:", pc.withdrawDate,
-                        //   "| Condition Met:", conditionMet
-                        // );
-
                         return conditionMet;
                       }
                     );
-
-                    // console.log("Filtered Course:", course.id, "| Included in SlideCard:", hasValidProfessor);
-
                     return hasValidProfessor;
                   }).length > 0 ? (
                     <SlideCard
@@ -204,14 +186,6 @@ export default function ProfessorList() {
                             const conditionMet =
                               pc.withdrawDate === null &&
                               pc.user.id === teacher.id;
-
-                            // console.log(
-                            //   "Course ID (Inside SlideCard Filter):", course.id,
-                            //   "| Professor ID:", pc.user.id,
-                            //   "| Withdraw Date:", pc.withdrawDate,
-                            //   "| Condition Met:", conditionMet
-                            // );
-
                             return conditionMet;
                           }
                         );

@@ -46,12 +46,11 @@ export default function Professors() {
                 <SchoolIcon
                   sx={{
                     color: theme.palette.text.primary,
-                    // fontWeight: "bold",
                     fontSize: "1.5rem",
                     transition: "transform 0.3s ease",
                     "&:hover": {
                       transform: "scale(1.2)",
-                      color: theme.palette.primary.dark, // Promijeni boju na hover
+                      color: theme.palette.primary.dark, 
                     },
                   }}
                 />
@@ -64,7 +63,7 @@ export default function Professors() {
                   fontSize: 12,
                   fontWeight: 500,
                   "&:hover": {
-                    color: theme.palette.primary.dark, // Promijeni boju na hover
+                    color: theme.palette.primary.dark, 
                   },
                   fontFamily: "Raleway, sans-serif",
                 }}

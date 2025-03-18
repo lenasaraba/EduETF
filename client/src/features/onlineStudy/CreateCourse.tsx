@@ -26,7 +26,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 export default function CreateCourse() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { years, currentCourseLoaded, currentCourse } = useAppSelector(
+  const { years } = useAppSelector(
     (state) => state.course
   );
   const studyPrograms = useAppSelector((state) => state.course.programs);
@@ -45,8 +45,6 @@ export default function CreateCourse() {
 
     if (studyPrograms) setAvailableStudyPrograms(studyPrograms);
 
-    console.log(availableYears);
-    console.log(availableStudyPrograms);
   }, [years, studyPrograms]);
 
   const handleTogglePassword = () => {
@@ -73,7 +71,6 @@ export default function CreateCourse() {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data: FieldValues) => {
-    console.log(data);
     const localDate = new Date();
     const offset = localDate.getTimezoneOffset();
 
@@ -86,103 +83,18 @@ export default function CreateCourse() {
       courseCreationDate: adjustedDate.toISOString(),
       password: data.password,
     };
-    console.log(newCourse);
-
     const resultAction = await dispatch(createCourseAsync(newCourse));
 
     if (createCourseAsync.fulfilled.match(resultAction)) {
       navigate(`/courses/${resultAction.payload.id}`);
-      console.log(statusC);
     } else {
-      console.log("else" + statusC);
       console.error("Failed to create course:", resultAction.payload);
     }
   };
 
-  // const handleStudyProgramChange = (studyProgramId: string) => {
-  //   const id = parseInt(studyProgramId);
-
-  //   setSelectedStudyProgram(id);
-  //   if (years && studyPrograms) {
-  //     if (id == 0) {
-  //       setAvailableYears(years);
-  //       setAvailableStudyPrograms(studyPrograms);
-  //       setSelectedYear(0);
-
-  //       setTimeout(() => {
-  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
-  //       }, 0);
-
-  //     } else if (id === 4) {
-  //       setAvailableYears(years.filter((year) => year.id <= 2)); // Zajednička osnova - dozvoljene samo prve dve godine
-  //       setAvailableStudyPrograms(studyPrograms); // Samo smjer Zajednička osnova
-
-  //       setTimeout(() => {
-  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
-  //       }, 0);
-
-  //     } else {
-  //       setAvailableYears(years.filter((year) => year.id >= 3)); // Ostali smjerovi - dozvoljene treća i četvrta godina
-  //       setAvailableStudyPrograms(studyPrograms); // Svi osim Zajedničke osnove
-
-  //       setTimeout(() => {
-  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
-  //       }, 0);
-  //     }
-  //   }
-  // };
-
-  // const handleYearChange = (yearId: string) => {
-  //   const id = parseInt(yearId);
-  //   // console.log(yearId);
-  //   // console.log(id);
-  //   // setSelectedYear(id);
-  //   console.log(selectedYear);
-  //   console.log(selectedStudyProgram);
-
-  //   if (years && studyPrograms) {
-  //     if (id == 0) {
-  //       setAvailableStudyPrograms(studyPrograms);
-  //       setAvailableYears(years);
-  //       setSelectedStudyProgram(0);
-
-  //       setTimeout(() => {
-  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
-  //       }, 0);
-  //     } else if (id > 0 && id <= 2) {
-  //       setAvailableStudyPrograms(
-  //         studyPrograms.filter((program) => program.id === 4)
-  //       ); // Ako je prva ili druga godina, samo smjer Zajednička osnova
-  //       setAvailableYears(years);
-
-  //       setTimeout(() => {
-  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
-  //       }, 0);
-
-  //     } else {
-  //       setAvailableStudyPrograms(
-  //         studyPrograms.filter((program) => program.id !== 4)
-  //       ); // Ako je treća ili četvrta godina, svi osim Zajedničke osnove
-  //       setAvailableYears(years);
-
-  //       setTimeout(() => {
-  //         console.log("selektovano: godina "+selectedYear+" program: "+selectedStudyProgram) // Dijalog se otvara nakon što se tema postavi
-  //       }, 0);
-  //     }
-  //   }
-  // };
-
   useEffect(() => {
     if (selectedStudyProgram) {
-      // const filteredYears = years?.filter(y => y.studyProgramId === selectedStudyProgram);
-      // setAvailableYears(filteredYears);
-
-      // // Ako odabrani smer nema trenutnu godinu, resetuj
-      // if (!filteredYears.some(y => y.id === selectedYear)) {
-      //   setSelectedYear("");
-      // }
       if (selectedStudyProgram == 0) {
-        // const filteredPrograms = studyPrograms?.filter(sp => years?.some(y => y.studyProgramId === sp.id && y.id === selectedYear));
         if (selectedStudyProgram == 0 && selectedYear == 0) {
           setAvailableYears(years);
           setAvailableStudyPrograms(studyPrograms);
@@ -196,16 +108,12 @@ export default function CreateCourse() {
         const filteredYears = years!.filter((y) => y.id <= 2);
         setAvailableYears(filteredYears);
       }
-
-      console.log(selectedYear);
-      console.log(selectedStudyProgram);
     }
   }, [selectedStudyProgram, years, selectedYear]);
 
   useEffect(() => {
     if (selectedYear) {
       if (selectedYear == 0) {
-        // const filteredPrograms = studyPrograms?.filter(sp => years?.some(y => y.studyProgramId === sp.id && y.id === selectedYear));
         setAvailableStudyPrograms(studyPrograms);
         setAvailableYears(years);
 
@@ -222,29 +130,15 @@ export default function CreateCourse() {
         const filteredPrograms = studyPrograms!.filter((sp) => sp.id !== 4);
         setAvailableStudyPrograms(filteredPrograms);
       }
-
-      console.log(selectedYear);
-      console.log(selectedStudyProgram);
-
-      // const filteredPrograms = studyPrograms?.filter(sp => years?.some(y => y.studyProgramId === sp.id && y.id === selectedYear));
-      // setAvailableStudyPrograms(filteredPrograms);
-
-      // // Ako odabrana godina više ne pripada trenutnom programu, resetuj program
-      // if (!filteredPrograms.some(sp => sp.id === selectedStudyProgram)) {
-      //   setSelectedStudyProgram("");
-      // }
     }
   }, [selectedYear, studyPrograms, years, selectedStudyProgram]);
 
   const handleStudyProgramChange = useCallback(
     (event) => {
       const newProgramId = event.target.value;
-
       setSelectedStudyProgram(newProgramId);
-
       if (newProgramId === 0) {
         setSelectedYear(0);
-        // trigger("yearId");
         validateFieldY("0");
 
         setAvailableYears(years);
@@ -260,33 +154,28 @@ export default function CreateCourse() {
       setSelectedYear(newYearId);
       if (newYearId === 0) {
         setSelectedStudyProgram(0);
-        // trigger("studyProgramId");
         validateFieldP("0");
-
-        console.log(studyPrograms);
         setAvailableStudyPrograms(studyPrograms);
-        console.log(years);
-
         setAvailableYears(years);
       }
     },
     [years]
   );
 
-  const validateFieldY = (fieldValue) => {
+  const validateFieldY = (fieldValue:number) => {
     validationSchema
-      .validateAt("yearId", { yearId: fieldValue }) // Validacija samo za "yearId"
+      .validateAt("yearId", { yearId: fieldValue }) 
       .catch(
-        (err) => setError("yearId", { type: "manual", message: err.message }) // Postavljanje greške
-      ); // Prikazivanje grešaka
+        (err) => setError("yearId", { type: "manual", message: err.message }) 
+      ); 
   };
-  const validateFieldP = (fieldValue) => {
+  const validateFieldP = (fieldValue:number) => {
     validationSchema
-      .validateAt("studyProgramId", { studyProgramId: fieldValue }) // Validacija samo za "yearId"
+      .validateAt("studyProgramId", { studyProgramId: fieldValue }) 
       .catch(
         (err) =>
-          setError("studyProgramId", { type: "manual", message: err.message }) // Postavljanje greške
-      ); // Prikazivanje grešaka
+          setError("studyProgramId", { type: "manual", message: err.message }) 
+      ); 
   };
 
   if (!filtersLoaded) return <LoadingComponent message="Učitavanje..." />;
@@ -405,7 +294,6 @@ export default function CreateCourse() {
                         label="Godina"
                         error={!!fieldState.error}
                         onChange={(e) => {
-                          // console.log(e.target.value);
                           handleYearChange(e);
 
                           setValue(
@@ -416,10 +304,6 @@ export default function CreateCourse() {
                               shouldValidate: true,
                             }
                           );
-                          // console.log(e.target.value);
-                          // setSelectedYear(parseInt(e.target.value));
-                          // setTimeout(() => {
-                          // }, 1000);
                         }}
                       >
                         <MenuItem value={0}>Izaberite godinu</MenuItem>
@@ -461,9 +345,7 @@ export default function CreateCourse() {
                         label="Smjer"
                         error={!!fieldState.error}
                         onChange={(e) => {
-                          // console.log(e.target.value);
                           handleStudyProgramChange(e);
-
                           setValue(
                             "studyProgramId",
                             e.target.value.toString() ||
@@ -472,11 +354,6 @@ export default function CreateCourse() {
                               shouldValidate: true,
                             }
                           );
-
-                          // console.log(e.target.value);
-                          // setSelectedStudyProgram(parseInt(e.target.value));
-                          // setTimeout(() => {
-                          // }, 1000);
                         }}
                       >
                         <MenuItem value={0}>Izaberite smjer</MenuItem>

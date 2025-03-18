@@ -2,7 +2,6 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
 import { toast } from "react-toastify";
 import { sendTokenToBackend } from "./src/features/account/accountSlice";
-import { useAppDispatch } from "./src/app/store/configureStore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB4SzYhlLozSjJyZ98lAjaJ1h5PFMaQWpc",
@@ -24,11 +23,7 @@ export const requestForToken = (userId: number, dispatch: any) => {
     .then((currentToken) => {
       if (currentToken) {
         dispatch(sendTokenToBackend({ userId: userId, token: currentToken }));
-      } else {
-        console.log(
-          "Nije dostupan registracioni token. Zatražite dozvolu za generisanje tokena."
-        );
-      }
+      } 
     })
     .catch((err) => {
       console.log("Error pri pribavljanju tokena. ", err);
@@ -36,8 +31,6 @@ export const requestForToken = (userId: number, dispatch: any) => {
 };
 
 onMessage(messaging, (payload) => {
-  console.log("Poruka primljena na frontu:", payload);
-
   toast(`🎓${payload.notification?.body}`, {
     autoClose: 5000,
     style: {

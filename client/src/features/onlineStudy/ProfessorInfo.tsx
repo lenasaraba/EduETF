@@ -40,8 +40,6 @@ import {
   removeProfessorFromCourse,
   updateThemeStatus,
 } from "./professorSlice";
-// import CourseCardSkeleton from "./components/CourseCardSkeleton";
-// import LoadingComponent from "../../app/layout/LoadingComponent";
 import { Theme } from "../../app/models/theme";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
@@ -59,8 +57,6 @@ const Demo = styled("div")(({ theme }) => ({
 
 export default function ProfessorInfo() {
   const dispatch = useAppDispatch();
-  // const navigate = useNavigate();
-
   const { id } = useParams<{ id: string }>();
   const user = useAppSelector((state) => state.account.user);
 
@@ -69,10 +65,7 @@ export default function ProfessorInfo() {
       dispatch(fetchProfessorByIdAsync(parseInt(id)));
       dispatch(fetchProfessorByIdThemesAsync(parseInt(id)));
       dispatch(fetchProfessorByIdCoursesAsync(parseInt(id)));
-
-      // dispatch(fetchProfessorThemesAsync(parseInt(id)));
     }
-    console.log("prvi dispatch");
   }, []);
 
   const professor = useAppSelector((state) => state.professor.currentProfessor);
@@ -91,20 +84,7 @@ export default function ProfessorInfo() {
     [key: number]: boolean;
   }>({});
 
-  // const allProfessors = useAppSelector((state) => state.professor.professors);
-
   const statusProf = useAppSelector((state) => state.professor.status);
-
-  // useEffect(() => {
-  //   allProfessors.forEach((professor) => {
-  //     dispatch(
-  //       fetchProfessorYearsProgramsAsync({
-  //         id: professor.id,
-  //         totalCount: allProfessors.length,
-  //       })
-  //     );
-  //   });
-  // }, [dispatch, allProfessors]);
 
   const topOfPageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -131,7 +111,6 @@ export default function ProfessorInfo() {
     (state) => state.professor.currentProfThemesLoaded
   );
 
-  console.log(coursesToDisplay);
   const years = useAppSelector(
     (state) => state.professor.currentProfessorYears
   );
@@ -139,14 +118,6 @@ export default function ProfessorInfo() {
     (state) => state.professor.currentProfessorPrograms
   );
 
-  // const professorThemes = useAppSelector(
-  //   (state) => state.professor.professorThemes
-  // );
-
-  // useEffect(() => {
-  //  if(id)
-
-  // }, [dispatch]);
   const updateStatus = async (
     event: React.MouseEvent<HTMLElement>,
     theme: Theme
@@ -159,10 +130,6 @@ export default function ProfessorInfo() {
       id: theme.id,
       active: !theme.active,
     };
-
-    console.log("PROFESSOR INFO TSX");
-
-    console.log(updateData);
 
     try {
       await dispatch(updateThemeStatus(updateData));
@@ -178,23 +145,19 @@ export default function ProfessorInfo() {
 
   const handleConfirmDelete = async (item: any, itemType: string) => {
     if (itemType == "course") {
-      console.log("Brisanje stavke kurs:", item);
       try {
-        console.log(statusProf);
         await dispatch(
           deleteProfessorsCourseAsync({
             id: item!.id,
             idProfessor: parseInt(id!),
           })
         );
-        console.log(statusProf);
       } catch (error) {
         console.error("Greška prilikom brisanja teme:", error);
       } finally {
         setOpenDialog(false);
       }
     } else if (itemType == "theme") {
-      console.log("Brisanje stavke tema:", item);
       try {
         await dispatch(
           deleteProfessorsThemeAsync({
@@ -211,7 +174,6 @@ export default function ProfessorInfo() {
   };
 
   const handleClick = (event: React.MouseEvent<HTMLElement>, theme: Theme) => {
-    console.log(theme);
     setThemeSelected(theme);
     setAnchorEl(event.currentTarget);
   };
@@ -233,15 +195,6 @@ export default function ProfessorInfo() {
   const [isLastProf, setIsLastProf] = useState(false);
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
-    // try {
-    //   await dispatch(removeProfessorFromCourse(courseToRemoveProfFrom!.id));
-    //   // navigate("/courses?type=all");
-    // } catch (error) {
-    //   console.error("Greška prilikom uklanjanja profesora sa kursa:", error);
-    // } finally {
-    //   setOpenDialogRemoveProfessor(false);
-    // }
-
     if (
       courseToRemoveProfFrom?.professorsCourse.filter(
         (p) => p.withdrawDate == null
@@ -250,14 +203,12 @@ export default function ProfessorInfo() {
       setIsLastProf(true);
       setOpenDialogRemoveProfessor(false);
       handleDeleteClick("course", courseToRemoveProfFrom);
-      // navigate("/courses?type=all");
     } else removeProfFromCourse();
   };
 
   const removeProfFromCourse: () => Promise<void> = async () => {
     try {
       await dispatch(removeProfessorFromCourse(courseToRemoveProfFrom!.id));
-      // navigate("/courses?type=all");
     } catch (error) {
       console.error("Greška prilikom uklanjanja profesora sa kursa:", error);
     } finally {
@@ -289,7 +240,6 @@ export default function ProfessorInfo() {
   };
   if (id == undefined) return <NotFound />;
 
-  // if (!coursesLoaded) return <LoadingComponent message="Učitavanje..." />;
   return (
     <>
       {id === undefined ? (
@@ -559,17 +509,17 @@ export default function ProfessorInfo() {
                             primary={theme.title}
                             sx={{
                               width: "50%",
-                              textDecoration: "none", // Uklanja podvlačenje linka
-                              color: "text.primary", // Koristi boju teksta iz roditeljskog elementa
+                              textDecoration: "none", 
+                              color: "text.primary", 
                               "&:visited": {
-                                color: "text.primary", // Zadrži istu boju za visited linkove
+                                color: "text.primary", 
                               },
                               "&:hover": {
                                 cursor: "normal",
-                                color: "text.primary", // Zadrži istu boju za visited linkove
+                                color: "text.primary", 
                               },
                               "&:active": {
-                                color: "text.primary", // Zadrži istu boju pri aktivnom linku
+                                color: "text.primary", 
                               },
                             }}
                           />
@@ -678,7 +628,6 @@ export default function ProfessorInfo() {
                                     <>
                                       <Typography
                                         onClick={(event) => {
-                                          console.log(themeSelected);
                                           updateStatus(event, themeSelected!);
                                         }}
                                         variant="body2"
@@ -997,7 +946,7 @@ export default function ProfessorInfo() {
                                                 paddingX: 1,
                                                 fontSize: "8pt",
                                               },
-                                            }} // Crveno ako je ispisan, zeleno ako nije
+                                            }} 
                                           />
                                         </Box>
                                       );

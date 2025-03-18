@@ -1,6 +1,5 @@
 // /* eslint-disable jsx-a11y/anchor-is-valid */
 import { useEffect, useMemo, useRef, useState } from "react";
-// import { ColorPaletteProp } from "@mui/joy/styles";
 import Box from "@mui/joy/Box";
 import FormControl from "@mui/joy/FormControl";
 import FormLabel from "@mui/joy/FormLabel";
@@ -41,27 +40,24 @@ import {
 import { Link } from "react-router-dom";
 
 interface ProfessorsTableProps {
-  themeM: Theme; // Define the 'theme' prop type (tema izgled)
+  themeM: Theme; 
 }
 export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
   const [currentColor, setCurrentColor] = useState<string>("");
   const [yearValue, setYearValue] = useState<string>("");
   const [programValue, setProgramValue] = useState<string>("");
 
-  const isXs = useMediaQuery(themeM.breakpoints.down("xs")); // xs ekrani
-  const isSm = useMediaQuery(themeM.breakpoints.down("sm")); // sm ekrani
-  // const isMd = useMediaQuery(themeM.breakpoints.up("md")); // md ekrani
+  const isXs = useMediaQuery(themeM.breakpoints.down("xs")); 
+  const isSm = useMediaQuery(themeM.breakpoints.down("sm")); 
 
-  // Ref za pristup svim Option elementima
   const optionRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   const handleHover = (index: number) => {
     if (optionRefs.current[index]) {
-      // Čitanje primenjene boje pozadine
       const backgroundColor = window.getComputedStyle(
         optionRefs.current[index]!
       ).backgroundColor;
-      setCurrentColor(backgroundColor); // Postavljamo boju u stanje
+      setCurrentColor(backgroundColor); 
     }
   };
 
@@ -77,8 +73,6 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
     filtersLoaded,
     professorsParams,
     professorsLoaded,
-
-    status,
     profYears,
     profPrograms,
   } = useAppSelector((state) => state.professor);
@@ -133,9 +127,6 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
     };
   }, [debouncedSearch]);
 
-  // if (!filtersLoaded)
-  //   return <LoadingComponentJoy message="Učitavanje profesora..." />;
-
   const pageTheme = extendTheme({
     colorSchemes: {
       light: {
@@ -185,7 +176,6 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
             white: "#212a3e",
           },
           neutral: {
-            // ...neutralD,
             plainColor: `var(--joy-palette-neutral-200)`,
             plainHoverColor: `var(--joy-palette-neutral-50)`,
             plainHoverBg: `var(--joy-palette-neutral-800)`,
@@ -279,20 +269,18 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
               <Option
                 key={index}
                 value={year}
-                ref={(el) => (optionRefs.current[index] = el)} // Čuvanje reference na Option
-                onMouseEnter={() => handleHover(index)} // Čitanje boje pri hover-u
-                onMouseLeave={() => handleMouseLeave(index)} // Resetovanje boje
+                ref={(el) => (optionRefs.current[index] = el)} 
+                onMouseEnter={() => handleHover(index)}
+                onMouseLeave={() => handleMouseLeave(index)} 
                 sx={{
                   backgroundColor: themeM.palette.background.paper,
                   color: themeM.palette.primary.main,
                   "&:hover": {
-                    //hover na selektovanom
                     backgroundColor: themeM.palette.text.primary,
                     color: themeM.palette.background.paper,
                   },
                   "&.Mui-selected, &[aria-selected='true']": {
-                    //SELEKTOVANA
-                    backgroundColor: themeM.palette.primary.main, // Stil za odabrano stanje
+                    backgroundColor: themeM.palette.primary.main, 
                     color: "white",
                     fontWeight: "bolder",
                   },
@@ -320,18 +308,18 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
             color: themeM.palette.primary.main,
 
             "&:hover": {
-              backgroundColor: themeM.palette.action.hover, // Hover effect on the select button
+              backgroundColor: themeM.palette.action.hover, 
               color: themeM.palette.primary.main,
             },
             "&.Mui-focused": {
-              borderColor: themeM.palette.primary.main, // Focus state for the select component
+              borderColor: themeM.palette.primary.main,
             },
           }}
           slotProps={{
             listbox: {
               sx: {
                 maxHeight: "300px",
-                backgroundColor: themeM.palette.background.paper, // Promeni pozadinu menija
+                backgroundColor: themeM.palette.background.paper, 
               },
             },
           }}
@@ -347,13 +335,11 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                   color: themeM.palette.primary.main,
 
                   "&:hover": {
-                    //hover na selektovanom
                     backgroundColor: themeM.palette.text.primary,
                     color: themeM.palette.background.paper,
                   },
                   "&.Mui-selected, &[aria-selected='true']": {
-                    //SELEKTOVANA
-                    backgroundColor: themeM.palette.primary.main, // Stil za odabrano stanje
+                    backgroundColor: themeM.palette.primary.main, 
                     color: "white",
                     fontWeight: "bolder",
                   },
@@ -403,7 +389,7 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                     borderColor: themeM.palette.background.default,
                     color: themeM.palette.primary.main,
                     "&:hover": {
-                      backgroundColor: themeM.palette.action.hover, // Hover effect on the select button
+                      backgroundColor: themeM.palette.action.hover, 
                       color: themeM.palette.primary.main,
                     },
                   }}
@@ -446,7 +432,6 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
               width: "100%",
               borderRadius: "sm",
               flexShrink: 1,
-              // overflow: "auto",
               minHeight: 0,
               mt: 2,
               borderColor: themeM.palette.background.paper,
@@ -486,7 +471,6 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                     alignItems: "center",
                   }}
                 >
-                  {/* Kolona "Ime i prezime" (uvijek vidljiva) */}
                   <th
                     style={{
                       flex: 1,
@@ -495,30 +479,24 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                   >
                     Ime i prezime
                   </th>
-
-                  {/* Kolona "Godine" (sakrivena za xs i sm) */}
                   <th
                     style={{
                       color: themeM.palette.primary.main,
                       flex: 1,
-                      display: isXs || isSm ? "none" : "table-cell", // Sakriveno za xs i sm
+                      display: isXs || isSm ? "none" : "table-cell", 
                     }}
                   >
                     Godine
                   </th>
-
-                  {/* Kolona "Smjerovi" (sakrivena za xs i sm) */}
                   <th
                     style={{
                       color: themeM.palette.primary.main,
                       flex: 1,
-                      display: isXs || isSm ? "none" : "table-cell", // Sakriveno za xs i sm
+                      display: isXs || isSm ? "none" : "table-cell", 
                     }}
                   >
                     Smjerovi
                   </th>
-
-                  {/* Kolona "Email" (uvijek vidljiva) */}
                   <th
                     style={{
                       color: themeM.palette.primary.main,
@@ -573,7 +551,6 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                         transition: "background-color 0.3s ease",
                       }}
                     >
-                      {/* Kolona "Ime i prezime" (uvijek vidljiva) */}
                       <td
                         style={{
                           padding: "0 12px",
@@ -619,15 +596,13 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                           </MuiTypo>
                         </Box>
                       </td>
-
-                      {/* Kolona "Godine" (sakrivena za xs i sm) */}
                       <td
                         style={{
                           padding: "0 12px",
                           flex: 1,
                           height: "fit-content",
                           border: 0,
-                          display: isXs || isSm ? "none" : "table-cell", // Sakriveno za xs i sm
+                          display: isXs || isSm ? "none" : "table-cell", 
                         }}
                       >
                         <Typography
@@ -640,15 +615,13 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                             .join(", ") || "Nema"}
                         </Typography>
                       </td>
-
-                      {/* Kolona "Smjerovi" (sakrivena za xs i sm) */}
                       <td
                         style={{
                           padding: "0 12px",
                           flex: 1,
                           height: "fit-content",
                           border: 0,
-                          display: isXs || isSm ? "none" : "table-cell", // Sakriveno za xs i sm
+                          display: isXs || isSm ? "none" : "table-cell", 
                         }}
                       >
                         <Typography
@@ -661,8 +634,6 @@ export default function ProfessorsTable({ themeM }: ProfessorsTableProps) {
                             .join(", ") || "Nema"}
                         </Typography>
                       </td>
-
-                      {/* Kolona "Email" (uvijek vidljiva) */}
                       <td
                         style={{
                           padding: "0 12px",

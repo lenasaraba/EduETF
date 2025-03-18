@@ -5,16 +5,12 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
-import { Course } from "../../../app/models/course";
-import { Box, CardMedia, Divider, Grid } from "@mui/material";
-import CourseCardMedia from "./CourseCardMedia";
+import { Box, Grid } from "@mui/material";
 import { Link } from "react-router-dom";
 import { Theme } from "../../../app/models/course";
-import { width } from "@mui/system";
 
 interface SlideCardProps {
-  // course: Course;
-  themes: Theme[]; // Lista studijskih programa
+  themes: Theme[];
 }
 
 export default function SlideCardThemes({ themes }: SlideCardProps) {
@@ -28,8 +24,6 @@ export default function SlideCardThemes({ themes }: SlideCardProps) {
   const handleBack = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
-  console.log(themes[activeStep].title);
-  console.log(themes[activeStep].messages);
 
   if (themes[activeStep] != null)
     return (
@@ -53,20 +47,10 @@ export default function SlideCardThemes({ themes }: SlideCardProps) {
             paddingX: 2,
           }}
         >
-          {/* <CourseCardMedia
-            year={course.year}
-            studyProgram={course.studyProgram}
-            sx={{
-              height: "100px", 
-              borderRadius: "25pt",
-              objectFit: "cover",
-            }}
-          /> */}
           <Grid
             sx={{
               display: "grid",
               gridTemplateRows: "1fr 1fr 1fr",
-              // gap: 0.5,
               padding: 0,
             }}
           >
@@ -129,26 +113,9 @@ export default function SlideCardThemes({ themes }: SlideCardProps) {
               >
                 {new Date(themes[activeStep].date).toLocaleDateString("sr-RS")}
               </Typography>
-              <Typography
-                sx={{
-                  color: "primary.main",
-                  fontSize: "clamp(8pt, 10pt, 12pt)",
-                }}
-              >
-                {/* Broj poruka: {themes[activeStep].messages.length} */}
-              </Typography>
             </Box>
           </Grid>
         </Grid>
-
-        {/* <Typography 
-        variant="h6" 
-        align="center" 
-        gutterBottom
-      >
-        {courses[activeStep].name}
-      </Typography> */}
-
         <MobileStepper
           variant="text"
           steps={themes.length}

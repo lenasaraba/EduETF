@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Container,
-  Box,
   Typography,
   Avatar,
   Grid,
@@ -10,6 +8,7 @@ import {
   TextField,
   CircularProgress,
   LinearProgress,
+  Box,
 } from "@mui/material";
 import {
   useAppDispatch,
@@ -24,7 +23,6 @@ const UserProfile = () => {
   const user = useAppSelector((state) => state.account.user);
   const status = useAppSelector((state) => state.account.status);
 
-  // State za mod uređivanja i korisničke podatke
   const [isEditing, setIsEditing] = useState(false);
 
   const [initialData, setInitialData] = useState({
@@ -36,7 +34,6 @@ const UserProfile = () => {
     lastName: user!.lastName,
   });
   const isChanged = JSON.stringify(formData) !== JSON.stringify(initialData);
-  // Handler za promene u input poljima
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -82,16 +79,9 @@ const UserProfile = () => {
   const dispatch = useAppDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("Updated data:", formData);
-
-    // Ažuriraj početne podatke sa novim podacima
     setInitialData(formData);
-    setIsEditing(false); // Isključi mod uređivanja nakon submita
-
-    // Sprečavamo podrazumevano ponašanje forme
+    setIsEditing(false); 
     e.preventDefault();
-
-    // Koristimo formData za slanje ažuriranih podataka
     await dispatch(updateUser(formData));
   };
   const isFormValid =
@@ -130,9 +120,6 @@ const UserProfile = () => {
                 right: 1,
               }}
             >
-              {/* <Typography variant="body2" sx={{ color: "primary.dark" }}>
-                Dodatne informacije o profilu
-              </Typography> */}
               <Box
                 component={Link}
                 to={
@@ -142,9 +129,7 @@ const UserProfile = () => {
                 }
                 title="Dodatne informacije o profilu"
                 sx={{
-                  // backgroundColor: "primary.dark",
                   color: "primary.dark",
-                  // padding: 0.8,
                   borderRadius: "20pt",
                   minWidth: "2rem",
                   "&:hover": { color: "primary.light" },
@@ -193,8 +178,8 @@ const UserProfile = () => {
                   fullWidth
                   value={formData.firstName}
                   onChange={handleChange}
-                  required // Dodajemo da polje bude obavezno
-                  error={!formData.firstName} // Obeležava grešku ako polje nije popunjeno
+                  required 
+                  error={!formData.firstName} 
                   helperText={!formData.firstName ? "Ime je obavezno" : ""}
                 />
               </Grid>
@@ -205,8 +190,8 @@ const UserProfile = () => {
                   fullWidth
                   value={formData.lastName}
                   onChange={handleChange}
-                  required // Dodajemo da polje bude obavezno
-                  error={!formData.lastName} // Obeležava grešku ako polje nije popunjeno
+                  required
+                  error={!formData.lastName} 
                   helperText={!formData.lastName ? "Prezime je obavezno" : ""}
                 />
               </Grid>
@@ -228,20 +213,11 @@ const UserProfile = () => {
                   disabled
                 />
               </Grid>
-              {/* <Grid item xs={12}>
-                <TextField
-                  label="Role"
-                  name="role"
-                  fullWidth
-                  value={user!.role}
-                  disabled
-                />
-              </Grid> */}
               <Box sx={{ textAlign: "center", margin: 2, width: "100%" }}>
                 <LoadingButton
                   loading={status == "pendingUpdateUser"}
                   loadingIndicator={
-                    <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+                    <CircularProgress size={18} sx={{ color: "white" }} /> 
                   }
                   variant="contained"
                   sx={{
@@ -258,7 +234,7 @@ const UserProfile = () => {
                   variant="outlined"
                   sx={{ color: "text.primary" }}
                   onClick={() => {
-                    setFormData(initialData); // Vraćanje na početne podatke
+                    setFormData(initialData); 
                     setIsEditing(false);
                   }}
                 >
@@ -316,16 +292,6 @@ const UserProfile = () => {
                 </Typography>
                 <Typography variant="body1">{user!.email}</Typography>
               </Grid>
-              {/* <Grid item xs={12}>
-                <Typography
-                  variant="body1"
-                  fontWeight="bold"
-                  color="text.secondary"
-                >
-                  Rola:
-                </Typography>
-                <Typography variant="body1">{user!.role}</Typography>
-              </Grid> */}
               <Box sx={{ textAlign: "center", margin: 2, width: "100%" }}>
                 <Button
                   variant="contained"

@@ -14,12 +14,10 @@ import {
   TextField,
   FormControl,
   FormHelperText,
-  Divider,
   PopperPlacementType,
   Fade,
   Paper,
   Popper,
-  useTheme,
   CircularProgress,
 } from "@mui/material";
 import { Course } from "../../app/models/course";
@@ -37,7 +35,6 @@ import {
   removeStudentFromCourse,
 } from "./courseSlice";
 import { LoadingButton } from "@mui/lab";
-import { Author } from "./components/Author";
 
 interface Props {
   course: Course;
@@ -107,9 +104,8 @@ export default function CourseCard({ course }: Props) {
 
   const handleConfirmDelete = async (event: React.MouseEvent<HTMLElement>) => {
     try {
-      console.log(course);
       await dispatch(deletePaginatedCourseAsync(course!.id));
-      await dispatch(fetchCoursesAsync()); //zbog meta data
+      await dispatch(fetchCoursesAsync()); 
     } catch (error) {
       console.error("Greška prilikom brisanja kursa:", error);
     } finally {
@@ -120,10 +116,8 @@ export default function CourseCard({ course }: Props) {
 
   const confirmEnroll = async () => {
     try {
-      console.log(course);
       if (coursePassword === course.password) {
         setError(false);
-
         await dispatch(enrollOnCourse(course.id));
         setOpenEnrollDialog(false);
         navigate(`/courses/${course.id}`);
@@ -139,7 +133,6 @@ export default function CourseCard({ course }: Props) {
     event: React.MouseEvent<HTMLElement>,
     course: Course
   ) => {
-    console.log(course);
     setAnchorEl(event.currentTarget);
   };
 
@@ -157,21 +150,17 @@ export default function CourseCard({ course }: Props) {
   const [isLastProf, setIsLastProf] = useState(false);
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
-    console.log(course?.professorsCourse);
     if (course?.professorsCourse.filter((p)=>p.withdrawDate==null).length == 1) {
       setIsLastProf(true);
       handleDeleteClick();
-      // navigate("/courses?type=all");
     } else {
       removeProfFromCourse();
-      // if (type == "my"){console.log(type);
     }
   };
 
   const removeProfFromCourse: () => Promise<void> = async () => {
     try {
       await dispatch(removeProfessorFromCourse(course!.id));
-      // navigate("/courses?type=all");
       if(type=="my")
         await dispatch(fetchCoursesAsync());
 
@@ -193,14 +182,13 @@ export default function CourseCard({ course }: Props) {
   const handleRemoveStudentFromCourse: () => Promise<void> = async () => {
     try {
       await dispatch(removeStudentFromCourse(course!.id));
-      if (type == "myLearning") await dispatch(fetchCoursesAsync()); //zbog meta data
+      if (type == "myLearning") await dispatch(fetchCoursesAsync()); 
     } catch (error) {
       console.error("Greška prilikom ispisivanja studenta sa kursa:", error);
     } finally {
       setOpenDialogRemoveStudent(false);
     }
   };
-  // const theme = useTheme();
   return (
     <>
       <Card
@@ -216,9 +204,7 @@ export default function CourseCard({ course }: Props) {
           transition: "transform 0.3s ease",
           "&:hover": {
             transform: "scale(1.03)",
-            // boxShadow: (theme) => `0px 4px 10px ${theme.palette.background.paper}`,
             backgroundColor: "action.focus",
-            // boxShadow: theme.shadows[12],
           },
         }}
       >
@@ -245,14 +231,14 @@ export default function CourseCard({ course }: Props) {
                 color: "primary.main",
                 fontFamily: "Raleway,sans-serif",
                 fontSize: "clamp(12px, 14px, 16px)",
-                overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                display: "-webkit-box", // Neophodno za multi-line truncation
-                WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                lineHeight: "1.2", // Podešava razmak između linija
+                overflow: "hidden", 
+                display: "-webkit-box", 
+                WebkitBoxOrient: "vertical", 
+                WebkitLineClamp: 1,
+                lineHeight: "1.2", 
 
-                height: "1.2em", // Fiksna visina: broj linija * lineHeight
-                textOverflow: "ellipsis", // Dodaje tri tačke
+                height: "1.2em", 
+                textOverflow: "ellipsis",
                 "&:hover": {
                   fontWeight: user ? "bold" : "900",
                   cursor: user ? "normal" : "pointer",
@@ -262,13 +248,8 @@ export default function CourseCard({ course }: Props) {
             }}
             onClick={() => {
               if (!user) {
-                // Ako korisnik nije prijavljen, preusmeri ga na stranicu za prijavu
                 navigate("/login");
               }
-              // } else {
-              //   // Ako je korisnik prijavljen, obavi neku drugu akciju
-              //   navigate(`/course/${course.id}`);
-              // }
             }}
           />
           {user &&
@@ -280,7 +261,6 @@ export default function CourseCard({ course }: Props) {
               <div>
                 <Box
                   aria-describedby={idMenu}
-                  // variant="contained"
                   onClick={(event) => handleClick(event, course)}
                   sx={{
                     display: "flex",
@@ -377,12 +357,12 @@ export default function CourseCard({ course }: Props) {
               fontFamily: "Raleway,sans-serif",
               fontSize: "clamp(12px, 14px, 16px)",
               overflow: "hidden",
-              display: "-webkit-box", // Neophodno za multi-line truncation
-              WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-              WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-              lineHeight: "1.3", // Podešava razmak između linija
-              height: "1.3em", // Fiksna visina: broj linija * lineHeight
-              textOverflow: "ellipsis", // Dodaje tri tačke
+              display: "-webkit-box", 
+              WebkitBoxOrient: "vertical", 
+              WebkitLineClamp: 1, 
+              lineHeight: "1.3", 
+              height: "1.3em", 
+              textOverflow: "ellipsis", 
             }}
           >
             {course.studyProgram.name} - {course.year.name}
@@ -543,7 +523,7 @@ export default function CourseCard({ course }: Props) {
             color="error"
             variant="contained"
             loadingIndicator={
-              <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+              <CircularProgress size={18} sx={{ color: "white" }} /> 
             }
           >
             Obriši
@@ -600,7 +580,7 @@ export default function CourseCard({ course }: Props) {
             color="primary"
             variant="contained"
             loadingIndicator={
-              <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+              <CircularProgress size={18} sx={{ color: "white" }} /> 
             }
           >
             Potvrdi
@@ -737,6 +717,5 @@ export default function CourseCard({ course }: Props) {
         </DialogActions>
       </Dialog>
     </>
-    // </Box>
   );
 }

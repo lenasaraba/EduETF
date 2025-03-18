@@ -7,7 +7,7 @@ import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 
 interface SlideDotsProps {
-  programs: string[]; // Lista studijskih programa
+  programs: string[]; 
 }
 
 export default function SlideDots({ programs }: SlideDotsProps) {
@@ -33,7 +33,6 @@ export default function SlideDots({ programs }: SlideDotsProps) {
           Aktivni smjerovi profesora
         </Typography>
         <div style={{ margin: "0", padding: 0 }}>
-          {/* Ispis trenutnog studijskog programa */}
           <Typography
             variant="h6"
             align="center"

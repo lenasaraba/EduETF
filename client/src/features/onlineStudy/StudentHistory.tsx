@@ -2,16 +2,12 @@ import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   fetchMyCoursesAsync,
-  fetchStudentsAsync,
   resetMyCoursesParams,
-  resetStudentsParams,
   setMyCoursesParams,
-  setStudentsParams,
 } from "./courseSlice";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 
 import {
-  Avatar,
   Box,
   Breadcrumbs,
   Chip,
@@ -21,24 +17,14 @@ import {
   FormControl,
   FormLabel,
   Grid,
-  IconButton,
-  Input,
   List,
   ListItem,
-  Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
-import BlockIcon from "@mui/icons-material/Block";
-import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
-// import { ColorPaletteProp } from '@mui/joy/styles';
 
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import { Link } from "react-router-dom";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import SchoolIcon from "@mui/icons-material/School";
 import SearchRoundedIcon from "@mui/icons-material/Search";
 import CourseCardMedia from "./components/CourseCardMedia";
 
@@ -47,10 +33,6 @@ export default function StudentHistory() {
   const user = useAppSelector((state) => state.account.user);
   const courses = useAppSelector((state) => state.course.myCourses);
   const coursesLoaded = useAppSelector((state) => state.course.myCoursesLoaded);
-
-  //   const students = useAppSelector((state) => state.course.students);
-  //   const statusStudents = useAppSelector((state) => state.course.status);
-  //   const studentsLoaded = useAppSelector((state) => state.course.studentsLoaded);
   const coursesParams = useAppSelector((state) => state.course.myCoursesParams);
 
   const [searchTerm, setSearchTerm] = useState(coursesParams.searchTerm);
@@ -79,12 +61,6 @@ export default function StudentHistory() {
       });
     }
   }, []);
-
-  //   useEffect(() => {
-  //     return () => {
-  //       debouncedSearch.clear();
-  //     };
-  //   }, [debouncedSearch]);
 
   return (
     <>
@@ -203,13 +179,13 @@ export default function StudentHistory() {
                   marginBottom: 1,
                   fontFamily: "Raleway,sans-serif",
                   fontSize: "clamp(12px, 14px, 16px)",
-                  overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                  display: "-webkit-box", // Neophodno za multi-line truncation
-                  WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                  WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                  lineHeight: "1", // Podešava razmak između linija
-                  height: "1em", // Fiksna visina: broj linija * lineHeight
-                  textOverflow: "ellipsis", // Dodaje tri tačke
+                  overflow: "hidden", 
+                  display: "-webkit-box", 
+                  WebkitBoxOrient: "vertical", 
+                  WebkitLineClamp: 1, 
+                  lineHeight: "1", 
+                  height: "1em", 
+                  textOverflow: "ellipsis", 
                 }}
               >
                 Pretraži prema nazivu ili opisu
@@ -247,10 +223,10 @@ export default function StudentHistory() {
                       borderColor: "background.default",
                     },
                     "&:hover fieldset": {
-                      borderColor: "action.hover", // Promeni samo obrub, ako želiš
+                      borderColor: "action.hover", 
                     },
                     "&:hover": {
-                      backgroundColor: "action.hover", // Ovdje se menja pozadina celog inputa
+                      backgroundColor: "action.hover", 
                     },
                     "&.Mui-focused fieldset": {
                       borderColor: "primary.main",
@@ -263,7 +239,7 @@ export default function StudentHistory() {
                     paddingLeft: 0,
                   },
                   "& input": {
-                    color: "primary.main", // Osnovna boja teksta
+                    color: "primary.main", 
                     fontSize: 14,
                   },
                 }}
@@ -423,7 +399,7 @@ export default function StudentHistory() {
                                         paddingX: 1,
                                         fontSize: "8pt",
                                       },
-                                    }} // Crveno ako je ispisan, zeleno ako nije
+                                    }} 
                                   />
                                 </Box>
                               );

@@ -22,18 +22,17 @@ import {
   Divider,
   Popover,
 } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import { useState } from "react";
 import { deleteCourseAsync, removeProfessorFromCourse } from "../courseSlice";
 import { Course } from "../../../app/models/course";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import LoadingComponent from "../../../app/layout/LoadingComponent";
 import { LoadingButton } from "@mui/lab";
 
 const DateCard = ({ date }: { date: string }) => {
-  const dateFormatted = new Date(date); // Pretvori string u Date objekat
-  const formattedDate = format(dateFormatted, "dd.MM.yyyy"); // Formatiraj datum
+  const dateFormatted = new Date(date); 
+  const formattedDate = format(dateFormatted, "dd.MM.yyyy");
 
   return <div>{formattedDate}</div>;
 };
@@ -46,7 +45,6 @@ const SyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: theme.palette.secondary.main,
   "&:hover": {
     backgroundColor: "transparent",
-    // cursor: "pointer",
     border: "1px solid",
     borderColor: theme.palette.background.paper,
   },
@@ -60,12 +58,7 @@ const SyledCard = styled(Card)(({ theme }) => ({
 const SyledCardContent = styled(CardContent)({
   display: "flex",
   flexDirection: "column",
-  // gap: 4,
   padding: 16,
-  // flexGrow: 1,
-  "&:last-child": {
-    // paddingBottom: 16,
-  },
 });
 
 const StyledTypography = styled(Typography)({
@@ -79,7 +72,6 @@ const StyledTypography = styled(Typography)({
 export default function MainContent() {
   const user = useAppSelector((state) => state.account.user);
   const [openDialog, setOpenDialog] = useState(false);
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -95,7 +87,6 @@ export default function MainContent() {
     useState(false);
 
   const handleRemoveProfClick = () => {
-    console.log(courseSelected);
     setOpenDialogRemoveProfessor(true);
     setAnchorEl(null);
   };
@@ -107,8 +98,6 @@ export default function MainContent() {
   const [isLastProf, setIsLastProf] = useState(false);
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
-    console.log(courseSelected);
-    console.log(courseSelected?.professorsCourse);
     if (
       courseSelected?.professorsCourse.filter((p) => p.withdrawDate == null)
         .length == 1
@@ -116,8 +105,6 @@ export default function MainContent() {
       setIsLastProf(true);
       handleDeleteClick();
       setOpenDialogRemoveProfessor(false);
-
-      // navigate("/courses?type=all");
     } else removeProfFromCourse();
   };
 
@@ -149,7 +136,6 @@ export default function MainContent() {
 
   const handleConfirmDelete = async (event: React.MouseEvent<HTMLElement>) => {
     try {
-      console.log(courseSelected);
       await dispatch(deleteCourseAsync(courseSelected!.id));
     } catch (error) {
       console.error("Greška prilikom brisanja kursa:", error);
@@ -196,9 +182,6 @@ export default function MainContent() {
     .slice(0, 5);
   const firstTwoCourses = topCourses.slice(0, 2);
   const lastThreeCourses = topCourses.slice(-3);
-
-  // if(!allcoursesloaded) return (<LoadingComponent message="Učitavanje kurseva.."/>)
-
   return (
     <>
       <Box
@@ -318,7 +301,7 @@ export default function MainContent() {
                           width: "100%",
                           height: "100%",
                           objectFit: "cover",
-                          filter: "brightness(0.75)", // Tamniji filter da bi tekst bio čitljiv
+                          filter: "brightness(0.75)", 
                         }}
                       />
                       <Box
@@ -344,10 +327,10 @@ export default function MainContent() {
                           fontFamily="Raleway, sans-serif"
                           sx={{
                             fontWeight: 700,
-                            textDecoration: "none", // Uklanja podrazumevanu dekoraciju za Link
-                            color: "#c4e1f6", // Podešava boju na primarnu boju teksta
+                            textDecoration: "none", 
+                            color: "#c4e1f6", 
                             "&:hover": {
-                              color: "primary.main", // Opcionalno, boja pri hoveru
+                              color: "primary.main", 
                             },
                             backdropFilter: "blur(30px)",
                             borderRadius: "20pt",
@@ -535,7 +518,7 @@ export default function MainContent() {
                       sx={{
                         height: { sm: "auto", md: "50%" },
                         aspectRatio: { sm: "16 / 9", md: "" },
-                        filter: "brightness(0.75)", // Tamniji filter da bi tekst bio čitljiv
+                        filter: "brightness(0.75)", 
                       }}
                     />
                     <Box
@@ -572,15 +555,15 @@ export default function MainContent() {
                             sx={{
                               textDecoration: "none",
                               color: "text.primary",
-                              overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                              display: "-webkit-box", // Neophodno za multi-line truncation
-                              WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                              WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                              lineHeight: "1.2", // Podešava razmak između linija
-                              height: "1.2em", // Fiksna visina: broj linija * lineHeight
-                              textOverflow: "ellipsis", // Dodaje tri tačke
+                              overflow: "hidden", 
+                              display: "-webkit-box", 
+                              WebkitBoxOrient: "vertical", 
+                              WebkitLineClamp: 1, 
+                              lineHeight: "1.2",
+                              height: "1.2em", 
+                              textOverflow: "ellipsis", 
                               "&:hover": {
-                                color: "primary.main", // Opcionalno, boja pri hoveru
+                                color: "primary.main", 
                               },
                             }}
                           >
@@ -677,7 +660,6 @@ export default function MainContent() {
                         <StyledTypography
                           variant="body2"
                           color="text.secondary"
-                          // gutterBottom
                           fontFamily="Raleway, sans-serif"
                           fontSize="clamp(10px, 12px, 14px)"
                         >
@@ -758,7 +740,7 @@ export default function MainContent() {
           <LoadingButton
             loading={statusCourse == "pendingDeleteCourse"}
             loadingIndicator={
-              <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+              <CircularProgress size={18} sx={{ color: "white" }} /> 
             }
             onClick={handleConfirmDelete}
             color="error"

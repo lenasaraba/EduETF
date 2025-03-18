@@ -3,7 +3,6 @@ import MainContent from "./components/MainContent";
 import { Grid } from "@mui/material";
 import ProfessorList from "./components/ProfessorList";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import LoadingComponent from "../../app/layout/LoadingComponent";
 import {
   fetchCoursesListAsync,
   fetchProfessorCoursesAsync,
@@ -23,11 +22,7 @@ export default function OnlineStudy() {
     professors!.forEach((professor) => {
       dispatch(fetchProfessorCoursesAsync(professor.id));
     });
-    console.log("aaa");
   }, [dispatch]);
-  // const { status: courseStatus } = useAppSelector((state) => state.course);
-  // if (courseStatus.includes("pending"))
-  //   return <LoadingComponent message="Učitavanje kurseva..." />;
   return (
     <>
       <Grid

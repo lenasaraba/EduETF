@@ -16,7 +16,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  // styled,
   Typography,
   Box,
   Breadcrumbs,
@@ -135,7 +134,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, query, setQuery }) => {
   const debouncedSearch = useMemo(
     () =>
       debounce((event: any) => {
-        console.log(event);
         onSearch(event);
       }, 1000),
     []
@@ -195,7 +193,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, query, setQuery }) => {
       value={query}
       onChange={(e: any) => {
         setQuery(e.target.value);
-        console.log(query);
         debouncedSearch(e.target.value);
       }}
     />
@@ -220,7 +217,7 @@ export default function Course() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      // }
+      
     };
     const fileExtension = filePath.split(".").pop()?.toLowerCase();
     const fileUrl = `http://localhost:5000//${filePath}`;
@@ -318,7 +315,6 @@ export default function Course() {
 
   const handleSearch = async (query: string) => {
     try {
-      console.log(query);
       if (course)
         await dispatch(
           fetchCurrentCourseMaterialAsync({ courseId: course.id, query: query })
@@ -434,18 +430,9 @@ export default function Course() {
   const course = useAppSelector((state) => state.course.currentCourse);
   useEffect(() => {
     const fetchData = async () => {
-      const response = await dispatch(fetchCourseAsync(parseInt(id!)));
+      await dispatch(fetchCourseAsync(parseInt(id!)));
       await dispatch(fetchFormsByCourseIdAsync(parseInt(id!)));
       await dispatch(fetchAllFormsAsync());
-
-      // if (fetchCourseAsync.fulfilled.match(response)) {
-      //   dispatch(
-      //     fetchCurrentCourseMaterialAsync({
-      //       courseId: parseInt(id!),
-      //       query: "",
-      //     })
-      //   );
-      // }
     };
 
     fetchData();
@@ -464,15 +451,7 @@ export default function Course() {
   const courseMaterials = useAppSelector(
     (state) => state.course.currentCourseMaterials
   );
-  if (courseMaterials) console.log(...courseMaterials);
 
-  // useEffect(() => {
-  //     dispatch(fetchCurrentCourseMaterialAsync(parseInt(id!)));
-  // }, [courseMaterials]);
-
-  const materialsLoaded = useAppSelector(
-    (state) => state.course.materialsLoaded
-  );
 
   const [openWeeks, setOpenWeeks] = useState<boolean[]>([]);
   const [addingWeek, setAddingWeek] = useState(false);
@@ -497,9 +476,6 @@ export default function Course() {
         status != "idleUploadExistingWeek" &&
         status != "idleUploadNewWeek"
       ) {
-        //   // console.log(course.professorsCourse.length);
-        // console.log(prevProfessors);
-        // if (prevProfessors.current == course.professorsCourse.length) {
         setOpenWeeks(Array(course.weekCount).fill(false));
         setNewWeek(course.weekCount);
         dispatch(
@@ -523,12 +499,9 @@ export default function Course() {
   }, [selectedMaterial]);
 
   const toggleWeek = (index: number) => {
-    // console.log(index);
-
     setOpenWeeks((prev) =>
       prev.map((isOpen, i) => (i === index ? !isOpen : isOpen))
     );
-    // console.log(...openWeeks)
   };
 
   const editWeek = (index: number) => {
@@ -563,17 +536,11 @@ export default function Course() {
   };
 
   const handleExpand = (formId: number) => {
-    setExpandedFormId((prev) => (prev === formId ? null : formId)); // Ako je već otvorena, zatvori je
+    setExpandedFormId((prev) => (prev === formId ? null : formId)); 
   };
 
-  // Funkcija za izračunavanje ukupnog broja glasova za formu
   const getTotalVotes = (form: Form) => {
-    // return form.options.reduce(
-    //   (total, option) => total + option.usersOption.length,
-    //   0
-    // );
     const uniqueUserIds = new Set<number>();
-
     form.options.forEach((option) => {
       option.usersOption.forEach((userOption) => {
         uniqueUserIds.add(userOption.user.id);
@@ -581,7 +548,6 @@ export default function Course() {
     });
 
     return uniqueUserIds.size;
-    // return 0;
   };
 
   const activeThemes = course?.themes.filter((theme) => theme.active);
@@ -620,9 +586,7 @@ export default function Course() {
   };
 
   const handleDeleteMaterial = async () => {
-    console.log(selectedMaterial);
     try {
-      console.log(selectedMaterial);
       await dispatch(deleteMaterialAsync(selectedMaterial!.id));
 
       setOpenWeeks((prev) =>
@@ -668,13 +632,11 @@ export default function Course() {
   };
 
   const handleClose = () => {
-    //setCourseSelected(undefined);
     setAnchorEl(null);
   };
 
   const handleConfirmDelete = async () => {
     try {
-      // console.log(course);
       await dispatch(deleteCourseAsync(course!.id));
       navigate("/courses?type=all");
     } catch (error) {
@@ -685,13 +647,11 @@ export default function Course() {
   };
 
   const handleRemoveProfFromCourse: () => Promise<void> = async () => {
-    console.log(course?.professorsCourse);
     if (
       course?.professorsCourse.filter((p) => p.withdrawDate == null).length == 1
     ) {
       setIsLastProf(true);
       handleDeleteClick();
-      // navigate("/courses?type=all");
     } else removeProfFromCourse();
   };
 
@@ -719,33 +679,30 @@ export default function Course() {
 
   const theme = useTheme();
 
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md")); // xs i sm ekrani
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md")); 
 
   const showFile = (material: Material) => {
     setFileVisible(true);
-    console.log(material);
     setCurrentMat(material);
   };
   const hideFile = () => {
     setFileVisible(false);
-    setCurrentMat(undefined); // ili undefined, zavisno od tipa
+    setCurrentMat(undefined); 
   };
 
   const handleFileClick = (material: Material) => {
     if (isSmallScreen) {
-      window.open(`http://localhost:5000/${material.filePath}`, "_blank"); // Otvori u novom tabu
+      window.open(`http://localhost:5000/${material.filePath}`, "_blank"); 
     } else {
-      showFile(material); // Setuje fileVisible
+      showFile(material); 
     }
   };
 
-  // Klik na Chip - otvara modal i preuzima profesore
   const handleOpenProf = async () => {
     await dispatch(fetchProfessorsAsync());
     setOpenProf(true);
   };
 
-  // Zatvaranje modala
   const handleCloseProf = () => {
     setOpenProf(false);
   };
@@ -763,10 +720,7 @@ export default function Course() {
     },
   ];
 
-  // Klik na profesora
   const handleSelectProfessor = (professor: Professor) => {
-    console.log("Izabrani profesor:", professor);
-    // cons data={courseId:id, professorId:professor.Id}
 
     if (course && professor)
       dispatch(
@@ -776,25 +730,22 @@ export default function Course() {
         })
       );
 
-    setOpenProf(false); // Zatvori modal nakon izbora
+    setOpenProf(false); 
   };
 
   if (id === undefined) {
     return <NotFound />;
   }
 
-  // Ako je status "rejectedUnauthorized", odmah vraćamo Unauthorized i tu se završava render
   if (status === "rejectedUnauthorized") {
     return <Unauthorized />;
   }
 
-  // Ako kurs ne postoji, proveravamo status
   if (!course) {
     if (status === "rejectedNotFound") {
       return <NotFound />;
     }
 
-    // Pazimo da ne prikažemo LoadingComponent ako je status već bio unauthorized
     return <LoadingComponent message="Učitavanje kursa..." />;
   }
   const availableProfessor = professors.filter(
@@ -804,7 +755,6 @@ export default function Course() {
       )
   );
 
-  // console.log(availableProfessor);
   return (
     <>
       {id === undefined ? (
@@ -824,20 +774,17 @@ export default function Course() {
             display: "flex",
             direction: "column",
             flexDirection: "column",
-            // alignItems: "center",
             margin: 0,
             paddingX: 10,
             paddingY: 3,
             marginBottom: 5,
             height: "fit-content",
-            // minWidth: "600px",
             overflowX: "hidden",
           }}
         >
           <Grid
             container
             sx={{
-              // direction: "row",
               flexDirection: "column",
               display: "flex",
               margin: 0,
@@ -858,7 +805,6 @@ export default function Course() {
               {" "}
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Breadcrumbs
-                  // size="sm"
                   aria-label="breadcrumbs"
                   separator={<ChevronRightRoundedIcon fontSize="small" />}
                   sx={{ pl: 0 }}
@@ -875,13 +821,12 @@ export default function Course() {
                         transition: "transform 0.3s ease",
                         "&:hover": {
                           transform: "scale(1.2)",
-                          color: "primary.dark", // Promijeni boju na hover
+                          color: "primary.dark", 
                         },
                       }}
                     />
                   </Box>
 
-                  {/* </Link> */}
                   <Typography
                     component={Typography}
                     color="neutral"
@@ -889,7 +834,7 @@ export default function Course() {
                       fontSize: 12,
                       fontWeight: 500,
                       "&:hover": {
-                        color: "primary.dark", // Promijeni boju na hover
+                        color: "primary.dark", 
                       },
                       fontFamily: "Raleway, sans-serif",
                     }}
@@ -914,7 +859,6 @@ export default function Course() {
                     >
                       <Box
                         aria-describedby={idMenu}
-                        // variant="contained"
                         onClick={handleClick}
                         sx={{
                           display: "flex",
@@ -959,7 +903,6 @@ export default function Course() {
                               cursor: "pointer",
                               color: "primary.light",
                             },
-                            // textTransform: "uppercase",
                             width: "100%",
                             fontFamily: "Raleway, sans-serif",
                             color: "text.primary",
@@ -970,7 +913,7 @@ export default function Course() {
                         </Typography>
                         <Divider sx={{ borderColor: "primary.main" }} />
                         <Typography
-                          onClick={handleDeleteClick} // Otvara dijalog
+                          onClick={handleDeleteClick} 
                           variant="body2"
                           sx={{
                             paddingX: 2,
@@ -979,7 +922,6 @@ export default function Course() {
                               cursor: "pointer",
                               color: "primary.light",
                             },
-                            // textTransform: "uppercase",
                             fontFamily: "Raleway, sans-serif",
                             color: "text.secondaryChannel",
                             backgroundColor: "background.paper",
@@ -999,7 +941,6 @@ export default function Course() {
                               cursor: "pointer",
                               color: "primary.light",
                             },
-                            // textTransform: "uppercase",
                             fontFamily: "Raleway, sans-serif",
                             color: "text.secondaryChannel",
                             backgroundColor: "background.paper",
@@ -1027,7 +968,6 @@ export default function Course() {
                     >
                       <Box
                         aria-describedby={idMenu}
-                        // variant="contained"
                         onClick={handleClick}
                         sx={{
                           display: "flex",
@@ -1078,7 +1018,6 @@ export default function Course() {
                               cursor: "pointer",
                               color: "primary.light",
                             },
-                            // textTransform: "uppercase",
                             fontFamily: "Raleway, sans-serif",
                             color: "text.secondaryChannel",
                             backgroundColor: "background.paper",
@@ -1824,13 +1763,10 @@ export default function Course() {
                                       (material) => material.week === index + 1
                                     ).length > 0 ? (
                                       <CustomTimeline
-                                        // key={}
-
                                         materials={courseMaterials.filter(
                                           (material) =>
                                             material.week === index + 1
                                         )}
-                                        // materials={courseMaterials}
                                         showFile={handleFileClick}
                                         handleDelete={handleDeleteMaterialClick}
                                         isEditing={isEditing}

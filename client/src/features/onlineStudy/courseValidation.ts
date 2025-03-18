@@ -1,6 +1,4 @@
 import * as yup from "yup";
-
-// Validation schema for course creation
 export const validationSchema = yup.object().shape({
   name: yup
     .string()
@@ -16,8 +14,6 @@ export const validationSchema = yup.object().shape({
     .string()
     .required("Godina je obavezna.")
     .notOneOf(["0"], "Godina je obavezna."),
-  // .positive("ID godine mora biti pozitivan broj.")
-  // .integer("ID godine mora biti ceo broj."),
   studyProgramId: yup
     .string()
     .required("Studijski program je obavezan.")

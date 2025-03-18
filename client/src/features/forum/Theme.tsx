@@ -24,7 +24,6 @@ import {
   Divider,
   Grid,
   IconButton,
-  Input,
   Popover,
   Stack,
   TextField,
@@ -54,7 +53,6 @@ import LoadingComponent from "../../app/layout/LoadingComponent";
 import {
   CreateMessage,
   Message,
-  MessageMaterial,
 } from "../../app/models/theme";
 import { Theme as ThemeMod } from "../../app/models/theme";
 
@@ -65,10 +63,8 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import SummarizeIcon from "@mui/icons-material/Summarize";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import CloseIcon from "@mui/icons-material/Close";
-import CustomTimeline from "../onlineStudy/components/CustomTimeline";
 import CustomMessageMaterial from "./components/CustomMessageMaterial";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
@@ -78,7 +74,6 @@ import {
   assignToMessage,
   createForm,
   fetchAllFormsAsync,
-  fetchFormsByMessageIdAsync,
   fetchFormsByThemeIdAsync,
 } from "../form/formSlice";
 import { CreateForm, Form } from "../../app/models/form";
@@ -94,10 +89,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   const debouncedSearch = useMemo(
     () =>
       debounce((event: any) => {
-        console.log(event);
         onSearch(event);
       }, 1000),
-    [] // Zavisi samo od dispatch-ap
+    [] 
   );
 
   useEffect(() => {
@@ -140,35 +134,22 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
             borderColor: "background.default",
           },
           "&:hover fieldset": {
-            borderColor: "action.hover", // Promeni samo obrub, ako želiš
+            borderColor: "action.hover", 
           },
           "&:hover": {
-            backgroundColor: "action.hover", // Ovdje se menja pozadina celog inputa
+            backgroundColor: "action.hover", 
           },
           "&.Mui-focused fieldset": {
             borderColor: "primary.main",
           },
         },
-        "& .MuiOutlinedInput-input": {
-          // padding: 0,
-          // height: "100%",
-        },
-        // "& .MuiInputBase-inputAdornedStart": {
-        //   paddingLeft: 0,
-        // },
-        // "& input": {
-        //   color: "primary.main", // Osnovna boja teksta
-        //   fontSize: 14,
-        // },
       }}
       value={query}
       onChange={(e: any) => {
         setQuery(e.target.value);
-        console.log(query);
         debouncedSearch(e.target.value);
       }}
     />
-    // <button onClick={handleSearch}>Search</button>
   );
 };
 
@@ -180,12 +161,10 @@ export default function Theme() {
   const resultMessages = useAppSelector(
     (state) => state.message.resultMessages
   );
-  console.log(resultMessages);
   const [currentResultIndex, setCurrentResultIndex] = useState<number>(0);
   const bottomOfPageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log(resultMessages);
     if (resultMessages && resultMessages.length > 0) {
       setCurrentResultIndex(0);
       scrollToMessage(resultMessages[0].id!);
@@ -197,20 +176,10 @@ export default function Theme() {
 
   const handleSearch = async (query: string) => {
     try {
-      console.log(query);
       if (theme)
         await dispatch(
           searchMessagesAsync({ themeId: theme.id, query: query })
         );
-      // console.log(resultMessages);
-      // console.log(messstatus);
-      // if (resultMessages) {
-      //   setSearchResults(resultMessages);
-      //   setCurrentResultIndex(0);
-      //   if (resultMessages.length > 0 && resultMessages[0]) {
-      //     scrollToMessage(resultMessages[0].id!);
-      //   }
-      // }
     } catch (error) {
       console.error("Error searching messages:", error);
     }
@@ -226,21 +195,17 @@ export default function Theme() {
 
   const handleNextResult = () => {
     if (searchResults) {
-      console.log(searchResults);
       if (currentResultIndex < searchResults.length - 1) {
         const nextIndex = currentResultIndex + 1;
         setCurrentResultIndex(nextIndex);
         if (searchResults[nextIndex].id)
           scrollToMessage(searchResults[nextIndex].id);
-        // console.log("1111")
       }
     }
   };
 
   const handlePreviousResult = () => {
     if (searchResults) {
-      console.log(searchResults);
-
       if (currentResultIndex > 0) {
         const prevIndex = currentResultIndex - 1;
         setCurrentResultIndex(prevIndex);
@@ -252,54 +217,39 @@ export default function Theme() {
 
   const navigate = useNavigate();
   const status = useAppSelector((state) => state.theme.status);
-  const messstatus = useAppSelector((state) => state.message.status);
-
   const statusMessage = useAppSelector((state) => state.message.status);
-
-  // const open = Boolean(anchorEl);
   const [openMessageDialog, setOpenMessageDialog] = useState(false);
   const [selectedMessage, sestSelectedMessage] = useState<Message>();
 
   const handleDeleteMessage = (
-    // event: React.MouseEvent<HTMLElement>,
     message: Message
   ) => {
-    // console.log(courseSelected);
-    // setCourseSelected(course);
     sestSelectedMessage(message);
     setOpenMessageDialog(true);
   };
   const handleCloseMessageDialog = () => {
     sestSelectedMessage(undefined);
     setOpenMessageDialog(false);
-    // setAnchorEl(null);
   };
 
   const handleConfirmDeleteMessage = async () => {
     try {
-      console.log(selectedMessage);
       if (selectedMessage)
         await dispatch(deleteMessageAsync(selectedMessage.id!));
       setOpenMessageDialog(false);
-
-      // await dispatch(fetchMessagesAsync(parseInt(id!)));
     } catch (error) {
       console.error("Greška prilikom brisanja poruke:", error);
     }
   };
 
-  const { id } = useParams<{ id: string }>(); // Osigurava da je `id` uvek string
-  // const themes = useAppSelector((state) => state.theme.themes);
+  const { id } = useParams<{ id: string }>(); 
   const { user } = useAppSelector((state) => state.account);
   const messages = useAppSelector(
-    // (state) => state.message.messages![parseInt(id!)]
     (state) => state.message.messages
   );
-
   const messagesLoaded = useAppSelector(
     (state) => state.message.messagesLoaded
   );
-
   const uniqueUsers = Array.from(
     new Map(
       messages?.map((message) => [message.user?.id, message.user])
@@ -307,19 +257,15 @@ export default function Theme() {
   );
 
   const mentionUsers = uniqueUsers
-    ?.filter((u) => u?.username && u?.id !== user?.id) // Filtriramo korisnike koji imaju username i koji nisu prijavljeni korisnik
+    ?.filter((u) => u?.username && u?.id !== user?.id) 
     .map((u) => ({
-      id: String(u?.id), // Pretvaramo ID u string
-      display: String(u?.username), // Pretvaramo username u string
+      id: String(u?.id), 
+      display: String(u?.username), 
     }));
-
-  // mentionUsers.map((m) => console.log({ ...m }));
-  // console.log({ ...mentionUsers });
 
   const [messageContent, setMessageContent] = useState("");
   const dispatch = useAppDispatch();
 
-  // const theme = themes!.find((i) => i.id === parseInt(id!));
   const theme = useAppSelector((state) => state.theme.currentTheme);
 
   const themeLoaded = useAppSelector((state) => state.theme.currentThemeLoaded);
@@ -329,58 +275,45 @@ export default function Theme() {
   }, [dispatch]);
 
   const topOfPageRef = useRef<HTMLDivElement>(null);
-  // const bottomOfPageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    console.log(theme);
     if (theme != null && themeLoaded) {
-      // Fetch podataka
       dispatch(fetchMessagesAsync(parseInt(id!))).then(() => {
-        // Skrolovanje stranice na vrh
         if (topOfPageRef.current) {
           window.scrollTo({ top: 0, behavior: "instant" });
-          console.log("Stranica skrolovana na vrh");
         }
       });
       dispatch(fetchFormsByThemeIdAsync(theme.id));
     }
   }, [id, theme, dispatch]);
 
-  // useEffect(() => {
-  //   if (messages && messages.length > 0) {
-  //     messages.forEach((m) => dispatch(fetchFormsByMessageIdAsync(m.id!)));
-  //   }
-  // }, [messages]);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const idMenu = open ? "simple-popover" : undefined;
   const [loadingStatus, setLoadingStatus] = React.useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [showMaterials, setShowMaterials] = useState(false); // Stanje za prikaz/sakrivanje grida sa studentima
+  const [showMaterials, setShowMaterials] = useState(false); 
   const [isCreatingForm, setIsCreatingForm] = useState(false);
   const [isAddingExistingForm, setIsAddingExistingForm] = useState(false);
 
   const forms = useAppSelector((state) => state.form.forms);
-  const formsLoaded = useAppSelector((state) => state.form.formsLoaded);
   const messageForm = useAppSelector((state) => state.form.messageForms);
   const formStatus = useAppSelector((state) => state.form.status);
-  console.log(messageForm);
 
   const toggleMaterials = () => {
-    setShowMaterials(!showMaterials); // Promeni stanje prikaza
+    setShowMaterials(!showMaterials); 
   };
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget); // Postavlja element na koji je kliknuto
-    console.log(anchorEl);
+    setAnchorEl(event.currentTarget); 
   };
 
   const updateStatus = async (
     event: React.MouseEvent<HTMLElement>,
     theme: ThemeMod
   ) => {
-    event.preventDefault(); // Sprečava osvežavanje stranice
+    event.preventDefault(); 
 
-    setLoadingStatus(true); // Postavi loading za određenu temu
+    setLoadingStatus(true); 
 
     const updateData = {
       id: theme.id,
@@ -392,7 +325,7 @@ export default function Theme() {
     } catch (error) {
       console.error("Greška prilikom ažuriranja statusa:", error);
     } finally {
-      setLoadingStatus(false); // Isključi loading nakon završetka
+      setLoadingStatus(false); 
     }
   };
 
@@ -411,17 +344,17 @@ export default function Theme() {
     } catch (error) {
       console.error("Greška prilikom brisanja teme:", error);
     } finally {
-      setAnchorEl(null); // Zatvara meni
+      setAnchorEl(null); 
       setOpenDialog(false);
     }
   };
 
   const handleClose = () => {
-    setAnchorEl(null); // Zatvara Popover
+    setAnchorEl(null); 
   };
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]); // Prazan niz na početku
-  const [selectedForms, setSelectedForms] = useState<Form[]>([]); // Prazan niz na početku
-  const [newForms, setNewForms] = useState<CreateForm[]>([]); // Prazan niz na početku
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]); 
+  const [selectedForms, setSelectedForms] = useState<Form[]>([]); 
+  const [newForms, setNewForms] = useState<CreateForm[]>([]);
 
   if (id == undefined) return <NotFound />;
 
@@ -429,21 +362,18 @@ export default function Theme() {
     return <Unauthorized />;
   }
 
-  // Ako kurs ne postoji, proveravamo status
   if (!theme) {
     if (status === "rejectedNotFound") {
       return <NotFound />;
     }
-
-    // Pazimo da ne prikažemo LoadingComponent ako je status već bio unauthorized
     return <LoadingComponent message="Učitavanje teme..." />;
   }
 
   const handleFileAttach = () => {
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = ".pdf,.docx,image/*,video/*"; // Dozvoljeni tipovi fajlova
-    input.multiple = true; // Omogućiti više fajlova
+    input.accept = ".pdf,.docx,image/*,video/*"; 
+    input.multiple = true; 
     input.id = "inputEl";
 
     input.onchange = (event: Event) => {
@@ -479,8 +409,6 @@ export default function Theme() {
         });
       }
     }, 100);
-    // setNewWeek(course!.weekCount + 1);
-    // setAddingWeek(true);
   };
 
   const handleAddExistingForm = () => {
@@ -524,11 +452,10 @@ export default function Theme() {
     } else if (file.name.endsWith(".docx")) {
       return 4;
     } else if (file.type.startsWith("video/")) {
-      return 1; // Video
+      return 1; 
     }
     return 0;
   };
-  // console.log("STATUUUS FORMEE " + formStatus);
   return (
     <>
       {id === undefined ? (
@@ -544,7 +471,6 @@ export default function Theme() {
       ) : (
         <>
           <div ref={topOfPageRef}></div>
-
           <Grid
             container
             sx={{
@@ -569,7 +495,6 @@ export default function Theme() {
                 {" "}
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                   <Breadcrumbs
-                    //size="small"
                     aria-label="breadcrumbs"
                     separator={<ChevronRightRoundedIcon fontSize="small" />}
                     sx={{ pl: 0 }}
@@ -578,23 +503,18 @@ export default function Theme() {
                       component={Link}
                       to="/forum"
                       sx={{ display: "flex", alignItems: "center" }}
-                      // onClick={() => dispatch(resetCoursesParams())}
-                      // onClick={() => navigate("../forum")}
                     >
                       <ChatTwoToneIcon
                         sx={{
                           color: "text.secondary",
-                          // fontWeight: "bold",
                           transition: "transform 0.3s ease",
                           "&:hover": {
                             transform: "scale(1.2)",
-                            color: "primary.main", // Promijeni boju na hover
+                            color: "primary.main", 
                           },
                         }}
                       />
                     </Box>
-
-                    {/* </Link> */}
                     <Typography
                       component={Typography}
                       color="neutral"
@@ -602,7 +522,7 @@ export default function Theme() {
                         fontSize: 12,
                         fontWeight: 500,
                         "&:hover": {
-                          color: "primary.dark", // Promijeni boju na hover
+                          color: "primary.dark",
                         },
                         fontFamily: "Raleway, sans-serif",
                       }}
@@ -657,13 +577,8 @@ export default function Theme() {
                         </Typography>
 
                         <Chip
-                          // variant="soft"
                           size="small"
                           icon={
-                            // {
-                            //   true: <CheckRoundedIcon />,
-                            //   false: <BlockIcon />,
-                            // }[theme.active]
                             loadingStatus ? (
                               <CircularProgress
                                 size={16}
@@ -677,17 +592,16 @@ export default function Theme() {
                           }
                           sx={{
                             backgroundColor: loadingStatus
-                              ? "grey" // Boja dok traje učitavanje
+                              ? "grey" 
                               : theme.active
                                 ? "text.primaryChannel"
-                                : "text.secondaryChannel", // Prilagođene boje
-                            color: "#fff", // Tekst u beloj boji
-                            borderRadius: "16px", // Primer prilagođenog oblika
+                                : "text.secondaryChannel", 
+                            color: "#fff", 
+                            borderRadius: "16px", 
                             ".MuiChip-icon": {
                               color: "#fff",
                             },
                           }}
-                          // label={theme.active ? "Aktivno" : "Zatvoreno"}
                           label={
                             loadingStatus
                               ? "Ažuriranje..."
@@ -701,7 +615,6 @@ export default function Theme() {
                             <div>
                               <Box
                                 aria-describedby={idMenu}
-                                // variant="contained"
                                 onClick={handleClick}
                                 sx={{
                                   display: "flex",
@@ -789,7 +702,7 @@ export default function Theme() {
                                     </Typography>
                                   )}
                                 <Typography
-                                  onClick={handleDeleteClick} // Otvara dijalog
+                                  onClick={handleDeleteClick} 
                                   variant="body2"
                                   sx={{
                                     paddingX: 2,
@@ -855,7 +768,7 @@ export default function Theme() {
                                       <CircularProgress
                                         size={18}
                                         sx={{ color: "white" }}
-                                      /> // Ovdje mijenjaš boju
+                                      /> 
                                     }
                                   >
                                     Obriši
@@ -889,7 +802,6 @@ export default function Theme() {
                             color: "gray",
                             textDecoration: "none",
                             fontSize: "10pt",
-                            // fontWeight: "normal",
                           }}
                         >
                           Autor: <b>[Obrisan korisnik]</b>
@@ -921,7 +833,7 @@ export default function Theme() {
                       Kurs
                     </Typography>
                     <Typography variant="h6" fontWeight="bold">
-                      {theme.course.name}{" "}
+                      {theme.course.name}
                       <Box
                         component="span"
                         sx={{
@@ -936,7 +848,7 @@ export default function Theme() {
                         {" "}
                         |{" "}
                       </Box>
-                      {theme.course.year.name}{" "}
+                      {theme.course.year.name}
                       <Box
                         component="span"
                         sx={{
@@ -967,23 +879,6 @@ export default function Theme() {
                         key="index"
                         sx={{ display: "flex", flexDirection: "row" }}
                       >
-                        {/* <Avatar
-                      key={index}
-                      alt={professor.user.firstName}
-                      // src={author.avatar}
-                      sx={{
-                        width: 23,
-                        height: 23,
-                        backgroundColor: "text.primary",
-                        mr: 1,
-                      }}
-                    >
-                      {professor.user.firstName.charAt(0).toUpperCase()}
-                    </Avatar>
-                    <Typography>
-                      {professor.user.firstName}&nbsp;
-                      {professor.user.lastName}
-                    </Typography> */}
                         <Author
                           authors={theme.course.professorsCourse.filter(
                             (prof) => prof.withdrawDate == null
@@ -995,9 +890,6 @@ export default function Theme() {
                       variant="contained"
                       color="primary"
                       sx={{ marginTop: 2 }}
-                      // onClick={() =>
-                      //   (window.location.href = `/courses/${theme.course.id}`)
-                      // }
                       component={Link}
                       to={`/courses/${theme.course.id}`}
                     >
@@ -1137,8 +1029,6 @@ export default function Theme() {
                   sx={{
                     backdropFilter: "blur(40px)",
                     color: "primary.dark",
-                    // borderRadius:0,
-                    // paddingX:2,
                   }}
                   disabled={!messagesLoaded}
                 >
@@ -1152,7 +1042,7 @@ export default function Theme() {
               <Grid
                 item
                 xs={12}
-                md={showMaterials ? 8 : 12} // Dinamička širina u zavisnosti od prikaza studenta
+                md={showMaterials ? 8 : 12} 
                 sx={{
                   boxSizing: "border-box",
                   border: "1px solid",
@@ -1162,10 +1052,7 @@ export default function Theme() {
                   borderRadius: "20px",
                   position: "relative",
                   margin: 0,
-
                   padding: 0,
-                  // minWidth: "700px",
-
                   mb: 2,
                 }}
               >
@@ -1191,7 +1078,6 @@ export default function Theme() {
                   <>
                     <Box
                       sx={{
-                        // margin: "0 16px",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "flex-end",
@@ -1205,21 +1091,19 @@ export default function Theme() {
                           width: "8px",
                         },
                         "&::-webkit-scrollbar-thumb": {
-                          backgroundColor: "primary.main", // Boja skrola
+                          backgroundColor: "primary.main", 
                           borderRadius: "8px",
                         },
                         "&::-webkit-scrollbar-thumb:hover": {
-                          backgroundColor: "primary.dark", // Boja hvataljke na hover
+                          backgroundColor: "primary.dark", 
                         },
                         "&::-webkit-scrollbar-track": {
-                          backgroundColor: "transparent", // Prozirna pozadina skrola
+                          backgroundColor: "transparent", 
                         },
                       }}
                     >
                       <Box
                         sx={{
-                          // listStyleType: "none",
-                          //padding: 5, // Širi prozor za poruke
                           padding: 0,
                           px: 2,
                           overflow: "auto",
@@ -1227,14 +1111,14 @@ export default function Theme() {
                             width: "8px",
                           },
                           "&::-webkit-scrollbar-thumb": {
-                            backgroundColor: "primary.main", // Boja skrola
+                            backgroundColor: "primary.main",
                             borderRadius: "8px",
                           },
                           "&::-webkit-scrollbar-thumb:hover": {
-                            backgroundColor: "primary.light", // Boja hvataljke na hover
+                            backgroundColor: "primary.light", 
                           },
                           "&::-webkit-scrollbar-track": {
-                            backgroundColor: "transparent", // Prozirna pozadina skrola
+                            backgroundColor: "transparent", 
                           },
                         }}
                       >
@@ -1305,7 +1189,7 @@ export default function Theme() {
                                         flexDirection: {
                                           xs: "column",
                                           sm: "row",
-                                        }, // Vertikalni raspored za xs, horizontalni za veće ekrane
+                                        }, 
                                         justifyContent: "space-between",
                                         alignItems: {
                                           xs: "flex-start",
@@ -1315,7 +1199,7 @@ export default function Theme() {
                                         fontSize: {
                                           xs: "0.875rem",
                                           sm: "1rem",
-                                        }, // Smanjen font za manje ekrane
+                                        }, 
                                       }}
                                     >
                                       <span>
@@ -1351,9 +1235,9 @@ export default function Theme() {
                                           fontSize: {
                                             xs: "0.75rem",
                                             sm: "0.875rem",
-                                          }, // Smanjen font za manje ekrane
+                                          }, 
                                           color: "common.black",
-                                          mt: { xs: 0.5, sm: 0 }, // Dodatni razmak za xs ekrane
+                                          mt: { xs: 0.5, sm: 0 }, 
                                         }}
                                       >
                                         {new Date(
@@ -1381,14 +1265,12 @@ export default function Theme() {
                                         fontSize: {
                                           xs: "0.875rem",
                                           sm: "1rem",
-                                        }, // Smanjen font za manje ekrane
+                                        }, 
                                         mt: 1,
                                       }}
                                     >
                                       {message.content}
                                     </Typography>
-
-                                    {/* FormVote i materijali */}
                                     {formStatus == message.id?.toString() ? (
                                       <CircularProgress
                                         size={20}
@@ -1419,8 +1301,6 @@ export default function Theme() {
                                           </Box>
                                         ))
                                     )}
-
-                                    {/* Materijali */}
                                     {message.materials &&
                                       message.materials.length > 0 && (
                                         <Box sx={{ marginTop: 1 }}>
@@ -1454,7 +1334,7 @@ export default function Theme() {
                                                       alt="Materijal"
                                                       style={{
                                                         maxWidth: "100%",
-                                                        maxHeight: "150px", // Smanjena visina slika za manje ekrane
+                                                        maxHeight: "150px", 
                                                         borderRadius: "8px",
                                                       }}
                                                     />
@@ -1483,7 +1363,7 @@ export default function Theme() {
                                                       controls
                                                       style={{
                                                         maxWidth: "100%",
-                                                        maxHeight: "150px", // Smanjena visina videa za manje ekrane
+                                                        maxHeight: "150px", 
                                                         borderRadius: "8px",
                                                       }}
                                                       src={`http://localhost:5000//${material.filePath}`}
@@ -1514,7 +1394,6 @@ export default function Theme() {
                                                     }}
                                                   >
                                                     <DescriptionIcon fontSize="small" />{" "}
-                                                    {/* Smanjena ikonica */}
                                                     <a
                                                       href={`http://localhost:5000//${material.filePath}`}
                                                       target="_blank"
@@ -1540,8 +1419,6 @@ export default function Theme() {
                                           )}
                                         </Box>
                                       )}
-
-                                    {/* Dugme za brisanje */}
                                     {user &&
                                       user.email === message.user?.email && (
                                         <Box
@@ -1556,7 +1433,7 @@ export default function Theme() {
                                               fontSize: {
                                                 xs: "14pt",
                                                 sm: "16pt",
-                                              }, // Smanjena ikonica za manje ekrane
+                                              }, 
                                               color: "text.disabled",
                                               "&:hover": {
                                                 cursor: "pointer",
@@ -1580,7 +1457,7 @@ export default function Theme() {
                             sx={{
                               mb: 2,
                               textAlign: "center",
-                              fontSize: { xs: "10pt", sm: "12pt" }, // Smanjen font za manje ekrane
+                              fontSize: { xs: "10pt", sm: "12pt" }, 
                               fontFamily: "Raleway, sans-serif",
                             }}
                           >
@@ -1591,7 +1468,6 @@ export default function Theme() {
                               : "Zatvorena tema"}
                           </Typography>
                         )}
-                        {/* <div ref={bottomOfPageRef}></div> */}
                       </Box>
                     </Box>
                   </>
@@ -1611,7 +1487,6 @@ export default function Theme() {
                       position: "relative",
                     }}
                   >
-                    {/* Input za tekst poruke */}
                     <MentionsInput
                       disabled={!theme.active}
                       className="ssky-mention-input"
@@ -1620,7 +1495,7 @@ export default function Theme() {
                         event: React.ChangeEvent<HTMLTextAreaElement>
                       ) => {
                         let newValue = event.target.value;
-                        const regex = /@\[([a-zA-Z0-9_]+)\]\(\d+\)/g;
+                        const regex = /@\[(.*?)\]\(\d+\)/g;
                         newValue = newValue.replace(regex, "@$1");
                         setMessageContent(newValue);
                       }}
@@ -1629,24 +1504,16 @@ export default function Theme() {
                         minHeight: "40px",
                         padding: "10px",
                         lineHeight: "20px",
-                        whiteSpace: "pre-wrap", // Omogućava tekstualni prelaz
-                        wordWrap: "break-word", // Omogućava prelaz reči
-                        resize: "vertical", // Omogućava korisniku da ručno podešava visinu
-                        // Prilagodba za xs i sm ekrane
-                        // "@media (max-width: 600px)": {
-                        //   minHeight: "60px", // Povećajte visinu za manje ekrane
-                        // },
-                        // "@media (max-width: 960px)": {
-                        //   minHeight: "50px", // Povećajte visinu za srednje ekrane
-                        // },
+                        whiteSpace: "pre-wrap", 
+                        wordWrap: "break-word", 
+                        resize: "vertical", 
                         fontSize: "clamp(12px, 14px, 16px)",
-                        overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                        display: "-webkit-box", // Neophodno za multi-line truncation
-                        WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                        WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                        // lineHeight: "1", // Podešava razmak između linija
-                        height: "1em", // Fiksna visina: broj linija * lineHeight
-                        textOverflow: "ellipsis", // Dodaje tri tačke
+                        overflow: "hidden", 
+                        display: "-webkit-box", 
+                        WebkitBoxOrient: "vertical", 
+                        WebkitLineClamp: 1, 
+                        height: "1em", 
+                        textOverflow: "ellipsis", 
                       }}
                       placeholder={
                         theme.active
@@ -1662,8 +1529,6 @@ export default function Theme() {
                         }
                       />
                     </MentionsInput>
-
-                    {/* Dugme + (SpeedDial) */}
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <div
                         style={{
@@ -1676,7 +1541,7 @@ export default function Theme() {
                           ariaLabel="Opcije"
                           icon={<SpeedDialIcon />}
                           sx={{
-                            position: "absolute", // Sprečava da zauzima previše visine
+                            position: "absolute",
                             zIndex: 1,
                             bottom: 0,
                             ".MuiSpeedDial-fab": {
@@ -1700,8 +1565,6 @@ export default function Theme() {
                           ))}
                         </SpeedDial>
                       </div>
-
-                      {/* Dugme za slanje */}
                       <LoadingButton
                         loading={statusMessage == "pendingCreateMessage"}
                         color="primary"
@@ -1715,7 +1578,7 @@ export default function Theme() {
                           statusMessage == "pendingCreateMessage"
                         }
                         loadingIndicator={
-                          <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+                          <CircularProgress size={18} sx={{ color: "white" }} /> 
                         }
                         sx={{
                           textTransform: "none",
@@ -1746,7 +1609,6 @@ export default function Theme() {
                             if (selectedFiles && selectedFiles.length > 0) {
                               const uploadPromises = selectedFiles.map(
                                 async (file) => {
-                                  console.log(file, theme.id);
                                   const response = await dispatch(
                                     uploadFile({ file, themeId: theme.id })
                                   ).unwrap();
@@ -1807,8 +1669,6 @@ export default function Theme() {
                   </Box>
                 )}
               </Grid>
-
-              {/* Prikaz svih odabranih fajlova */}
               {selectedFiles.length > 0 && (
                 <Box
                   sx={{
@@ -1840,13 +1700,9 @@ export default function Theme() {
                         width: "100%",
                         backgroundColor: "background.paper",
                         borderRadius: "8px",
-                        // maxWidth: "300px",
                       }}
                     >
-                      {/* Ikonica fajla */}
                       <InsertDriveFileIcon sx={{ color: "primary.main" }} />
-
-                      {/* Ime fajla */}
                       <Typography
                         variant="body2"
                         sx={{
@@ -1857,14 +1713,12 @@ export default function Theme() {
                       >
                         {file.name}
                       </Typography>
-
-                      {/* Dugme za brisanje fajla */}
                       <IconButton
                         size="small"
                         onClick={() => {
                           setSelectedFiles(
                             (prevFiles) =>
-                              prevFiles.filter((_, i) => i !== index) // Brišemo fajl sa liste
+                              prevFiles.filter((_, i) => i !== index) 
                           );
                         }}
                       >
@@ -1923,7 +1777,6 @@ export default function Theme() {
                             maxWidth: "300px",
                           }}
                         >
-                          {/* Ime fajla */}
                           <Typography
                             variant="body2"
                             sx={{
@@ -1934,14 +1787,12 @@ export default function Theme() {
                           >
                             {form.topic}
                           </Typography>
-
-                          {/* Dugme za brisanje fajla */}
                           <IconButton
                             size="small"
                             onClick={() => {
                               setNewForms(
                                 (prevForms) =>
-                                  prevForms.filter((_, i) => i !== index) // Brišemo fajl sa liste
+                                  prevForms.filter((_, i) => i !== index) 
                               );
                             }}
                           >
@@ -1954,7 +1805,6 @@ export default function Theme() {
                   {isCreatingForm && (
                     <Box sx={{ margin: 0, padding: 0, width: "100%" }}>
                       <AddNewForm
-                        // courseId={course.id}
                         setIsCreatingForm={setIsCreatingForm}
                         messageId={0}
                         setNewForms={setNewForms}
@@ -2010,21 +1860,18 @@ export default function Theme() {
                             maxWidth: "300px",
                           }}
                         >
-                          {/* Ime fajla */}
                           <Typography
                             variant="body2"
                             sx={{ flexGrow: 1, wordBreak: "break-word" }}
                           >
                             {form.topic}
                           </Typography>
-
-                          {/* Dugme za brisanje fajla */}
                           <IconButton
                             size="small"
                             onClick={() => {
                               setSelectedForms(
                                 (prevForms) =>
-                                  prevForms.filter((_, i) => i !== index) // Brišemo fajl sa liste
+                                  prevForms.filter((_, i) => i !== index) 
                               );
                             }}
                           >
@@ -2042,7 +1889,6 @@ export default function Theme() {
                           forms={forms.filter(
                             (form) => !form.courseId && !form.messageId
                           )}
-                          // courseId={course.id}
                           setIsAddingExistingForm={setIsAddingExistingForm}
                           messageId={0}
                           setSelectedMessageForms={setSelectedForms}
@@ -2060,11 +1906,10 @@ export default function Theme() {
                   xs={12}
                   md={4}
                   sx={{
-                    // height: { xs: "auto", md: "100%" },
                     width: "100%",
                     padding: 1,
                     borderRadius: 3,
-                    marginTop: { xs: 0, md: 0 }, // Uklonili smo marginu na malim ekranima
+                    marginTop: { xs: 0, md: 0 }, 
                     order: 2,
                     height: "78vh",
                     overflow: "auto",
@@ -2072,10 +1917,7 @@ export default function Theme() {
                 >
                   <Box
                     sx={{
-                      // display: "flex",
-                      // justifyContent: "center",
                       width: "100%",
-                      // height: "100%",
                       padding: 0,
                       borderRadius: 3,
                       overflowY: "auto",
@@ -2103,7 +1945,6 @@ export default function Theme() {
                     ) : (
                       <Typography
                         variant="caption"
-                        // key={messageIndex}
                         sx={{ width: "fit-content" }}
                       >
                         Materijali iz poruka će se prikazati ovdje
@@ -2157,7 +1998,7 @@ export default function Theme() {
                 color="error"
                 variant="contained"
                 loadingIndicator={
-                  <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+                  <CircularProgress size={18} sx={{ color: "white" }} /> 
                 }
               >
                 Obriši
@@ -2166,7 +2007,6 @@ export default function Theme() {
           </Dialog>
         </>
       )}
-      {/* <div id="FormElement"></div> */}
     </>
   );
 }

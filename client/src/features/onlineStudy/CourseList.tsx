@@ -15,7 +15,6 @@ import CourseCard from "./CourseCard";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import {
-  deleteCourseAsync,
   fetchCoursesAsync,
   fetchFilters,
   resetCoursesParams,
@@ -23,15 +22,12 @@ import {
   setPageNumber,
 } from "./courseSlice";
 import AddIcon from "@mui/icons-material/Add";
-
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import LoadingComponent from "../../app/layout/LoadingComponent";
 import AppPagination from "../../app/components/AppPagination";
 import CourseCardSkeleton from "./components/CourseCardSkeleton";
 import FilterSelectChip from "./components/FilterSelectChip";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
-import { Course } from "../../app/models/course";
 
 export default function CourseList() {
   const [searchParams] = useSearchParams();
@@ -40,12 +36,10 @@ export default function CourseList() {
 
   const {
     pagecoursesLoaded,
-    filtersLoaded,
     yearsFilter,
     programsFilter,
     coursesParams,
     metaData,
-    status
   } = useAppSelector((state) => state.course);
   const [searchTerm, setSearchTerm] = useState(coursesParams.searchTerm);
 
@@ -55,7 +49,7 @@ export default function CourseList() {
         dispatch(setCoursesParams({ searchTerm: event.target.value }));
         dispatch(fetchCoursesAsync());
       }, 1000),
-    [dispatch] // Zavisi samo od dispatch-ap
+    [dispatch] 
   );
 
   useEffect(() => {
@@ -103,16 +97,12 @@ export default function CourseList() {
     }
   }, [pagecoursesLoaded, dispatch]);
 
-  console.log(pagecoursesLoaded);
 
   useEffect(() => {
     return () => {
       debouncedSearch.clear();
     };
   }, [debouncedSearch]);
-
-  // if (!filtersLoaded)
-  //   return <LoadingComponent message="Učitavanje kurseva..." />;
 
   return (
     <Grid
@@ -165,7 +155,7 @@ export default function CourseList() {
                 fontSize: 12,
                 fontWeight: 500,
                 "&:hover": {
-                  color: "primary.dark", // Promijeni boju na hover
+                  color: "primary.dark", 
                 },
                 fontFamily: "Raleway, sans-serif",
               }}
@@ -239,13 +229,13 @@ export default function CourseList() {
                 marginBottom: 1,
                 fontFamily: "Raleway,sans-serif",
                 fontSize: "clamp(12px, 14px, 16px)",
-                overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-                display: "-webkit-box", // Neophodno za multi-line truncation
-                WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                lineHeight: "1", // Podešava razmak između linija
-                height: "1em", // Fiksna visina: broj linija * lineHeight
-                textOverflow: "ellipsis", // Dodaje tri tačke
+                overflow: "hidden", 
+                display: "-webkit-box", 
+                WebkitBoxOrient: "vertical", 
+                WebkitLineClamp: 1, 
+                lineHeight: "1",
+                height: "1em", 
+                textOverflow: "ellipsis", 
               }}
             >
               Pretraži prema ključnoj riječi
@@ -283,10 +273,10 @@ export default function CourseList() {
                     borderColor: "background.default",
                   },
                   "&:hover fieldset": {
-                    borderColor: "action.hover", // Promeni samo obrub, ako želiš
+                    borderColor: "action.hover", 
                   },
                   "&:hover": {
-                    backgroundColor: "action.hover", // Ovdje se menja pozadina celog inputa
+                    backgroundColor: "action.hover", 
                   },
                   "&.Mui-focused fieldset": {
                     borderColor: "primary.main",
@@ -299,7 +289,7 @@ export default function CourseList() {
                   paddingLeft: 0,
                 },
                 "& input": {
-                  color: "primary.main", // Osnovna boja teksta
+                  color: "primary.main", 
                   fontSize: 14,
                 },
               }}
@@ -338,9 +328,9 @@ export default function CourseList() {
                   {coursesToDisplay!.map((course) => (
                     <Grid
                       item
-                      xs={12} // Na najmanjim ekranima zauzima celu širinu
-                      sm={5.8} // Na manjim ekranima dve kartice u redu
-                      md={3.8} // Na srednjim ekranima tri kartice u redu sa prostorom između njih
+                      xs={12} 
+                      sm={5.8} 
+                      md={3.8} 
                       key={course.id}
                     >
                       <CourseCard course={course} />

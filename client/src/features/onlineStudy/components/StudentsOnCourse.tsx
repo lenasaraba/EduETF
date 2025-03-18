@@ -2,10 +2,8 @@ import React from "react";
 import {
   Avatar,
   Box,
-  Grid,
   Typography,
   useTheme,
-  Divider,
 } from "@mui/material";
 import { UsersCourse } from "../../../app/models/course";
 
@@ -19,9 +17,7 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
   return (
     <Box
       sx={{
-        // height: "50vh", // Ograničena visina od 50vh
-        width: "100%", // Širina se prilagođava roditeljskoj komponenti (xs={4})
-        // overflow: "hidden", // Sprečava prekomerno skrolovanje
+        width: "100%", 
         display: "flex",
         flexDirection: "column",
       }}
@@ -29,12 +25,9 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
       {students && students.length > 0 ? (
         <Box
           sx={{
-            // overflowY: "auto", // Omogućava vertikalno skrolovanje unutar okvira ako je potrebno
             paddingX: {xs:0, md:2},
             paddingY: { xs: 2, md: 0 },
-            // paddingRight:0,
-            // overflowX:"visible",
-            height: "100%", // Koristi celu visinu dostupnu unutar 50vh okvira
+            height: "100%", 
             display: "flex",
             flexDirection: "column",
             gap: 1,
@@ -49,7 +42,6 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
               withdrawDate !== "0001-01-01T00:00:00" && withdrawDate != null
                 ? new Date(withdrawDate).toLocaleDateString("sr-RS")
                 : "danas";
-            // console.log(withdrawDate);
             return (
               <Box
               key={id}
@@ -62,7 +54,7 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
                 display: "flex",
                 alignItems: "center",
                 gap: { xs: 0.5, sm: 1 },
-                flexDirection: { xs: "column", sm: "row" }, // Na malim ekranima kolona, na većim red
+                flexDirection: { xs: "column", sm: "row" }, 
                 justifyContent: {
                   xs: "center",
                   sm: "space-between",
@@ -72,30 +64,28 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
                 "&:hover": {
                   transform: "scale(1.03)",
                 },
-                overflow: "hidden", // Sprečava horizontalni skrol
+                overflow: "hidden", 
               }}
             >
-              {/* Avatar - Dinamički smanjen */}
               <Avatar
                 sx={{
-                  width: { xs: `calc(30px + 2vw)`, sm: 45 }, // Dinamička širina
-                  height: { xs: `calc(30px + 2vw)`, sm: 45 }, // Dinamička visina
-                  fontSize: { xs: `calc(0.9rem + 0.5vw)`, sm: "1.2rem" }, // Dinamički font
+                  width: { xs: `calc(30px + 2vw)`, sm: 45 }, 
+                  height: { xs: `calc(30px + 2vw)`, sm: 45 }, 
+                  fontSize: { xs: `calc(0.9rem + 0.5vw)`, sm: "1.2rem" }, 
                   backgroundColor: theme.palette.primary.main,
                   color: theme.palette.common.white,
-                  flexShrink: 0, // Sprečava smanjivanje avatara ispod određene veličine
+                  flexShrink: 0, 
                 }}
               >
                 {user.firstName.charAt(0).toUpperCase()}
               </Avatar>
             
-              {/* Glavni podaci o studentu */}
               <Box
                 sx={{
                   flex: 1,
                   textAlign: { xs: "center", sm: "left" },
-                  minWidth: 0, // Sprečava prekoračenje teksta
-                  overflow: "hidden", // Sprečava horizontalni skrol
+                  minWidth: 0, 
+                  overflow: "hidden", 
                 }}
               >
                 <Typography
@@ -103,10 +93,10 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
                   sx={{
                     fontWeight: 600,
                     color: theme.palette.text.primary,
-                    fontSize: { xs: `calc(0.8rem + 0.5vw)`, sm: "1rem" }, // Dinamički font
-                    whiteSpace: "nowrap", // Sprečava prelazak u novi red
-                    overflow: "hidden", // Skriva tekst koji prelazi
-                    textOverflow: "ellipsis", // Dodaje "..." ako tekst prelazi
+                    fontSize: { xs: `calc(0.8rem + 0.5vw)`, sm: "1rem" }, 
+                    whiteSpace: "nowrap", 
+                    overflow: "hidden", 
+                    textOverflow: "ellipsis", 
                   }}
                 >
                   {user.firstName} {user.lastName}
@@ -115,7 +105,7 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
                   variant="body2"
                   color="text.secondary"
                   sx={{
-                    fontSize: { xs: `calc(0.7rem + 0.5vw)`, sm: "0.875rem" }, // Dinamički font
+                    fontSize: { xs: `calc(0.7rem + 0.5vw)`, sm: "0.875rem" }, 
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -127,7 +117,7 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
                   variant="caption"
                   color="text.secondary"
                   sx={{
-                    fontSize: { xs: `calc(0.6rem + 0.5vw)`, sm: "0.75rem" }, // Dinamički font
+                    fontSize: { xs: `calc(0.6rem + 0.5vw)`, sm: "0.75rem" }, 
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -137,20 +127,19 @@ const StudentsOnCourse: React.FC<StudentProps> = ({ students }) => {
                 </Typography>
               </Box>
             
-              {/* Status - Dinamički smanjen i prebačen u novi red na malim ekranima */}
               <Typography
                 variant="body2"
                 color="primary"
                 sx={{
                   fontWeight: 500,
-                  fontSize: { xs: `calc(0.7rem + 0.5vw)`, sm: "0.875rem" }, // Dinamički font
+                  fontSize: { xs: `calc(0.7rem + 0.5vw)`, sm: "0.875rem" }, 
                   textAlign: "center",
-                  mt: { xs: 0.5, sm: 0 }, // Dodat mali razmak na XS ekranu
+                  mt: { xs: 0.5, sm: 0 }, 
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  flexShrink: 1, // Sprečava smanjivanje ispod određene veličine
-                  order: { xs: 1, sm: 0 }, // Na malim ekranima prebacuje status ispod
+                  flexShrink: 1, 
+                  order: { xs: 1, sm: 0 }, 
                 }}
               >
                 {withdrawDate !== "0001-01-01T00:00:00" && withdrawDate !== null

@@ -45,16 +45,16 @@ export default function SlideCard({ courses }: SlideCardProps) {
             year={courses[activeStep].year}
             studyProgram={courses[activeStep].studyProgram}
             sx={{
-              height: "100px", // Visina slike
+              height: "100px",
               borderRadius: "25pt",
-              objectFit: "cover", // Održava proporcije slike
+              objectFit: "cover", 
             }}
           />
           <Grid
             sx={{
               display: "grid",
-              gridTemplateRows: "1fr 1fr 1fr", // Svaka linija unutar grida zauzima 1fr
-              gap: 0.5, // Razmak između redova
+              gridTemplateRows: "1fr 1fr 1fr", 
+              gap: 0.5, 
             }}
           >
             <Typography
@@ -62,22 +62,18 @@ export default function SlideCard({ courses }: SlideCardProps) {
               to={user ? `/courses/${courses[activeStep].id}`: `/login`}
               sx={{
                 width: "fit-content",
-                // whiteSpace: "nowrap", // Sprečava prelamanje linije
-                overflow: "hidden", // Sakriva tekst koji ne stane
-                textOverflow: "ellipsis", // Dodaje "..." kada tekst ne stane
-                fontSize: "clamp(0.8rem, 1.8vw, 1.2rem)", // Dinamički menja veličinu fonta u zavisnosti od širine ekrana
+                overflow: "hidden", 
+                textOverflow: "ellipsis", 
+                fontSize: "clamp(0.8rem, 1.8vw, 1.2rem)", 
                 fontFamily: "Raleway, sans-serif",
                 textDecoration: "none",
                 color: "text.primary",
                 fontWeight:"normal",
-
-
-                // backgroundColor: "red",
-                display: "-webkit-box", // Neophodno za multi-line truncation
-                WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                lineHeight: "1", // Podešava razmak između linija
-                height: "1em", // Fiksna visina: broj linija * lineHeight
+                display: "-webkit-box", 
+                WebkitBoxOrient: "vertical", 
+                WebkitLineClamp: 1, 
+                lineHeight: "1", 
+                height: "1em", 
                 "&:hover":{
                   color:"primary.main", 
                   fontWeight:"bolder",
@@ -123,10 +119,10 @@ export default function SlideCard({ courses }: SlideCardProps) {
             flexGrow: 1,
             padding: 0,
             "& .MuiMobileStepper-dot": {
-              backgroundColor: "background.paper", // Neaktivne tačkice
+              backgroundColor: "background.paper", 
             },
             "& .MuiMobileStepper-dotActive": {
-              backgroundColor: "common.black", // Aktivna tačkica
+              backgroundColor: "common.black", 
             },
           }}
           nextButton={

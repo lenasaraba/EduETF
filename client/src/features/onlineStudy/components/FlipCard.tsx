@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import {
   Box,
   Button,
@@ -47,7 +46,7 @@ const FlipCardInner = styled("div")<{ isFlipped: boolean }>(
     transition: "transform 1s",
     transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
     "&:hover": {
-      transform: isFlipped ? "rotateY(180deg)" : "rotateY(180deg)", // Hover efekat samo ako nije već flipped
+      transform: isFlipped ? "rotateY(180deg)" : "rotateY(180deg)", 
     },
   })
 );
@@ -99,7 +98,7 @@ export default function FlipCard({
 
   const status = useAppSelector((state) => state.course.status);
 
-  const [isFlipped, setIsFlipped] = useState(false); // State za kontrolu okretanja
+  const [isFlipped, setIsFlipped] = useState(false); 
 
   const [anchorElProf, setAnchorElProf] = useState<HTMLButtonElement | null>(
     null
@@ -137,15 +136,11 @@ export default function FlipCard({
 
   const idMenu = open ? "simple-popover" : undefined;
 
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped); // Ručno okretanje kartice
-  };
-
   const handleClick = (
     event: React.MouseEvent<HTMLElement>,
     course: Course
   ) => {
-    event.stopPropagation(); // Sprečava okretanje kartice
+    event.stopPropagation(); 
 
     setAnchorEl(event.currentTarget);
   };
@@ -184,11 +179,8 @@ export default function FlipCard({
   return (
     <>
       <FlipCardContainer
-      // onClick={handleFlip}
       >
         <FlipCardInner isFlipped={isFlipped}>
-          {/* Prednja strana kartice */}
-
           <FlipCardFront>
             <CourseCardMedia
               year={course.year}
@@ -222,9 +214,6 @@ export default function FlipCard({
               </Typography>
             </Box>
           </FlipCardFront>
-
-          {/* Zadnja strana kartice */}
-
           <FlipCardBack
             sx={{
               display: "flex",
@@ -253,7 +242,7 @@ export default function FlipCard({
                   <Box
                     aria-describedby={idMenu}
                     onClick={(event) => {
-                      event.stopPropagation(); // Sprečava okretanje kartice
+                      event.stopPropagation(); 
                       setIsFlipped(true);
                       handleClick(event, course);
                     }}
@@ -305,7 +294,7 @@ export default function FlipCard({
                   >
                     <Typography
                       onClick={(event) => {
-                        handleDeleteClick(event, "course", course);
+                        handleDeleteClick("course", course);
                       }}
                       variant="body2"
                       sx={{
@@ -442,28 +431,7 @@ export default function FlipCard({
                   >
                     Otvori
                   </Button>
-                )}
-              {/* 
-              {user &&
-                course.professorsCourse.some(
-                  (pc) => pc.user?.username === user.username
-                ) && (
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    sx={{
-                      fontSize: "clamp(8pt, 10pt, 12pt)",
-                      color: "common.onBackground",
-                      borderRadius: "15pt",
-                    }}
-                    onClick={(event) => {
-                      handleRemoveProfClick(event, course);
-                    }}
-                  >
-                    Napusti kurs
-                  </Button>
-                )} */}
-
+                )}             
               {user?.role === "Profesor" &&
                 !course.professorsCourse.some(
                   (pc) =>
@@ -471,13 +439,6 @@ export default function FlipCard({
                     pc.withdrawDate == null
                 ) && (
                   <Button
-                    // onClick={(event) => {
-                    //   event.stopPropagation();
-
-                    //   setAnchorElProf(event.currentTarget);
-
-                    //   setOpenProf(true);
-                    // }}
                     onClick={handleClickProfessor("right-start")}
                     size="small"
                     sx={{
@@ -496,27 +457,6 @@ export default function FlipCard({
                     Prikaži profesore
                   </Button>
                 )}
-              {/* 
-              {user &&
-                course.professorsCourse.some(
-                  (pc) =>
-                    pc.user.username === user.username &&
-                    pc.withdrawDate == null
-                ) && (
-                  <LoadingButton
-                    variant="contained"
-                    color="error"
-                    sx={{
-                      fontSize: "clamp(8pt, 10pt, 12pt)",
-                      borderRadius: "15pt",
-                    }}
-                    onClick={(event) => {
-                      handleDeleteClick(event, "course", course);
-                    }}
-                  >
-                    Obriši kurs
-                  </LoadingButton>
-                )} */}
             </Box>
           </FlipCardBack>
         </FlipCardInner>

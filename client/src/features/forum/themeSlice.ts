@@ -34,9 +34,6 @@ const initialState: ThemeState = {
 
 function initParams() {
   return {
-    // pageNumber: 1,
-    // pageSize: 6,
-    // orderBy: "name",
     type: "all",
     category: "all",
     themeStatus: "all",
@@ -64,10 +61,8 @@ export const fetchThemesAsync = createAsyncThunk<
   const params = getAxiosParams(thunkAPI.getState().theme.themesParams);
   try {
     const themes = await agent.Theme.getAll(params);
-    // thunkAPI.dispatch(setThemes(themes));
     return themes;
   } catch (error: any) {
-    console.log(error.data);
     return thunkAPI.rejectWithValue({ error: error.data });
   }
 });
@@ -77,11 +72,8 @@ export const fetchThemeByIdAsync = createAsyncThunk<Theme, number>(
   async (id, thunkAPI) => {
     try {
       const theme = await agent.Theme.getTheme(id);
-      console.log(theme);
       return theme;
     } catch (error: any) {
-      console.log(error);
-      console.log(error.data);
       return thunkAPI.rejectWithValue({ error: error.data });
     }
   }
@@ -102,10 +94,8 @@ export const createThemeAsync = createAsyncThunk<Theme, CreateTheme>(
   "messages/createTheme",
   async (newTheme, thunkAPI) => {
     try {
-      console.log(newTheme.date);
       const response = await agent.Theme.create(newTheme);
-      console.log(response);
-      return response.data; // Ovo vraća listu poruka sa servera
+      return response.data; 
     } catch (error: unknown) {
       return thunkAPI.rejectWithValue(error);
     }
@@ -121,10 +111,7 @@ export const updateThemeStatus = createAsyncThunk<Theme, UpdateThemeDto>(
   "theme/updateTheme",
   async (themeData, thunkAPI) => {
     try {
-
-      console.log("theme slice")
-      const themeDto = await agent.Theme.updateTheme(themeData); // Pozivanje agenta sa parametrima
-      console.log(themeDto);
+      const themeDto = await agent.Theme.updateTheme(themeData); 
       return themeDto;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(error.message);
@@ -153,12 +140,10 @@ export const themeSlice = createSlice({
       state.themes = action.payload;
     },
     setThemesParams: (state, action) => {
-      // state.themesLoaded = false;
       state.themesParams = {
         ...state.themesParams,
         ...action.payload,
       };
-      // console.log(state.themesParams);
     },
     resetThemesParams: (state) => {
       state.themesParams = initParams();
@@ -181,7 +166,6 @@ export const themeSlice = createSlice({
       state.status = "pendingFetchFilters";
     });
     builder.addCase(fetchFilters.fulfilled, (state, action) => {
-      // console.log(action.payload);
       state.category = action.payload.categories;
       state.themeStatus = action.payload.activeStatus;
       state.status = "idle";
@@ -189,14 +173,12 @@ export const themeSlice = createSlice({
     });
     builder.addCase(fetchFilters.rejected, (state, action) => {
       state.status = "idle";
-      console.log(action.payload);
     });
     builder.addCase(fetchThemesAsync.pending, (state) => {
       state.status = "pendingFetchThemes";
       state.themesLoaded = false;
     });
     builder.addCase(fetchThemesAsync.rejected, (state) => {
-      //state.loading = false;
       state.status = "idle";
     });
     builder.addCase(fetchThemesAsync.fulfilled, (state, action) => {
@@ -212,13 +194,6 @@ export const themeSlice = createSlice({
     });
     builder.addCase(updateThemeStatus.fulfilled, (state, action) => {
       state.status = "idle";
-
-      //OVO SAM ZAKOMENTARISALA JER IZ NEPOZNATNOG RAZLOGA UTICE NA ISTU FJU U PROF SLICE
-
-      // !!!!!!!!!!!!!
-
-
-
       
       const index = state.themes?.findIndex(
         (theme) => theme.id === action.payload.id
@@ -253,8 +228,6 @@ export const themeSlice = createSlice({
       state.currentThemeLoaded = true;
     });
     builder.addCase(fetchThemeByIdAsync.rejected, (state, action) => {
-      console.log(action.payload);
-
       if (action.payload.error?.status == 401)
         state.status = "rejectedUnauthorized";
       else if (action.payload.error?.status == 404)

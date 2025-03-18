@@ -9,10 +9,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { Box } from "@mui/system";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { CreateForm, CreateOption } from "../../../app/models/form";
-import { Form } from "../../../app/models/theme";
+import { CreateForm } from "../../../app/models/form";
 import {
   useAppDispatch,
   useAppSelector,
@@ -26,7 +24,7 @@ import { LoadingButton } from "@mui/lab";
 interface Props {
   courseId?: number;
   messageId?: number;
-  setIsCreatingForm: (value: boolean) => void; // Funkcija za ažuriranje upita
+  setIsCreatingForm: (value: boolean) => void; 
   setNewForms?: (
     value: CreateForm[] | ((prevForms: CreateForm[]) => CreateForm[])
   ) => void;
@@ -38,28 +36,19 @@ export default function AddNewForm({
   setNewForms,
 }: Props) {
   const dispatch = useAppDispatch();
-  //   const user = useAppSelector((state) => state.account.user);
-  console.log(messageId);
   const theme = useTheme();
 
-  //   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
-  //   const [isCreatingForm, setIsCreatingForm] = useState(false); // Stanje za prikaz forme
-  //   const [question, setQuestion] = useState(""); // Stanje za pitanje
-  //   const [endDate, setEndDate] = useState<Date | null>(null); // Stanje za datum zatvaranja
-  //   const [isMultipleAnswer, setIsMultipleAnswer] = useState(false); // Stanje za tip ankete
-  //   const [options, setOptions] = useState<CreateOption[]>([]); // Stanje za opcije
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const status = useAppSelector((state) => state.form.status);
 
   interface FormData {
     topic: string;
     endDate: string;
     options: { text: string }[];
-    multipleAnswer?: boolean; // Opciono polje, može biti boolean ili undefined
+    multipleAnswer?: boolean; 
   }
 
   const methods = useForm<FormData>({
-    mode: "all", // Validacija na svaku promjenu
+    mode: "all",
     resolver: yupResolver(formValidation),
     defaultValues: {
       topic: "",
@@ -75,15 +64,12 @@ export default function AddNewForm({
     setValue,
     getValues,
     reset,
-    setError,
-    register,
     trigger,
     formState: { errors },
   } = methods;
 
   const onSubmit = async (data: FormData) => {
     if (messageId != 0) {
-      setIsSubmitted(true);
       const isValid = await trigger();
       if (!isValid) return;
 
@@ -96,11 +82,7 @@ export default function AddNewForm({
           courseId: courseId ? courseId : null,
         };
 
-        console.log("Nova anketa:", newForm);
-
         await dispatch(createForm(newForm)).unwrap();
-
-        console.log("Anketa uspješno kreirana");
 
         setIsCreatingForm(false);
 
@@ -128,15 +110,15 @@ export default function AddNewForm({
   const handleAddOption = () => {
     const currentOptions = getValues("options");
     const newOptions = [...currentOptions, { text: "" }];
-    setValue("options", newOptions, { shouldValidate: false }); // Dodaj opciju bez validacije
+    setValue("options", newOptions, { shouldValidate: false });
     trigger("options");
   };
 
   const handleRemoveOption = (index: number) => {
     const currentOptions = getValues("options");
     const newOptions = currentOptions.filter((_, i) => i !== index);
-    setValue("options", newOptions); // Ažurirajte stanje forme
-    trigger("options"); // Obavijestite react-hook-form da je došlo do promjene
+    setValue("options", newOptions); 
+    trigger("options"); 
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -166,8 +148,6 @@ export default function AddNewForm({
                 fullWidth
                 error={!!errors.topic}
                 helperText={errors.topic?.message}
-                // value={question}
-                // onChange={(e) => setQuestion(e.target.value)}
                 sx={{ mb: 2 }}
               />
             )}
@@ -190,7 +170,7 @@ export default function AddNewForm({
                 error={!!errors.endDate}
                 helperText={errors.endDate?.message}
                 inputProps={{
-                  min: new Date().toISOString().split("T")[0], // Postavi minimalni datum na današnji datum
+                  min: new Date().toISOString().split("T")[0], 
                 }}
               />
             )}
@@ -205,7 +185,7 @@ export default function AddNewForm({
                 control={
                   <Checkbox
                     {...field}
-                    checked={field.value || false} // Ako je undefined, koristimo false
+                    checked={field.value || false} 
                     onChange={(e) => field.onChange(e.target.checked)}
                   />
                 }
@@ -219,7 +199,7 @@ export default function AddNewForm({
         </Typography>
         {getValues("options").map((option, index) => (
           <Box
-            key={index} // Dodajte key atribut
+            key={index} 
             sx={{ mb: 2, display: "flex", alignItems: "center" }}
           >
             <Controller
@@ -238,15 +218,13 @@ export default function AddNewForm({
             />
             <Button
               onClick={() => handleRemoveOption(index)}
-              // variant="outlined"
               color="error"
               sx={{
-                borderRadius: "8px", // Zaobljene ivice
-                textTransform: "none", // Bez velikih slova
+                borderRadius: "8px", 
+                textTransform: "none", 
                 height: "10vh",
                 "&:hover": {
                   backgroundColor: "transparent",
-                  // Hover efekat
                 },
               }}
             >
@@ -254,7 +232,6 @@ export default function AddNewForm({
                 sx={{
                   "&:hover": {
                     color: "darkred",
-                    // Hover efekat
                   },
                   mb: 1,
                 }}
@@ -270,10 +247,10 @@ export default function AddNewForm({
             sx={{
               backgroundColor: "primary.main",
               color: "white",
-              borderRadius: "8px", // Zaobljene ivice
-              textTransform: "none", // Bez velikih slova
+              borderRadius: "8px", 
+              textTransform: "none", 
               "&:hover": {
-                backgroundColor: "primary.dark", // Hover efekat
+                backgroundColor: "primary.dark",
               },
             }}
           >
@@ -289,25 +266,20 @@ export default function AddNewForm({
           }}
         >
           <Button
-            type="button" // Ovo je važno da se formular ne pošalje pritiskom na ovo dugme
+            type="button" 
             variant="outlined"
             color="secondary"
             onClick={() => {
               reset();
-              setIsCreatingForm(false); // Zatvori formu
-              //VRATITI SE NA OVO
-              //   topOfPageRef.current?.scrollIntoView({
-              //     behavior: "smooth",
-              //     block: "start",
-              //   }); // Vrati na vrh
+              setIsCreatingForm(false);             
             }}
             sx={{
-              borderRadius: "8px", // Zaobljene ivice
-              textTransform: "none", // Bez velikih slova
+              borderRadius: "8px", 
+              textTransform: "none", 
               borderColor: "text.secondaryChannel",
               color: "text.secondaryChannel",
               "&:hover": {
-                backgroundColor: "secondary.light", // Hover efekat
+                backgroundColor: "secondary.light", 
               },
             }}
           >
@@ -319,19 +291,18 @@ export default function AddNewForm({
             variant="contained"
             disabled={!methods.formState.isValid}
             loadingIndicator={
-              <CircularProgress size={18} sx={{ color: "white" }} /> // Ovdje mijenjaš boju
+              <CircularProgress size={18} sx={{ color: "white" }} /> 
             }
             sx={{
               backgroundColor: "primary.main",
               color: "white",
-              borderRadius: "8px", // Zaobljene ivice
-              textTransform: "none", // Bez velikih slova
+              borderRadius: "8px", 
+              textTransform: "none", 
               "&:hover": {
-                backgroundColor: "primary.dark", // Hover efekat
+                backgroundColor: "primary.dark", 
               },
             }}
           >
-            {" "}
             {messageId == 0 ? "Sačuvaj" : "Dodaj anketu"}
           </LoadingButton>
         </Box>

@@ -1,6 +1,4 @@
 import {
-  Card,
-  CardContent,
   Typography,
   FormControl,
   FormControlLabel,
@@ -21,26 +19,21 @@ interface FormVoteProps {
   form: Form;
   IsTheme?: boolean;
 
-  //   onSubmitVote: (selectedOptions: number[]) => void;
 }
 
 export default function FormVote({ form, IsTheme }: FormVoteProps) {
-  // State za čuvanje izabranih opcija
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
   const user = useAppSelector((state) => state.account.user);
-  // Funkcija za ažuriranje izabranih opcija
   const dispatch = useAppDispatch();
   const handleOptionChange = (optionId: number) => {
     if (form.multipleAnswer) {
-      // Ako je višestruki izbor, dodaj ili ukloni opciju
       setSelectedOptions(
         (prev) =>
           prev.includes(optionId)
-            ? prev.filter((id) => id !== optionId) // Ukloni opciju
-            : [...prev, optionId] // Dodaj opciju
+            ? prev.filter((id) => id !== optionId)
+            : [...prev, optionId] 
       );
     } else {
-      // Ako je jednostruki izbor, postavi samo jednu opciju
       setSelectedOptions([optionId]);
     }
   };
@@ -74,17 +67,14 @@ export default function FormVote({ form, IsTheme }: FormVoteProps) {
     return false;
   };
 
-  // Funkcija za predaju glasa
   const handleSubmit = async () => {
-    // onSubmitVote(selectedOptions);
     console.log(selectedOptions);
     await dispatch(vote(selectedOptions));
 
-    setSelectedOptions([]); // Resetuj izabrane opcije nakon glasanja
+    setSelectedOptions([]);
   };
 
   function getCheckedState(optionId: number): boolean {
-    // Pronađi opciju gde je korisnik već glasao
     const userHasVoted = form.options.some((option) =>
       option.usersOption.some(
         (userOption) =>
@@ -92,7 +82,6 @@ export default function FormVote({ form, IsTheme }: FormVoteProps) {
       )
     );
 
-    // Ako je korisnik glasao za ovu opciju, vrati true, inače koristi selectedOptions.includes(optionId)
     return userHasVoted || selectedOptions.includes(optionId);
   }
 
@@ -132,12 +121,11 @@ export default function FormVote({ form, IsTheme }: FormVoteProps) {
         </Box>
 
         <FormControl component="fieldset" fullWidth>
-          {[...form.options] // Pravi plitku kopiju niza
+          {[...form.options] 
             .sort((a, b) => a.id - b.id)
             .map((option) => (
               <div key={option.id}>
                 {form.multipleAnswer ? (
-                  // Checkbox za višestruki izbor
                   <FormControlLabel
                     control={
                       <Checkbox
@@ -150,14 +138,13 @@ export default function FormVote({ form, IsTheme }: FormVoteProps) {
                       option.text +
                       (user &&
                       ((user.role === "Profesor" &&
-                        (form.courseId || form.user.id == user.id)) ||
+                        (form.courseId || form.user?.id == user.id)) ||
                         (user.role == "Student" && form.user?.id == user.id))
                         ? ` (${option.usersOption.length} glasalo)`
                         : "")
                     }
                   />
                 ) : (
-                  // Radio button za jednostruki izbor
                   <FormControlLabel
                     control={
                       <Radio
@@ -168,7 +155,10 @@ export default function FormVote({ form, IsTheme }: FormVoteProps) {
                     }
                     label={
                       option.text +
-                      (user && user.role === "Profesor"
+                      (user &&
+                      ((user.role === "Profesor" &&
+                        (form.courseId || form.user?.id == user.id)) ||
+                        (user.role == "Student" && form.user?.id == user.id))
                         ? ` (${option.usersOption.length} glasalo)`
                         : "")
                     }

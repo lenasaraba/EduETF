@@ -29,7 +29,6 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
     backgroundColor: theme.palette.secondary.main,
     "&:hover": {
       backgroundColor: "transparent",
-      // cursor: "pointer",
       border: "1px solid",
       borderColor: theme.palette.background.paper,
     },
@@ -102,23 +101,23 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
                 textDecoration: "none",
 
                 overflow: "hidden",
-                display: "-webkit-box", // Neophodno za multi-line truncation
-                WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-                WebkitLineClamp: 1, // Maksimalan broj linija (menjajte po potrebi)
-                lineHeight: "1.2", // Podešava razmak između linija
-                height: "1.2em", // Fiksna visina: broj linija * lineHeight
-                textOverflow: "ellipsis", // Dodaje tri tačke
+                display: "-webkit-box", 
+                WebkitBoxOrient: "vertical", 
+                WebkitLineClamp: 1, 
+                lineHeight: "1.2",
+                height: "1.2em", 
+                textOverflow: "ellipsis", 
 
-                color: "text.primary", // Koristi boju teksta iz roditeljskog elementa
+                color: "text.primary", 
                 "&:visited": {
-                  color: "text.primary", // Zadrži istu boju za visited linkove
+                  color: "text.primary",
                 },
                 "&:hover": {
-                  color: "primary.main", // Zadrži istu boju pri hover-u
+                  color: "primary.main", 
                   cursor: "pointer",
                 },
                 "&:active": {
-                  color: "text.primary", // Zadrži istu boju pri aktivnom linku
+                  color: "text.primary", 
                 },
               }}
             >
@@ -138,23 +137,17 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
           </Box>
         </Box>
         <CardContent>
-          {/* <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ fontSize: "clamp(9pt, 10pt, 11pt)" }}
-          >
-            Opis: <br />{" "}
-          </Typography> */}
+         
           <Typography
             sx={{
               color: "text.primary",
-              overflow: "hidden", // Sakriva sadržaj koji prelazi kontejner
-              display: "-webkit-box", // Neophodno za multi-line truncation
-              WebkitBoxOrient: "vertical", // Omogućava višelinijski prikaz
-              WebkitLineClamp: 3, // Maksimalan broj linija (menjajte po potrebi)
-              lineHeight: "1", // Podešava razmak između linija
-              height: "3em", // Fiksna visina: broj linija * lineHeight
-              textOverflow: "ellipsis", // Dodaje tri tačke
+              overflow: "hidden", 
+              display: "-webkit-box", 
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 3, 
+              lineHeight: "1", 
+              height: "3em", 
+              textOverflow: "ellipsis", 
               fontSize: "clamp(10pt, 11pt, 14pt)",
               mb: 2,
             }}
@@ -174,7 +167,6 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "flex-start",
-                // mt: 2,
               }}
             >
               {theme.user ? (
@@ -183,7 +175,6 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
                     sx={{
                       fontSize: "1rem",
                       color: "text.secondary",
-                      // mr: 0.5,
                     }}
                   />
 
@@ -205,7 +196,6 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
                     sx={{
                       fontSize: "1rem",
                       color: "gray",
-                      // mr: 0.5,
                     }}
                   />
                   <Typography
@@ -227,14 +217,12 @@ export default function ThemeCard({ theme }: ThemeCardProps) {
                 display: "flex",
                 alignItems: "flex-end",
                 justifyContent: "flex-start",
-                // mt: 2,
               }}
             >
               <ChatBubbleOutlineIcon
                 sx={{
                   fontSize: "1rem",
                   color: "text.secondary",
-                  // mr: 0.5,
                 }}
               />
               <Typography

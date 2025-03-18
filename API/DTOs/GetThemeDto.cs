@@ -12,7 +12,7 @@ namespace API.DTOs
         public string? Description { get; set; }
         public bool Active { get; set; }
         public DateTime Date { get; set; }
-        public UserDto User { get; set; } = default!; // Obavezno, jer uvek vraćaš korisnika koji je kreirao temu
+        public UserDto User { get; set; } = default!; 
         public GetThemeCourseDto? Course { get; set; } 
         public List<GetMessageDto>? Messages { get; set; }
     }

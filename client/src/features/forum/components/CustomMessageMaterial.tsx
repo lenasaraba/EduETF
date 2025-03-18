@@ -3,7 +3,7 @@ import { Box, Divider, useTheme } from "@mui/material";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import DescriptionIcon from "@mui/icons-material/Description";
 
-import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline"; // Play ikonica
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline"; 
 import { MessageMaterial } from "../../../app/models/theme";
 
 const MaterialComponent = ({
@@ -13,15 +13,14 @@ const MaterialComponent = ({
   const theme = useTheme();
 
   const renderContent = () => {
-    console.log({ ...material });
     switch (material.materialType.id) {
       case 1:
         return (
           <Box
             sx={{
-              width: "150px", // Fiksna širina
+              width: "150px", 
               height: "100%",
-              background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.dark} 90%)`, // Gradijent pozadina
+              background: `linear-gradient(45deg, ${theme.palette.primary.light} 30%, ${theme.palette.primary.dark} 90%)`, 
               borderRadius: "8px",
               display: "flex",
               justifyContent: "center",
@@ -46,7 +45,7 @@ const MaterialComponent = ({
             src={`http://localhost:5000/${material.filePath}`}
             alt={material.title}
             style={{
-              width: "150px", // Fiksna širina
+              width: "150px", 
               height: "100%",
               objectFit: "cover",
               borderRadius: "8px",
@@ -60,7 +59,7 @@ const MaterialComponent = ({
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              width: "150px", // Fiksna širina
+              width: "150px", 
               height: "100%",
               backgroundColor: theme.palette.primary.dark,
               borderRadius: "8px",
@@ -76,7 +75,7 @@ const MaterialComponent = ({
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              width: "150px", // Fiksna širina
+              width: "150px", 
               height: "100%",
               backgroundColor: theme.palette.primary.dark,
               borderRadius: "8px",
@@ -95,30 +94,27 @@ const MaterialComponent = ({
       sx={{
         display: "flex",
         flexDirection: "row",
-        // width: "100%",
         height: "15vh",
         borderRadius: "8px",
         overflow: "hidden",
         boxShadow: 2,
         "&:hover": {
           boxShadow: 6,
-          // cursor: "pointer",
         },
-        marginBottom: "16px", // Dodajemo marginu između elemenata
+        marginBottom: "16px",
         margin: 2,
         boxSizing: "border-box",
       }}
-      //   onClick={() => showFile(material)}
     >
       {renderContent()}
       <Box
         sx={{
-          flex: 1, // Omogućava da tekst zauzme preostali prostor
+          flex: 1,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           padding: "8px",
-          overflow: "hidden", // Sprečava prekoračenje teksta
+          overflow: "hidden", 
         }}
       >
        <a
@@ -127,7 +123,7 @@ const MaterialComponent = ({
   rel="noopener noreferrer"
   style={{
     textDecoration: "none",
-    color: "inherit", // Koristi boju roditeljskog elementa
+    color: "inherit",
   }}
 >
   <Typography
@@ -139,10 +135,10 @@ const MaterialComponent = ({
       display: "-webkit-box",
       WebkitLineClamp: 2,
       WebkitBoxOrient: "vertical",
-      color: "primary.main", // Postavite boju ovdje
+      color: "primary.main",
       "&:hover": {
         cursor: "pointer",
-        color: "primary.dark", // Boja na hover
+        color: "primary.dark", 
       },
     }}
   >
@@ -153,11 +149,11 @@ const MaterialComponent = ({
           variant="caption"
           sx={{
             color: "text.secondary",
-            whiteSpace: "normal", // Omogućava prelazak u novi red
+            whiteSpace: "normal", 
             overflow: "hidden",
             textOverflow: "ellipsis",
             display: "-webkit-box",
-            WebkitLineClamp: 2, // Ograničava na 2 reda
+            WebkitLineClamp: 2, 
             WebkitBoxOrient: "vertical",
           }}
         >
@@ -168,43 +164,24 @@ const MaterialComponent = ({
           })}
         </Typography>
       </Box>
-      {/* {isEditing && (
-        <IconButton
-          sx={{
-            alignSelf: "center", // Centrira ikonicu za brisanje
-            color: "error.main",
-          }}
-          onClick={(e) => {
-            e.stopPropagation(); // Sprečava propagaciju klikova na roditeljski element
-            handleDelete(material);
-          }}
-        >
-          <DeleteIcon />
-        </IconButton>
-      )} */}
+      
     </Box>
   );
 };
 
 interface ComponentProps {
   material: MessageMaterial;
-  //   showFile: (material: Material) => void;
-  //   handleDelete: (material: Material) => void;
-  //   isEditing: boolean;
+ 
 }
 
 interface Props {
   materials: MessageMaterial[];
-  //   showFile: (material: Material) => void;
-  //   handleDelete: (material: Material) => void;
-  //   isEditing: boolean;
+ 
 }
 
 export default function CustomMessageMaterial({
   materials,
-  //   showFile,
-  //   handleDelete,
-  //   isEditing,
+ 
 }: Props) {
   return (
     <Box
@@ -220,9 +197,7 @@ export default function CustomMessageMaterial({
             <MaterialComponent
               key={index}
               material={material}
-              //   showFile={showFile}
-              //   handleDelete={handleDelete}
-              //   isEditing={isEditing}
+             
             />
             <Divider sx={{ width: "100%", borderWidth: "1px" }} />
           </Box>

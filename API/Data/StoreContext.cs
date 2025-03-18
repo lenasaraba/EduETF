@@ -71,7 +71,6 @@ namespace API.Data
                 .HasForeignKey(p => p.ThemeId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            //PROVJERITI STA DA BUDE AKO SE OBRISE KORISNIK
             builder.Entity<Message>()
             .HasOne(m => m.User)
             .WithMany()
@@ -103,11 +102,6 @@ namespace API.Data
             .WithMany(u => u.FcmTokens)
             .HasForeignKey(ft => ft.UserId);
 
-// builder.Entity<Theme>()
-//     .HasOne(t => t.Course)
-//     .WithMany(c => c.Themes) // Veza mora biti eksplicitno definisana u Course modelu
-//     .HasForeignKey(t => t.CourseId)
-//     .OnDelete(DeleteBehavior.Cascade); 
         }
     }
 }

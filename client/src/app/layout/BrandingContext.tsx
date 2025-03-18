@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
 interface BrandingContextType {
-  branding: any; // Možeš promeniti tip ako znaš tačnu strukturu
+  branding: any; 
   setBranding: (branding: any) => void;
 }
 

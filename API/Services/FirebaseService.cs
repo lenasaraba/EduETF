@@ -15,16 +15,6 @@ namespace API.Services
     {
         private static FirebaseApp _firebaseApp;
 
-        // public FirebaseService()
-        // {
-        //     if (_firebaseApp == null || FirebaseApp.DefaultInstance == null)
-        //     {
-        //         _firebaseApp = FirebaseApp.Create(new AppOptions()
-        //         {
-        //             Credential = GoogleCredential.FromFile("./Firebase/eduetf-95ea5-080189fe0d38.json"),
-        //         });
-        //     }
-        // }
         public FirebaseService()
         {
             _firebaseApp = FirebaseApp.DefaultInstance;

@@ -4,10 +4,8 @@ import {
   Divider,
   LinearProgress,
   Button,
-  useTheme,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-// import CloseIcon from '@mui/icons-material/Close';
 
 import { Grid, Box } from "@mui/system";
 import { Link } from "react-router-dom";
@@ -59,17 +57,9 @@ export default function FormPage() {
   const forms = useAppSelector((state) => state.form.forms);
   const formsLoaded = useAppSelector((state) => state.form.formsLoaded);
   const status = useAppSelector((state) => state.form.status);
-  const theme = useTheme();
 
-  // const [selectedForm, setSelectedForm] = useState<Form | null>(null);
-  const [isCreatingForm, setIsCreatingForm] = useState(false); // Stanje za prikaz forme
-  // const [question, setQuestion] = useState(""); // Stanje za pitanje
-  // const [endDate, setEndDate] = useState<Date | null>(null); // Stanje za datum zatvaranja
-  // const [isMultipleAnswer, setIsMultipleAnswer] = useState(false); // Stanje za tip ankete
-  // const [options, setOptions] = useState<CreateOption[]>([]); // Stanje za opcije
-
+  const [isCreatingForm, setIsCreatingForm] = useState(false);
   const topOfPageRef = useRef<HTMLDivElement>(null);
-  //   const createFormRef = useRef<HTMLDivElement>(null); // Ref za box za kreiranje ankete
 
   useEffect(() => {
     if (topOfPageRef.current) {
@@ -90,7 +80,7 @@ export default function FormPage() {
           block: "start",
         });
       }
-    }, 100); // Mali timeout kako bi se osiguralo da se forma prvo prikaže
+    }, 100); 
   };
 
   useEffect(() => {
@@ -163,11 +153,6 @@ export default function FormPage() {
           <div
             style={
               {
-                //   marginTop: "32px",
-                //   marginBottom: "32px",
-                //   display: "flex",
-                //   justifyContent: "space-between",
-                //   alignItems: "center",
               }
             }
           >
@@ -197,7 +182,7 @@ export default function FormPage() {
               {user && !isCreatingForm && (
                 <Button
                   title="Dodaj anketu"
-                  onClick={handleShowCreateForm} // Koristimo novu funkciju
+                  onClick={handleShowCreateForm} 
                   sx={{
                     backgroundColor: "primary.dark",
                     color: "white",
@@ -237,7 +222,6 @@ export default function FormPage() {
             forms && <FormTable forms={forms} />
           )}
 
-          {/* <div id="createFooormElement"> */}
           {isCreatingForm && (
             <AddNewForm setIsCreatingForm={setIsCreatingForm} />
           )}

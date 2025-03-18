@@ -12,7 +12,6 @@ export default function Unauthorized() {
       }}
     >
       <Paper
-        // elevation={8}
         sx={{
           display: "flex",
           flexDirection: "column",

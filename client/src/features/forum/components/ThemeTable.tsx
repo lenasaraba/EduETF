@@ -471,7 +471,6 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
           value={statusValue}
           onChange={(event, value) => {
             if (value !== prevStatusValue.current) {
-              console.log("Promenjena selektovana vrednost!");
               setStatusValue(value || "");
               dispatch(setThemesParams({ themeStatus: value }));
               dispatch(fetchThemesAsync());
@@ -529,7 +528,6 @@ export default function ThemeTable({ themeM }: ThemeTableProps) {
           placeholder="Kategorija"
           onChange={(event, value) => {
             if (value !== prevCatValue.current) {
-              console.log("Promenjena selektovana kategorija!");
               setCatValue(value || "");
               dispatch(setThemesParams({ category: value }));
               dispatch(fetchThemesAsync());

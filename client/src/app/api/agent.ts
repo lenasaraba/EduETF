@@ -76,7 +76,6 @@ const Course = {
   deleteMaterial: (id: number) =>
     requests.delete(`course/DeleteMaterial/${id}`),
   upload: (file: File, courseId: number, weekNumber: number) => {
-    console.log(courseId, weekNumber);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("courseId", courseId.toString());
@@ -131,6 +130,7 @@ const Theme = {
     requests.get(`theme/getProfessorThemes/${id}`),
   deleteTheme: (id: number) => requests.delete(`theme/DeleteTheme/${id}`),
   getTheme: (id: number) => requests.get(`theme/GetTheme/${id}`),
+  getThemeByMessageId :(messageId:number)=>requests.get(`theme/GetThemeByMessageId/${messageId}`),
 };
 const Message = {
   getAll: (id: number) => requests.get(`theme/GetAllMessages/${id}`),

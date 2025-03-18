@@ -366,7 +366,7 @@ export default function Theme() {
     if (status === "rejectedNotFound") {
       return <NotFound />;
     }
-    return <LoadingComponent message="Učitavanje teme..." />;
+    return <LoadingComponent/>;
   }
 
   const handleFileAttach = () => {
@@ -466,7 +466,7 @@ export default function Theme() {
         status === "rejectedNotFound" ? (
           <NotFound />
         ) : (
-          <LoadingComponent message="Učitavanje teme..." />
+          <LoadingComponent/>
         )
       ) : (
         <>
@@ -1357,7 +1357,8 @@ export default function Theme() {
                                                 return (
                                                   <Box
                                                     key={index}
-                                                    sx={{ marginTop: 1 }}
+                                                    sx={{ marginTop: 1,  display: "flex",
+                                                      justifyContent: "center",flexDirection:"column", alignItems:"center" }}
                                                   >
                                                     <video
                                                       controls

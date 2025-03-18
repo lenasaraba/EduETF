@@ -40,6 +40,7 @@ import {
   Modal,
 } from "@mui/material";
 import {
+  BuildOutlined,
   EditNote,
   ExpandLess,
   ExpandMore,
@@ -217,7 +218,6 @@ export default function Course() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
     };
     const fileExtension = filePath.split(".").pop()?.toLowerCase();
     const fileUrl = `http://localhost:5000//${filePath}`;
@@ -452,7 +452,6 @@ export default function Course() {
     (state) => state.course.currentCourseMaterials
   );
 
-
   const [openWeeks, setOpenWeeks] = useState<boolean[]>([]);
   const [addingWeek, setAddingWeek] = useState(false);
   const [editingWeek, setEditingWeek] = useState(false);
@@ -536,7 +535,7 @@ export default function Course() {
   };
 
   const handleExpand = (formId: number) => {
-    setExpandedFormId((prev) => (prev === formId ? null : formId)); 
+    setExpandedFormId((prev) => (prev === formId ? null : formId));
   };
 
   const getTotalVotes = (form: Form) => {
@@ -679,7 +678,7 @@ export default function Course() {
 
   const theme = useTheme();
 
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md")); 
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("md"));
 
   const showFile = (material: Material) => {
     setFileVisible(true);
@@ -687,14 +686,14 @@ export default function Course() {
   };
   const hideFile = () => {
     setFileVisible(false);
-    setCurrentMat(undefined); 
+    setCurrentMat(undefined);
   };
 
   const handleFileClick = (material: Material) => {
     if (isSmallScreen) {
-      window.open(`http://localhost:5000/${material.filePath}`, "_blank"); 
+      window.open(`http://localhost:5000/${material.filePath}`, "_blank");
     } else {
-      showFile(material); 
+      showFile(material);
     }
   };
 
@@ -721,7 +720,6 @@ export default function Course() {
   ];
 
   const handleSelectProfessor = (professor: Professor) => {
-
     if (course && professor)
       dispatch(
         addProfessorToCourse({
@@ -730,7 +728,7 @@ export default function Course() {
         })
       );
 
-    setOpenProf(false); 
+    setOpenProf(false);
   };
 
   if (id === undefined) {
@@ -821,7 +819,7 @@ export default function Course() {
                         transition: "transform 0.3s ease",
                         "&:hover": {
                           transform: "scale(1.2)",
-                          color: "primary.dark", 
+                          color: "primary.dark",
                         },
                       }}
                     />
@@ -834,7 +832,7 @@ export default function Course() {
                       fontSize: 12,
                       fontWeight: 500,
                       "&:hover": {
-                        color: "primary.dark", 
+                        color: "primary.dark",
                       },
                       fontFamily: "Raleway, sans-serif",
                     }}
@@ -913,7 +911,7 @@ export default function Course() {
                         </Typography>
                         <Divider sx={{ borderColor: "primary.main" }} />
                         <Typography
-                          onClick={handleDeleteClick} 
+                          onClick={handleDeleteClick}
                           variant="body2"
                           sx={{
                             paddingX: 2,
@@ -1467,15 +1465,17 @@ export default function Course() {
                     (pc) => pc.user.username === user.username
                   ) && (
                     <Box display="flex" alignItems="center">
-                                {showPassword ? course.password : "••••••"}
+                      {showPassword ? course.password : "••••••"}
 
-
-                      <IconButton title={showPassword ? "Sakrij lozinku":"Prikaži lozinku"}
+                      <IconButton
+                        title={
+                          showPassword ? "Sakrij lozinku" : "Prikaži lozinku"
+                        }
                         onClick={togglePasswordVisibility}
                         size="small"
-                        sx={{color:"primary.dark"}}
+                        sx={{ color: "primary.dark" }}
                       >
-                        {showPassword ? <VisibilityOff/> : <Visibility />}
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </Box>
                   )}
@@ -1548,16 +1548,28 @@ export default function Course() {
                               <ListItem key={prof.id} disablePadding>
                                 <ListItemButton
                                   onClick={() => handleSelectProfessor(prof)}
+                                  sx={{
+                                    "&:hover": {
+                                      backgroundColor: "transparent",
+                                    },
+                                  }}
                                 >
+                                
                                   <ListItemText
+                                    sx={{
+                                      "&:hover": {
+                                        color: "primary.dark",
+                                      },
+                                      color: "text.primary",
+                                      typography: { fontSize: "0.875rem" }, 
+                                    }}
                                     primary={
-                                      prof.firstName +
-                                      " " +
-                                      prof.lastName +
-                                      " (" +
-                                      prof.username +
-                                      ") - " +
-                                      prof.email
+                                      <>
+                                        <Typography variant="body2"> {`${prof.firstName} ${prof.lastName} •`}</Typography>
+                                        <Typography variant="caption">
+                                          {prof.email}
+                                        </Typography>
+                                      </>
                                     }
                                   />
                                 </ListItemButton>

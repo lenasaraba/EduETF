@@ -18,7 +18,6 @@ const firebaseConfig = {
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  console.log('Imate novu poruku:', payload);
   const notificationTitle = payload.notification?.title || 'Nova poruka';
   const notificationOptions = {
     body: payload.notification?.body || 'Imate novu poruku!',

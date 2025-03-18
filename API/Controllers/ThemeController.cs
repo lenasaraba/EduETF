@@ -144,6 +144,23 @@ namespace API.Controllers
             return Ok(_mapper.Map<GetThemeDto>(theme));
 
         }
+
+
+        [HttpGet("GetThemeByMessageId/{id}")]
+        public async Task<ActionResult<GetThemeDto>> GetThemeByMessageId(int id)
+        {
+            var message=await _context.Messages.Where(m=>m.Id==id).FirstOrDefaultAsync();
+            var themeId=message.ThemeId;
+            var theme = await _context.Themes.Include(u => u.User).Include(c => c.Course).ThenInclude(y => y.Year).Include(c => c.Course).ThenInclude(s => s.StudyProgram).Include(c => c.Course).ThenInclude(p => p.ProfessorsCourse).ThenInclude(u => u.User).Include(c => c.Course).ThenInclude(u => u.UsersCourse).ThenInclude(uu => uu.User).FirstOrDefaultAsync(t => t.Id == themeId);
+            if (theme == null)
+            {
+                return NotFound();
+            }
+            return Ok(_mapper.Map<GetThemeDto>(theme));
+
+        }
+
+
         [HttpGet("getProfessorThemes/{id}")]
         public async Task<ActionResult<List<GetThemeDto>>> GetProfessorThemes(int id)
         {

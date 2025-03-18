@@ -1,7 +1,6 @@
 import {
   createAsyncThunk,
   createSlice,
-  isAction,
   PayloadAction,
 } from "@reduxjs/toolkit";
 import { CreateTheme, Theme, ThemesParams } from "../../app/models/theme";
@@ -18,6 +17,7 @@ export interface ThemeState {
   category: string[];
   themeStatus: string[];
   currentThemeLoaded: boolean;
+  themeWithForm:Theme|null;
 }
 
 const initialState: ThemeState = {
@@ -30,6 +30,7 @@ const initialState: ThemeState = {
   category: [],
   themeStatus: [],
   currentThemeLoaded: false,
+  themeWithForm:null,
 };
 
 function initParams() {
@@ -78,6 +79,19 @@ export const fetchThemeByIdAsync = createAsyncThunk<Theme, number>(
     }
   }
 );
+
+export const fetchThemeByMessageIdAsync = createAsyncThunk<Theme, number>(
+  "theme/fetchThemeByMessageIdAsync",
+  async (messageId, thunkAPI) => {
+    try {
+      const theme = await agent.Theme.getThemeByMessageId(messageId);
+      return theme;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
+  }
+);
+
 
 export const fetchFilters = createAsyncThunk(
   "theme/fetchFilters",
@@ -217,6 +231,14 @@ export const themeSlice = createSlice({
     builder.addCase(deleteThemeAsync.rejected, (state) => {
       state.status = "rejectedDelete";
     });
+    builder.addCase(fetchThemeByMessageIdAsync.pending, (state) => {
+      state.status = "pendingFetchThemeByMessageIdAsync";
+    });
+    builder.addCase(fetchThemeByMessageIdAsync.fulfilled, (state, action) => {
+      state.status = "idle";
+      state.themeWithForm = action.payload;
+    });
+
     builder.addCase(fetchThemeByIdAsync.pending, (state) => {
       state.status = "pendingFetchThemeByIdAsync";
       state.currentTheme = null;

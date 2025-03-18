@@ -7,13 +7,14 @@ import {
   Button,
   Box,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form } from "../../../app/models/form";
 import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
 import { vote } from "../formSlice";
+import { fetchThemeByMessageIdAsync } from "../../forum/themeSlice";
 
 interface FormVoteProps {
   form: Form;
@@ -24,6 +25,8 @@ interface FormVoteProps {
 export default function FormVote({ form, IsTheme }: FormVoteProps) {
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
   const user = useAppSelector((state) => state.account.user);
+  const themeWithForm = useAppSelector((state) => state.theme.themeWithForm);
+
   const dispatch = useAppDispatch();
   const handleOptionChange = (optionId: number) => {
     if (form.multipleAnswer) {
@@ -40,6 +43,8 @@ export default function FormVote({ form, IsTheme }: FormVoteProps) {
 
   const disableOption = () => {
     if (user) {
+      if(!themeWithForm?.active) return true;
+      else{
       if (
         user.role == "Profesor" &&
         (form.courseId ||
@@ -64,13 +69,16 @@ export default function FormVote({ form, IsTheme }: FormVoteProps) {
       if (currentDate > formEndDate) return true;
       return false;
     }
+    }
     return false;
   };
 
-  const handleSubmit = async () => {
-    console.log(selectedOptions);
-    await dispatch(vote(selectedOptions));
+  useEffect(()=>{
+    dispatch(fetchThemeByMessageIdAsync(form.messageId));
+  }, [form])
 
+  const handleSubmit = async () => {
+    await dispatch(vote(selectedOptions));
     setSelectedOptions([]);
   };
 

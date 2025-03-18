@@ -22,7 +22,7 @@ import GroupsTwoToneIcon from "@mui/icons-material/GroupsTwoTone";
 import SummarizeIcon from "@mui/icons-material/Summarize";
 import { requestForToken } from "../../../firebase-initialize";
 
-import "./app.css"; //
+import "./app.css"; 
 import { BrandingContext } from "./BrandingContext";
 
 const BRANDINGL = {

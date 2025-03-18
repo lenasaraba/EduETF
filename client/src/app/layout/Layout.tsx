@@ -256,7 +256,6 @@ export default function Layout() {
         padding: 0,
       }}
       defaultSidebarCollapsed
-      // children={}
       slots={{
         toolbarActions: sideMenu,
         toolbarAccount: () => null,

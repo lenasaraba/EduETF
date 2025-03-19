@@ -497,4 +497,5 @@ API/wwwroot
 # Firebase Service Account Key
 API/Firebase/eduetf-95ea5-080189fe0d38.json
 client/authConfig.js
-
+client/public/firebase-messaging-sw.js
+client/firebase-initialize.ts
